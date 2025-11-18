@@ -1,0 +1,6 @@
+src/mock/*
+src/tests/*
+src/periphery/*
+src/interfaces/*
+src/external/interfaces.cairo
+
