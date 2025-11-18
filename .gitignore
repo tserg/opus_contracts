@@ -6,6 +6,9 @@ workspace.code-workspace
 target/
 
 .snfoundry_cache/
+snfoundry_cache/
+coverage.lcov
+coverage_report/
 
 scripts/deployment/deploy_devnet_alpha-sepolia_state.json
 scripts/deployment/upgrade_fdp_devnet_alpha-sepolia_state.json
