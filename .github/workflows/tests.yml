@@ -1,4 +1,4 @@
-name: Cairo tests
+name: Cairo tests and coverage
 
 on:
   push:
@@ -15,10 +15,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
       - run: scarb fmt --workspace --check
       - run: scarb build
 
       - uses: foundry-rs/setup-snfoundry@v3
-      - run: snforge test
+
+      - name: Install cairo-coverage
+        run: curl -L https://raw.githubusercontent.com/software-mansion/cairo-coverage/main/scripts/install.sh | sh
+
+      - name: Run tests
+        run: snforge test --save-trace-data
+
+      - name: Generate coverage report
+        run: cairo-coverage run $(find snfoundry_trace -name "*.json" -type f)
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2.0.0
+
