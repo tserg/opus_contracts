@@ -2482,7 +2482,7 @@ mod test_purger {
 
         // 0.0000001 = 10^-7 (ray).
         // Precision is limited by the precision of timestamps, which is only in seconds
-        let error_margin: u128 = 100000000000000000000_u128.into();
+        let error_margin: Ray = 100000000000000000000_u128.into();
         common::assert_equalish(threshold_before_liquidation, desired_threshold, error_margin, 'wrong eth threshold');
 
         // We want to compare the yin balance of the liquidator
