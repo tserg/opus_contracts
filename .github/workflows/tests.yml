@@ -30,7 +30,7 @@ jobs:
         run: scarb build --test
 
       - name: Run tests
-        run: scarb test allocator --save-trace-data
+        run: scarb test --save-trace-data
 
       - name: Generate coverage report
         run: cairo-coverage run $(find snfoundry_trace -name "*.json" -type f)
