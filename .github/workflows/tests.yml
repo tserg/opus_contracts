@@ -27,6 +27,7 @@ jobs:
 
       - name: Run tests
         run: snforge test --save-trace-data
+        timeout-minutes: 15
 
       - name: Generate coverage report
         run: cairo-coverage run $(find snfoundry_trace -name "*.json" -type f)
