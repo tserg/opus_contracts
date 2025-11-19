@@ -26,6 +26,9 @@ jobs:
       - name: Install cairo-coverage
         run: curl -L https://raw.githubusercontent.com/software-mansion/cairo-coverage/main/scripts/install.sh | sh
 
+      - name: Build tests
+        run: scarb build --test
+
       - name: Run tests
         run: scarb test allocator --save-trace-data
 
