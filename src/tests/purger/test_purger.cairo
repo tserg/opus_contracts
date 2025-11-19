@@ -2482,7 +2482,8 @@ mod test_purger {
 
         common::assert_equalish(
             threshold_before_liquidation,
-            desired_threshold, // 0.0000001 = 10^-7 (ray). Precision
+            desired_threshold, 
+            // 0.0000001 = 10^-7 (ray). Precision
             // is limited by the precision of timestamps,
             // which is only in seconds
             100000000000000000000_u128.into(),
