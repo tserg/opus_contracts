@@ -40,7 +40,10 @@ sort-module-level-items = true
 max-line-length = 120
 breaking-behavior = { tuple = "LineByLine", fixed_array = "LineByLine", macro_call = "LineByLine" }
 
-[profile.dev.cairo]
+[profile.coverage]
+inherits = "dev"
+
+[profile.coverage.cairo]
 unstable-add-statements-code-locations-debug-info = true
 unstable-add-statements-functions-debug-info = true
 inlining-strategy = "default"
