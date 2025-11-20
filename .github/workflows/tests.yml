@@ -48,10 +48,16 @@ jobs:
           cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_partial_absorb_entire.lcov
           rm -rf snfoundry_trace/
 
-      - name: Run Purger tests for partial absorption - below trove debt and generate coverage
+      - name: Run Purger tests for partial absorption - below trove debt (group 1/2) and generate coverage
         run: |
-          scarb test test_partial_absorb_with_redistribution_below_trove_debt --save-trace-data
-          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_partial_absorb_below.lcov
+          scarb test test_partial_absorb_with_redistribution_below_trove_debt --skip group2_ --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_partial_absorb_below_1.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Purger tests for partial absorption - below trove debt (group 2/2) and generate coverage
+        run: |
+          scarb test test_partial_absorb_with_redistribution_below_trove_debt --skip group1_ --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_partial_absorb_below_2.lcov
           rm -rf snfoundry_trace/
 
       - name: Run Purger tests for liquidation and generate coverage
