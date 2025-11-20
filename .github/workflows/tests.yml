@@ -32,8 +32,11 @@ jobs:
       - name: Run Purger setup tests
         run: scarb test purger --skip absorb --skip liquidate --save-trace-data
 
-      - name: Run Purger tests for absorption
-        run: scarb test purger --skip setup --skip penalty --skip liquidate --save-trace-data
+      - name: Run Purger tests for full absorption
+        run: scarb test purger --skip setup --skip penalty --skip liquidate --skip partial --save-trace-data
+
+      - name: Run Purger tests for partial absorption
+        run: scarb test partial_absorb --save-trace-data
 
       - name: Run Purger tests for liquidation
         run: scarb test purger --skip setup --skip penalty --skip absorb --save-trace-data
