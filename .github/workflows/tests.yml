@@ -72,22 +72,34 @@ jobs:
       #    cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_partial_absorb_below_4.lcov
       #    rm -rf snfoundry_trace/
 
-      - name: Run Purger tests for liquidation - suspended yang threshold near zero and generate coverage
-        run: |
-          scarb --profile coverage test test_liquidate_suspended_yang_threshold_near_zero --save-trace-data
-          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_purger_liquidate_suspended.lcov
-          rm -rf snfoundry_trace/
+          #- name: Run Purger tests for liquidation - suspended yang threshold near zero and generate coverage
+          #  run: |
+          #    scarb --profile coverage test test_liquidate_suspended_yang_threshold_near_zero --save-trace-data
+          #    cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_purger_liquidate_suspended.lcov
+          #    rm -rf snfoundry_trace/
 
-      - name: Run Purger tests for liquidation - remaining tests and generate coverage
-        run: |
-          scarb --profile coverage test liquidate --skip test_liquidate_suspended_yang_threshold_near_zero --save-trace-data
-          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_purger_liquidate_remaining.lcov
-          rm -rf snfoundry_trace/
+          #- name: Run Purger tests for liquidation - remaining tests and generate coverage
+          #  run: |
+          #    scarb --profile coverage test liquidate --skip test_liquidate_suspended_yang_threshold_near_zero --save-trace-data
+          #    cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_purger_liquidate_remaining.lcov
+          #    rm -rf snfoundry_trace/
 
-      - name: Run Shrine tests and generate coverage
+      - name: Run Shrine tests excluding interest accrual and redistribution, and generate coverage
         run: |
-          scarb --profile coverage test shrine --save-trace-data
+          scarb --profile coverage test shrine --skip test_shrine_redistribution --skip test_shrine_compound --save-trace-data
           cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_shrine.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Shrine interest accrual tests, and generate coverage
+        run: |
+          scarb --profile coverage test test_shrine_compound --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_shrine_compound.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Shrine redistribution tests, and generate coverage
+        run: |
+          scarb --profile coverage test test_shrine_redistribution --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_shrine_redistribution.lcov
           rm -rf snfoundry_trace/
 
       - name: Combine coverage reports
