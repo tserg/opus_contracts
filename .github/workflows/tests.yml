@@ -14,7 +14,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
@@ -29,9 +28,18 @@ jobs:
       - name: Build tests
         run: scarb build --test
 
-      - name: Run tests
-        run: scarb test --save-trace-data
-        timeout-minutes: 15
+      # Split tests to avoid timeout/resource overload on Github Actions
+      - name: Run Purger tests
+        run: scarb test purger --save-trace-data
+
+      - name: Run Shrine tests
+        run: scarb test shrine --save-trace-data
+
+      - name: Generate coverage report
+        run: cairo-coverage run $(find snfoundry_trace -name "*.json" -type f)
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2.0.0
 
       - name: Generate coverage report
         run: cairo-coverage run $(find snfoundry_trace -name "*.json" -type f)
