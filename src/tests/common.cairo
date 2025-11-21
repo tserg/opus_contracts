@@ -12,7 +12,7 @@ use opus::tests::shrine::utils::shrine_utils;
 use opus::types::{AssetBalance, Reward};
 use snforge_std::{
     ContractClass, ContractClassTrait, DeclareResultTrait, Event, declare, start_cheat_block_timestamp_global,
-    start_cheat_caller_address, stop_cheat_caller_address,
+    start_cheat_caller_address, stop_cheat_caller_address, cheat_caller_address, CheatSpan
 };
 use starknet::{ContractAddress, get_block_timestamp};
 use wadray::{Ray, WAD_ONE, Wad};
@@ -286,10 +286,9 @@ pub fn open_trove_helper(
         sentinel_utils::approve_max(gate, *yang, user);
     }
 
-    start_cheat_caller_address(abbot.contract_address, user);
+    cheat_caller_address(abbot.contract_address, user, CheatSpan::TargetCalls(1));
     let yang_assets: Span<AssetBalance> = combine_assets_and_amts(yangs, yang_asset_amts);
     let trove_id: u64 = abbot.open_trove(yang_assets, forge_amt, 1_u128.into());
-    stop_cheat_caller_address(abbot.contract_address);
 
     trove_id
 }
