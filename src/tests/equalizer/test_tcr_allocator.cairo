@@ -6,7 +6,7 @@ mod test_tcr_allocator {
     use opus::tests::equalizer::utils::equalizer_utils;
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::Health;
-    use snforge_std::{start_cheat_caller_address, stop_cheat_caller_address};
+    use snforge_std::{CheatSpan, cheat_caller_address};
     use starknet::ContractAddress;
     use wadray::{RAY_PERCENT, Ray, WAD_ONE, Wad};
 
@@ -92,9 +92,8 @@ mod test_tcr_allocator {
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
 
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.set_recovery_mode_target_factor((80 * RAY_PERCENT).into());
-        stop_cheat_caller_address(shrine.contract_address);
 
         // At 80% threshold, and a recovery mode target factor of 80%,
         //the recovery mode LTV is 64%, and the adjustment LTV is 48%.
@@ -134,9 +133,8 @@ mod test_tcr_allocator {
         let error_margin: Ray = (RAY_PERCENT / 2).into();
 
         for target_yang1_price in target_yang1_prices {
-            start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
             shrine.advance(shrine_utils::YANG1_ADDR, *target_yang1_price);
-            stop_cheat_caller_address(shrine.contract_address);
 
             let shrine_health: Health = shrine.get_shrine_health();
             let target_ltv: Ray = *target_ltvs.pop_front().unwrap();
