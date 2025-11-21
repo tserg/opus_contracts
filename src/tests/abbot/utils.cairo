@@ -8,10 +8,7 @@ pub mod abbot_utils {
     use opus::tests::common;
     use opus::tests::sentinel::utils::sentinel_utils;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        stop_cheat_caller_address,
-    };
+    use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
     use wadray::{WAD_ONE, Wad};
 
@@ -105,16 +102,14 @@ pub mod abbot_utils {
         let abbot = IAbbotDispatcher { contract_address: abbot_addr };
 
         // Grant Shrine roles to Abbot
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
         shrine_ac.grant_role(shrine_roles::ABBOT, abbot_addr);
-        stop_cheat_caller_address(shrine.contract_address);
 
         // Grant Sentinel roles to Abbot
-        start_cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN);
+        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
         let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
         sentinel_ac.grant_role(sentinel_roles::ABBOT, abbot_addr);
-        stop_cheat_caller_address(sentinel.contract_address);
 
         AbbotTestConfig { shrine, sentinel, abbot, yangs, gates }
     }
