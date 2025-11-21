@@ -4,3 +4,5 @@ src/periphery/*
 src/interfaces/*
 src/external/interfaces.cairo
 
+src/utils/upgradeable.cairo
+src/core/transmuter_restricted.cairo
