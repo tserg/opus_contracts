@@ -84,6 +84,81 @@ jobs:
           #    cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_purger_liquidate_remaining.lcov
           #    rm -rf snfoundry_trace/
 
+      # Run tests by module to avoid timeout/resource overload on Github Actions
+      # Generate coverage incrementally and clean up trace files after each step
+
+      - name: Run Abbot tests and generate coverage
+        run: |
+          scarb --profile coverage test abbot --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_abbot.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Absorber tests and generate coverage
+        run: |
+          scarb --profile coverage test absorber --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_absorber.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Caretaker tests and generate coverage
+        run: |
+          scarb --profile coverage test caretaker --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_caretaker.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Controller tests and generate coverage
+        run: |
+          scarb --profile coverage test controller --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_controller.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Equalizer tests and generate coverage
+        run: |
+          scarb --profile coverage test equalizer --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_equalizer.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run External tests (Ekobo and Pragma) and generate coverage
+        run: |
+          scarb --profile coverage test external --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_external.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Flash Mint tests and generate coverage
+        run: |
+          scarb --profile coverage test flash_mint --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_flash_mint.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Gate tests and generate coverage
+        run: |
+          scarb --profile coverage test gate --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_gate.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Purger tests and generate coverage
+        run: |
+          scarb --profile coverage test purger --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_purger.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Receptor tests and generate coverage
+        run: |
+          scarb --profile coverage test receptor --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_receptor.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Seer tests and generate coverage
+        run: |
+          scarb --profile coverage test seer --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_seer.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Sentinel tests and generate coverage
+        run: |
+          scarb --profile coverage test sentinel --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_sentinel.lcov
+          rm -rf snfoundry_trace/
+
       - name: Run Shrine tests excluding interest accrual and redistribution, and generate coverage
         run: |
           scarb --profile coverage test shrine --skip test_shrine_redistribution --skip test_shrine_compound --save-trace-data
@@ -100,6 +175,18 @@ jobs:
         run: |
           scarb --profile coverage test test_shrine_redistribution --save-trace-data
           cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_shrine_redistribution.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Transmuter tests and generate coverage
+        run: |
+          scarb --profile coverage test transmuter --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_transmuter.lcov
+          rm -rf snfoundry_trace/
+
+      - name: Run Utils tests and generate coverage
+        run: |
+          scarb --profile coverage test utils --save-trace-data
+          cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_utils.lcov
           rm -rf snfoundry_trace/
 
       - name: Combine coverage reports
