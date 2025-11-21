@@ -11,8 +11,8 @@ use opus::tests::sentinel::utils::sentinel_utils;
 use opus::tests::shrine::utils::shrine_utils;
 use opus::types::{AssetBalance, Reward};
 use snforge_std::{
-    ContractClass, ContractClassTrait, DeclareResultTrait, Event, declare, start_cheat_block_timestamp_global,
-    start_cheat_caller_address, stop_cheat_caller_address, cheat_caller_address, CheatSpan
+    CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, Event, cheat_caller_address, declare,
+    start_cheat_block_timestamp_global, start_cheat_caller_address, stop_cheat_caller_address,
 };
 use starknet::{ContractAddress, get_block_timestamp};
 use wadray::{Ray, WAD_ONE, Wad};
