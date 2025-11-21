@@ -31,5 +31,5 @@ jobs:
 
   coverage:
     needs: lint-and-test
-    uses: ./.github/workflows/tests.yml
+    uses: ./.github/workflows/coverage.yml
     secrets: inherit
