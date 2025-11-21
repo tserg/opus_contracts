@@ -50,7 +50,7 @@ jobs:
           cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_equalizer.lcov
           rm -rf snfoundry_trace/
 
-      - name: Run External tests (Ekobo and Pragma) and generate coverage
+      - name: Run External tests (Ekubo and Pragma) and generate coverage
         run: |
           scarb --profile coverage test external --save-trace-data
           cairo-coverage run $(find snfoundry_trace -name "*.json" -type f) --output-path coverage_external.lcov
