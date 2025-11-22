@@ -1,4 +1,4 @@
-name: Cairo tests
+name: Lint and Tests
 
 on:
   push:
@@ -12,13 +12,24 @@ on:
       - "**.md"
 
 jobs:
-  test:
+  lint-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
-      - run: scarb fmt --workspace --check
-      - run: scarb build
+
+      - name: Format check
+        run: scarb fmt --workspace --check
+
+      - name: Build
+        run: scarb build
 
       - uses: foundry-rs/setup-snfoundry@v3
-      - run: snforge test
+
+      - name: Run dev tests
+        run: scarb --profile dev test
+
+  coverage:
+    needs: lint-and-test
+    uses: ./.github/workflows/coverage.yml
+    secrets: inherit
