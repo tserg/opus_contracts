@@ -71,7 +71,6 @@ pub mod shrine_utils {
     pub const YANG1_ADDR: ContractAddress = 'yang 1'.try_into().unwrap();
     pub const YANG2_ADDR: ContractAddress = 'yang 2'.try_into().unwrap();
     pub const YANG3_ADDR: ContractAddress = 'yang 3'.try_into().unwrap();
-    pub const INVALID_YANG_ADDR: ContractAddress = 'invalid yang'.try_into().unwrap();
 
     //
     // Convenience helpers

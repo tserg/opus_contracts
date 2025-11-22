@@ -15,7 +15,6 @@ pub mod purger_utils {
     use opus::tests::common;
     use opus::tests::external::utils::pragma_utils;
     use opus::tests::seer::utils::seer_utils;
-    use opus::tests::sentinel::utils::sentinel_utils;
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, Health, HealthTrait};
     use snforge_std::{
@@ -59,11 +58,7 @@ pub mod purger_utils {
     // Constants
     //
 
-    pub const SEARCHER_YIN: u128 = 10000 * WAD_ONE; // 10_000 (Wad)
     pub const TARGET_TROVE_YIN: u128 = 1000 * WAD_ONE; // 1000 (Wad)
-
-    pub const TARGET_TROVE_ETH_DEPOSIT_AMT: u128 = 2 * WAD_ONE; // 2 (Wad) - ETH
-    pub const TARGET_TROVE_WBTC_DEPOSIT_AMT: u128 = 50000000; // 0.5 (10 ** 8) - wBTC
 
     //
     // Address constants
@@ -78,7 +73,7 @@ pub mod purger_utils {
     //
 
     pub fn target_trove_yang_asset_amts() -> Span<u128> {
-        array![TARGET_TROVE_ETH_DEPOSIT_AMT, TARGET_TROVE_WBTC_DEPOSIT_AMT].span()
+        array![common::SMALL_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT].span()
     }
 
     #[inline(always)]
@@ -395,7 +390,7 @@ pub mod purger_utils {
 
         // Approve Purger in Shrine
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine_ac.grant_role(shrine_roles::PURGER, purger_addr);
 
         // Increase debt ceiling
@@ -404,7 +399,7 @@ pub mod purger_utils {
 
         // Approve Purger in Sentinel
         let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel_ac.grant_role(sentinel_roles::PURGER, purger_addr);
 
         // Approve Purger in Seer
@@ -489,7 +484,7 @@ pub mod purger_utils {
     // Update thresholds for all yangs to the given value
     pub fn set_thresholds(shrine: IShrineDispatcher, yangs: Span<ContractAddress>, threshold: Ray) {
         cheat_caller_address(
-            shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(yangs.len().try_into().unwrap()),
+            shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(yangs.len().try_into().unwrap()),
         );
         for yang in yangs {
             shrine.set_threshold(*yang, threshold);
@@ -500,7 +495,7 @@ pub mod purger_utils {
     pub fn decrease_yang_prices_by_pct(
         shrine: IShrineDispatcher, seer: ISeerDispatcher, yangs: Span<ContractAddress>, pct_decrease: Ray,
     ) {
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
         for yang in yangs {
             let (yang_price, _, _) = shrine.get_current_yang_price(*yang);
             let new_price: Wad = wadray::rmul_wr(yang_price, (RAY_ONE.into() - pct_decrease));

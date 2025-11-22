@@ -26,33 +26,33 @@ mod test_shrine_redistribution {
     const TROVE3_FORGE_AMT: u128 = 2222000000000000000000; // 2_222 (Wad)
 
     fn setup_trove1(shrine: IShrineDispatcher) {
-        let yang1_addr = shrine_utils::YANG1_ADDR;
-        let yang2_addr = shrine_utils::YANG2_ADDR;
+        let yang1_addr = common::YANG1_ADDR;
+        let yang2_addr = common::YANG2_ADDR;
 
         let trove1_owner = common::TROVE1_OWNER_ADDR;
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(3));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(3));
         shrine.deposit(yang1_addr, common::TROVE_1, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine.deposit(yang2_addr, common::TROVE_1, shrine_utils::TROVE1_YANG2_DEPOSIT.into());
         shrine.forge(trove1_owner, common::TROVE_1, shrine_utils::TROVE1_FORGE_AMT.into(), Zero::zero());
     }
 
     fn setup_trove2(shrine: IShrineDispatcher) {
-        let yang1_addr = shrine_utils::YANG1_ADDR;
-        let yang2_addr = shrine_utils::YANG2_ADDR;
+        let yang1_addr = common::YANG1_ADDR;
+        let yang2_addr = common::YANG2_ADDR;
 
         let trove2_owner = common::TROVE2_OWNER_ADDR;
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(3));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(3));
         shrine.deposit(yang1_addr, common::TROVE_2, TROVE2_YANG1_DEPOSIT.into());
         shrine.deposit(yang2_addr, common::TROVE_2, TROVE2_YANG2_DEPOSIT.into());
         shrine.forge(trove2_owner, common::TROVE_2, TROVE2_FORGE_AMT.into(), Zero::zero());
     }
 
     fn setup_trove3(shrine: IShrineDispatcher) {
-        let yang1_addr = shrine_utils::YANG1_ADDR;
-        let yang2_addr = shrine_utils::YANG2_ADDR;
+        let yang1_addr = common::YANG1_ADDR;
+        let yang2_addr = common::YANG2_ADDR;
 
         let trove3_owner = common::TROVE3_OWNER_ADDR;
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(3));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(3));
         shrine.deposit(yang1_addr, common::TROVE_3, TROVE3_YANG1_DEPOSIT.into());
         shrine.deposit(yang2_addr, common::TROVE_3, TROVE3_YANG2_DEPOSIT.into());
         shrine.forge(trove3_owner, common::TROVE_3, TROVE3_FORGE_AMT.into(), Zero::zero());
@@ -205,11 +205,11 @@ mod test_shrine_redistribution {
         // Simulate purge with 0 yin to update the trove's debt
         let trove1_owner = common::TROVE1_OWNER_ADDR;
         let trove1_health: Health = shrine.get_trove_health(redistributed_trove);
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
         assert(shrine.get_redistributions_count() == 0, 'wrong start state');
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, trove1_health.debt, RAY_ONE.into());
 
         let unpulled_debt: Wad = shrine.get_redistributed_debt_for_trove(redistributed_trove);
@@ -257,7 +257,7 @@ mod test_shrine_redistribution {
         common::assert_equalish(unpulled_debt, expected_trove2_debt_increment, 10_u128.into(), 'wrong attributed debt');
 
         // Trigger an update in trove 2 with an empty melt
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, recipient_trove, Zero::zero());
         assert(shrine.get_trove_redistribution_id(recipient_trove) == expected_redistribution_id, 'wrong id');
 
@@ -293,12 +293,12 @@ mod test_shrine_redistribution {
         let before_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
 
         // Perform first redistribution - covered by previous test
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(common::TROVE1_OWNER_ADDR, redistributed_trove1, Zero::zero());
 
         let redistributed_trove1_health: Health = shrine.get_trove_health(redistributed_trove1);
         let redistributed_trove2_start_health = shrine.get_trove_health(redistributed_trove2);
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove1, redistributed_trove1_health.debt, RAY_ONE.into());
 
         let error_margin = 10_u128.into();
@@ -318,11 +318,11 @@ mod test_shrine_redistribution {
         );
 
         // Perform second redistribution
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(common::TROVE2_OWNER_ADDR, redistributed_trove2, Zero::zero());
         let redistributed_trove2_health: Health = shrine.get_trove_health(redistributed_trove2);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove2, redistributed_trove2_health.debt, RAY_ONE.into());
 
         let after_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
@@ -379,7 +379,7 @@ mod test_shrine_redistribution {
         );
 
         // Trigger an update in trove 3 with an empty melt
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(common::TROVE2_OWNER_ADDR, recipient_trove, Zero::zero());
         assert(shrine.get_trove_redistribution_id(recipient_trove) == expected_redistribution_id, 'wrong id');
 
@@ -416,14 +416,14 @@ mod test_shrine_redistribution {
 
             let (_, _, _, expected_error) = preview_trove_redistribution(shrine, yangs, redistributed_trove);
 
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
             shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
             assert(shrine.get_redistributions_count() == 0, 'wrong start state');
             let debt_to_redistribute: Wad = wadray::rmul_wr(
                 before_redistributed_trove_health.debt, pct_debt_to_redistribute,
             );
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
             shrine.redistribute(redistributed_trove, debt_to_redistribute, *pct_value_to_redistribute);
 
             let after_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
@@ -457,7 +457,7 @@ mod test_shrine_redistribution {
             // for the next part of the test
             assert(accrued_interest > after_protocol_owned_troves_debt, 'interest sanity check');
 
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
             shrine.melt(trove1_owner, recipient_trove1, Zero::zero());
             shrine.melt(trove1_owner, recipient_trove2, Zero::zero());
 
@@ -525,14 +525,14 @@ mod test_shrine_redistribution {
         setup_trove1(shrine);
         setup_trove3(shrine);
 
-        let yang1_addr = shrine_utils::YANG1_ADDR;
-        let yang2_addr = shrine_utils::YANG2_ADDR;
+        let yang1_addr = common::YANG1_ADDR;
+        let yang2_addr = common::YANG2_ADDR;
 
         let trove2_owner = common::TROVE2_OWNER_ADDR;
         let redistributed_trove = common::TROVE_2;
         let trove2_yang1_amt: Wad = 1000000000000000000000_u128.into(); // 1E-15 (Wad)
         let trove2_yang2_amt: Wad = 1000_u128.into(); // 1_000 (Wad)
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(3));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(3));
         shrine.deposit(yang1_addr, redistributed_trove, trove2_yang1_amt);
         shrine.deposit(yang2_addr, redistributed_trove, trove2_yang2_amt);
         shrine.forge(trove2_owner, redistributed_trove, TROVE2_FORGE_AMT.into(), Zero::zero());
@@ -550,7 +550,7 @@ mod test_shrine_redistribution {
         assert(trove2_yang2_debt < shrine_contract::ROUNDING_THRESHOLD.into(), 'not below rounding threshold');
 
         // Redistribute trove 2
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine.melt(trove2_owner, redistributed_trove, Zero::zero());
         shrine.redistribute(redistributed_trove, trove2_health.debt, RAY_ONE.into());
 
@@ -603,7 +603,7 @@ mod test_shrine_redistribution {
             let redistributed_trove: u64 = common::TROVE_1;
 
             let redistributed_trove_debt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(8));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(8));
             shrine.deposit(yang1_addr, redistributed_trove, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
             shrine.deposit(yang2_addr, redistributed_trove, shrine_utils::TROVE1_YANG2_DEPOSIT.into());
             shrine.deposit(yang3_addr, redistributed_trove, shrine_utils::TROVE1_YANG3_DEPOSIT.into());
@@ -657,7 +657,7 @@ mod test_shrine_redistribution {
             let before_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
 
             // Simulate purge with 0 yin to update the trove's debt
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
             shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
             shrine
                 .redistribute(redistributed_trove, before_redistributed_trove_health.debt, *pct_value_to_redistribute);
@@ -739,7 +739,7 @@ mod test_shrine_redistribution {
             );
 
             // Trigger an update in recipient troves with an empty melt
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
             shrine.melt(trove1_owner, recipient_trove1, Zero::zero());
             shrine.melt(trove1_owner, recipient_trove2, Zero::zero());
 
@@ -788,7 +788,7 @@ mod test_shrine_redistribution {
             let accrued_interest: Wad = accrued_recipient_trove2_health.debt - after_recipient_trove2_health.debt;
             let before_budget: SignedWad = shrine.get_budget();
 
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
             shrine.melt(trove1_owner, recipient_trove2, Zero::zero());
 
             let accrued_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
@@ -849,13 +849,13 @@ mod test_shrine_redistribution {
         let trove1_owner = common::TROVE1_OWNER_ADDR;
         let redistributed_trove = common::TROVE_1;
         let redistributed_trove_health: Health = shrine.get_trove_health(redistributed_trove);
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
         let before_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
 
         assert(shrine.get_redistributions_count() == 0, 'wrong start state');
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, redistributed_trove_health.debt, RAY_ONE.into());
 
         let after_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
@@ -872,7 +872,7 @@ mod test_shrine_redistribution {
 
         assert(shrine.get_trove_redistribution_id(common::TROVE_2) == 0, 'wrong redistribution id');
         // Trigger an update in trove 2 with an empty melt
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, common::TROVE_2, Zero::zero());
         assert(shrine.get_trove_redistribution_id(common::TROVE_2) == expected_redistribution_id, 'wrong id');
 
@@ -894,7 +894,7 @@ mod test_shrine_redistribution {
         // Create another 10 troves with different collateral amounts
         let mut idx: u64 = 0;
         let new_troves_count: u64 = 10;
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
         while idx != new_troves_count {
             let trove_idx: u64 = 4 + idx;
             let tmp_multiplier: u128 = (idx + 1).into();
@@ -930,7 +930,7 @@ mod test_shrine_redistribution {
         let yang_amt_deposited: Wad = shrine.get_deposit(yang_to_delist, redistributed_trove);
         let before_protocol_owned_delisted_yang_amt: Wad = shrine.get_protocol_owned_yang_amt(yang_to_delist);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine.forge(trove1_owner, redistributed_trove, (100 * WAD_ONE).into(), Zero::zero());
         shrine.suspend_yang(yang_to_delist);
 
@@ -940,11 +940,11 @@ mod test_shrine_redistribution {
 
         // Simulate purge with 0 yin to update the trove's debt
         let trove1_health: Health = shrine.get_trove_health(redistributed_trove);
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
         assert(shrine.get_redistributions_count() == 0, 'wrong start state');
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, trove1_health.debt, RAY_ONE.into());
 
         assert(shrine.get_deposit(yang_to_delist, redistributed_trove).is_zero(), 'delisted yang should be zero');
@@ -979,7 +979,7 @@ mod test_shrine_redistribution {
         let before_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
         let before_protocol_owned_delisted_yang_amt: Wad = shrine.get_protocol_owned_yang_amt(yang_to_delist);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.suspend_yang(yang_to_delist);
 
         shrine_utils::advance_prices_periodically(shrine, yangs, shrine_contract::SUSPENSION_GRACE_PERIOD);
@@ -988,11 +988,11 @@ mod test_shrine_redistribution {
 
         // Simulate purge with 0 yin to update the trove's debt
         let trove1_health: Health = shrine.get_trove_health(redistributed_trove);
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
         assert(shrine.get_redistributions_count() == 0, 'wrong start state');
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, trove1_health.debt, RAY_ONE.into());
 
         assert(shrine.get_deposit(yang_to_delist, redistributed_trove).is_zero(), 'delisted yang should be zero');
@@ -1018,7 +1018,7 @@ mod test_shrine_redistribution {
     fn test_shrine_redistribution_gt_one_ray_pct_value_to_redistribute_fail() {
         let shrine: IShrineDispatcher = redistribution_setup(Option::None);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(common::TROVE_1, 1_u128.into(), (RAY_ONE + RAY_PERCENT).into());
     }
 
@@ -1049,7 +1049,7 @@ mod test_shrine_redistribution {
                 let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::Some(shrine_class));
 
                 // Create a trove and accrue some interest
-                cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+                cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
                 let target_trove_start_debt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
                 shrine.deposit(yang1_addr, target_trove, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
                 shrine.forge(trove1_owner, target_trove, target_trove_start_debt, Zero::zero());
@@ -1061,7 +1061,7 @@ mod test_shrine_redistribution {
                 assert(accrued_interest.is_non_zero(), 'no interest accrued');
 
                 // Update yin price for forge fee
-                cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+                cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
                 shrine.update_yin_spot_price(yin_price);
                 let forge_fee_pct: Wad = shrine.get_forge_fee_pct();
 
@@ -1078,7 +1078,7 @@ mod test_shrine_redistribution {
                     _ => panic!("invalid idx"),
                 };
 
-                cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(4));
+                cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(4));
                 shrine.deposit(yang2_addr, redistributed_trove, shrine_utils::TROVE1_YANG2_DEPOSIT.into());
                 shrine.deposit(yang3_addr, redistributed_trove, shrine_utils::TROVE1_YANG3_DEPOSIT.into());
                 shrine.forge(trove2_owner, redistributed_trove, protocol_owned_debt_amt, forge_fee_pct);
@@ -1095,7 +1095,7 @@ mod test_shrine_redistribution {
 
                 // Charge interest on the first trove
                 let mut spy = spy_events();
-                cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+                cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
                 shrine.forge(trove1_owner, target_trove, *target_trove_forge_amt, forge_fee_pct);
 
                 let expected_protocol_owned_troves_debt: Wad =

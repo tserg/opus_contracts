@@ -3,6 +3,7 @@ pub mod controller_utils {
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IController::IControllerDispatcher;
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
+    use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
         CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
@@ -34,7 +35,7 @@ pub mod controller_utils {
 
     pub fn deploy_controller() -> ControllerTestConfig {
         let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-        shrine_utils::make_root(shrine_addr, shrine_utils::ADMIN);
+        shrine_utils::make_root(shrine_addr, common::SHRINE_ADMIN);
 
         let calldata: Array<felt252> = array![
             ADMIN.into(),
@@ -51,7 +52,7 @@ pub mod controller_utils {
         let (controller_addr, _) = controller_class.deploy(@calldata).expect('controller deploy failed');
 
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine_addr };
-        cheat_caller_address(shrine_addr, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine_ac.grant_role(shrine_roles::CONTROLLER, controller_addr);
 
         ControllerTestConfig {
@@ -62,7 +63,7 @@ pub mod controller_utils {
 
     #[inline(always)]
     pub fn set_yin_spot_price(shrine: IShrineDispatcher, spot_price: Wad) {
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.update_yin_spot_price(spot_price);
     }
 

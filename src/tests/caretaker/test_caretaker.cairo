@@ -418,7 +418,7 @@ mod test_caretaker {
         // all yang deposits to be used to back yin
         let new_eth_price: Wad = (50 * WAD_ONE).into();
         let new_wbtc_price: Wad = (20 * WAD_ONE).into();
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine.advance(*yangs[0], new_eth_price);
         shrine.advance(*yangs[1], new_wbtc_price);
 

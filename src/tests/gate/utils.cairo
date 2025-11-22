@@ -49,7 +49,7 @@ pub mod gate_utils {
     }
 
     pub fn add_eth_as_yang(shrine: ContractAddress, eth: ContractAddress) {
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         let shrine = IShrineDispatcher { contract_address: shrine };
         shrine
             .add_yang(
@@ -63,7 +63,7 @@ pub mod gate_utils {
     }
 
     pub fn add_wbtc_as_yang(shrine: ContractAddress, wbtc: ContractAddress) {
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         let shrine = IShrineDispatcher { contract_address: shrine };
         shrine
             .add_yang(

@@ -4,6 +4,7 @@ pub mod flash_mint_utils {
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IFlashMint::IFlashMintDispatcher;
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
+    use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
@@ -25,7 +26,7 @@ pub mod flash_mint_utils {
         let flashmint = IFlashMintDispatcher { contract_address: flashmint_addr };
 
         // Grant flashmint contract the FLASHMINT role
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         let shrine_accesscontrol = IAccessControlDispatcher { contract_address: shrine };
         shrine_accesscontrol.grant_role(shrine_roles::FLASH_MINT, flashmint_addr);
         flashmint
@@ -46,7 +47,7 @@ pub mod flash_mint_utils {
         );
 
         // Mint some yin in shrine
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine_dispatcher.inject(Zero::zero(), YIN_TOTAL_SUPPLY.into());
         (shrine, flashmint)
     }

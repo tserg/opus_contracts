@@ -328,7 +328,7 @@ pub mod absorber_utils {
         burn_amt: Wad,
     ) {
         // Simulate burning a percentage of absorber's yin
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.eject(absorber.contract_address, burn_amt);
 
         // Simulate transfer of "freed" assets to absorber

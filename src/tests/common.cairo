@@ -8,7 +8,6 @@ use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
 use opus::mock::erc4626_mintable::{IMockERC4626Dispatcher, IMockERC4626DispatcherTrait};
 use opus::mock::mock_ekubo_oracle_extension::IMockEkuboOracleExtensionDispatcher;
 use opus::tests::sentinel::utils::sentinel_utils;
-use opus::tests::shrine::utils::shrine_utils;
 use opus::types::{AssetBalance, Reward};
 use snforge_std::{
     CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, Event, cheat_caller_address, declare,
@@ -46,17 +45,57 @@ pub const WHALE_TROVE: u64 = 0xb17b01;
 
 
 //
-// Constant addresses
+// Centralized Address Registry
 //
 
+// Global admin addresses
+pub const ADMIN: ContractAddress = 'admin'.try_into().unwrap();
+pub const SHRINE_ADMIN: ContractAddress = 'shrine admin'.try_into().unwrap();
+pub const SENTINEL_ADMIN: ContractAddress = 'sentinel admin'.try_into().unwrap();
+
+// Test role addresses
 pub const BAD_GUY: ContractAddress = 'bad guy'.try_into().unwrap();
+pub const MOCK_ABBOT: ContractAddress = 'mock abbot'.try_into().unwrap();
+pub const DUMMY_YANG_ADDR: ContractAddress = 'dummy yang'.try_into().unwrap();
+pub const DUMMY_YANG_GATE_ADDR: ContractAddress = 'dummy yang token'.try_into().unwrap();
+
+// Trove owner addresses
 pub const TROVE1_OWNER_ADDR: ContractAddress = 'trove1 owner'.try_into().unwrap();
 pub const TROVE2_OWNER_ADDR: ContractAddress = 'trove2 owner'.try_into().unwrap();
 pub const TROVE3_OWNER_ADDR: ContractAddress = 'trove3 owner'.try_into().unwrap();
 pub const NON_ZERO_ADDR: ContractAddress = 'nonzero address'.try_into().unwrap();
+
+// Asset hoarder addresses
 pub const ETH_HOARDER: ContractAddress = 'eth hoarder'.try_into().unwrap();
 pub const WBTC_HOARDER: ContractAddress = 'wbtc hoarder'.try_into().unwrap();
-pub const ADMIN: ContractAddress = 'admin'.try_into().unwrap();
+pub const DAI_HOARDER: ContractAddress = 'dai hoarder'.try_into().unwrap();
+pub const USDC_HOARDER: ContractAddress = 'usdc hoarder'.try_into().unwrap();
+
+// Yang token addresses
+pub const YANG1_ADDR: ContractAddress = 'yang 1'.try_into().unwrap();
+pub const YANG2_ADDR: ContractAddress = 'yang 2'.try_into().unwrap();
+pub const YANG3_ADDR: ContractAddress = 'yang 3'.try_into().unwrap();
+
+//
+// Standard Asset Amounts
+//
+
+// ETH-specific amounts (18 decimals)
+pub const SMALL_ETH_DEPOSIT: u128 = 2 * WAD_ONE;
+pub const MEDIUM_ETH_DEPOSIT: u128 = 10 * WAD_ONE;
+pub const LARGE_ETH_DEPOSIT: u128 = 50 * WAD_ONE;
+pub const WHALE_ETH_DEPOSIT: u128 = 100 * WAD_ONE;
+
+// WBTC-specific amounts (accounting for 8 decimals)
+pub const SMALL_WBTC_DEPOSIT: u128 = 10000000; // 0.1 WBTC
+pub const MEDIUM_WBTC_DEPOSIT: u128 = 50000000; // 0.5 WBTC
+pub const LARGE_WBTC_DEPOSIT: u128 = 500000000; // 5 WBTC
+
+// Common forge amounts
+pub const SMALL_FORGE: u128 = 1000 * WAD_ONE;
+pub const MEDIUM_FORGE: u128 = 3000 * WAD_ONE;
+pub const LARGE_FORGE: u128 = 10000 * WAD_ONE;
+pub const WHALE_FORGE: u128 = 50000 * WAD_ONE;
 
 //
 // Trait implementations
@@ -120,7 +159,7 @@ pub fn advance_intervals_and_refresh_prices_and_multiplier(
     start_cheat_block_timestamp_global(get_block_timestamp() + (intervals * shrine::TIME_INTERVAL));
 
     // Updating prices and multiplier
-    start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+    start_cheat_caller_address(shrine.contract_address, SHRINE_ADMIN);
     shrine.set_multiplier(current_multiplier);
     for yang in yangs {
         let yang_price = yang_prices.pop_front().unwrap();

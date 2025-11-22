@@ -9,7 +9,6 @@ pub mod seer_utils {
     use opus::tests::common;
     use opus::tests::external::utils::{ekubo_utils, pragma_utils};
     use opus::tests::sentinel::utils::sentinel_utils;
-    use opus::tests::shrine::utils::shrine_utils;
     use opus::types::PriceType;
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::{ContractAddress, get_block_timestamp};
@@ -73,7 +72,7 @@ pub mod seer_utils {
 
         // Allow Seer to advance Shrine
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine };
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine_ac.grant_role(shrine_roles::SEER, seer_addr);
 
         SeerTestConfig {
@@ -96,7 +95,7 @@ pub mod seer_utils {
 
         // Allow Seer to advance Shrine
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine };
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine_ac.grant_role(shrine_roles::SEER, seer_addr);
 
         ISeerDispatcher { contract_address: seer_addr }

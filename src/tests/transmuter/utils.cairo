@@ -60,7 +60,7 @@ pub mod transmuter_utils {
 
         let (transmuter_addr, _) = transmuter_class.deploy(@calldata).expect('transmuter deploy failed');
 
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         let shrine_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine };
         shrine_ac.grant_role(shrine_roles::TRANSMUTER, transmuter_addr);
 
@@ -94,7 +94,7 @@ pub mod transmuter_utils {
         user: ContractAddress,
     ) {
         // set debt ceiling to 30m
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine.set_debt_ceiling(shrine_ceiling);
         shrine.inject(start_yin_recipient, shrine_start_yin);
 

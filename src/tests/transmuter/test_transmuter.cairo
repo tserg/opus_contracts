@@ -475,7 +475,7 @@ mod test_transmuter {
         let user: ContractAddress = common::NON_ZERO_ADDR;
 
         let debt_ceiling: Wad = shrine.get_debt_ceiling();
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(user, debt_ceiling);
 
         cheat_caller_address(transmuter.contract_address, user, CheatSpan::TargetCalls(1));
@@ -504,7 +504,7 @@ mod test_transmuter {
             shrine, transmuter, ..,
         } = transmuter_utils::shrine_with_wad_usd_stable_transmuter(Option::None, Option::None);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
 
         // reduce total supply to 1m yin
         let target_total_yin: Wad = (1000000 * WAD_ONE).into();
@@ -524,7 +524,7 @@ mod test_transmuter {
             shrine, transmuter, ..,
         } = transmuter_utils::shrine_with_wad_usd_stable_transmuter(Option::None, Option::None);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.update_yin_spot_price((WAD_ONE - 1).into());
 
         transmuter.transmute(1_u128.into());
@@ -923,7 +923,7 @@ mod test_transmuter {
         let token_class = common::declare_token();
 
         let transmuter_admin: ContractAddress = transmuter_utils::ADMIN;
-        let shrine_admin: ContractAddress = shrine_utils::ADMIN;
+        let shrine_admin: ContractAddress = common::SHRINE_ADMIN;
         let receiver: ContractAddress = transmuter_utils::RECEIVER;
         let user: ContractAddress = common::NON_ZERO_ADDR;
 

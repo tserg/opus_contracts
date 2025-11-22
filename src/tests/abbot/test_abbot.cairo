@@ -30,9 +30,9 @@ mod test_abbot {
 
         // Deploying the first trove
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
-        let forge_amt: Wad = abbot_utils::OPEN_TROVE_FORGE_AMT.into();
         common::fund_user(trove_owner, yangs, abbot_utils::initial_asset_amts());
         let deposited_amts: Span<u128> = abbot_utils::open_trove_yang_asset_amts();
+        let forge_amt: Wad = common::MEDIUM_FORGE.into();
         let trove_id: u64 = common::open_trove_helper(abbot, trove_owner, yangs, deposited_amts, gates, forge_amt);
 
         // Check trove ID
@@ -160,9 +160,9 @@ mod test_abbot {
         let AbbotTestConfig { abbot, yangs, gates, .. } = abbot_utils::abbot_deploy(Option::None);
 
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
-        let forge_amt = Zero::zero();
         common::fund_user(trove_owner, yangs, abbot_utils::initial_asset_amts());
         let deposited_amts: Span<u128> = abbot_utils::open_trove_yang_asset_amts();
+        let forge_amt = Zero::zero();
         common::open_trove_helper(abbot, trove_owner, yangs, deposited_amts, gates, forge_amt);
     }
 
@@ -390,7 +390,7 @@ mod test_abbot {
         let gate_addr: ContractAddress = *gates.at(0).contract_address;
         let gate_bal = IERC20Dispatcher { contract_address: asset_addr }.balance_of(gate_addr);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         let new_asset_max: u128 = gate_bal.try_into().unwrap();
         sentinel.set_yang_asset_max(asset_addr, new_asset_max);
 
@@ -401,7 +401,9 @@ mod test_abbot {
 
     #[test]
     fn test_withdraw_pass() {
-        let (AbbotTestConfig { shrine, abbot, yangs, .. }, AbbotTestTrove { trove_owner, trove_id, .. }) =
+        let (
+            AbbotTestConfig { shrine, abbot, yangs, .. }, AbbotTestTrove { trove_owner, trove_id, yang_asset_amts, .. },
+        ) =
             abbot_utils::deploy_abbot_and_open_trove(
             Option::None,
         );
@@ -424,10 +426,7 @@ mod test_abbot {
             ),
         ];
 
-        assert(
-            shrine.get_deposit(asset_addr, trove_id) == (abbot_utils::ETH_DEPOSIT_AMT - amount).into(),
-            'wrong yang amount',
-        );
+        assert(shrine.get_deposit(asset_addr, trove_id) == (*yang_asset_amts[0] - amount).into(), 'wrong yang amount');
 
         shrine_utils::assert_total_yang_invariant(shrine, yangs, abbot.get_troves_count());
 
@@ -488,7 +487,7 @@ mod test_abbot {
         let AbbotTestConfig { shrine, sentinel, abbot, yangs, gates } = abbot_utils::abbot_deploy(Option::None);
 
         let eth: ContractAddress = *yangs[0];
-        let eth_deposit_amt: u128 = abbot_utils::ETH_DEPOSIT_AMT;
+        let eth_deposit_amt: u128 = *abbot_utils::open_trove_yang_asset_amts()[0];
 
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
 
@@ -504,7 +503,7 @@ mod test_abbot {
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
         abbot.melt(trove_id, forge_amt);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.suspend_yang(eth);
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
@@ -565,7 +564,7 @@ mod test_abbot {
             Option::None,
         );
 
-        let additional_forge_amt: Wad = abbot_utils::OPEN_TROVE_FORGE_AMT.into();
+        let additional_forge_amt: Wad = common::MEDIUM_FORGE.into();
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
         abbot.forge(trove_id, additional_forge_amt, Zero::zero());
 
@@ -655,10 +654,10 @@ mod test_abbot {
         let trove_owner1: ContractAddress = common::TROVE1_OWNER_ADDR;
         let trove_owner2: ContractAddress = common::TROVE2_OWNER_ADDR;
 
-        let forge_amt: Wad = abbot_utils::OPEN_TROVE_FORGE_AMT.into();
         common::fund_user(trove_owner1, yangs, abbot_utils::initial_asset_amts());
         common::fund_user(trove_owner2, yangs, abbot_utils::initial_asset_amts());
 
+        let forge_amt: Wad = common::MEDIUM_FORGE.into();
         let first_trove_id: u64 = common::open_trove_helper(
             abbot, trove_owner1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
         );

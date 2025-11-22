@@ -59,8 +59,8 @@ mod test_sentinel {
         assert(sentinel.get_yang_addresses_count() == 2, 'Wrong yang addresses count');
 
         let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
-        assert(sentinel_ac.get_admin() == sentinel_utils::ADMIN, 'Wrong admin');
-        assert(sentinel_ac.get_roles(sentinel_utils::ADMIN) == sentinel_roles::ADMIN, 'Wrong roles for admin');
+        assert(sentinel_ac.get_admin() == common::SENTINEL_ADMIN, 'Wrong admin');
+        assert(sentinel_ac.get_roles(common::SENTINEL_ADMIN) == sentinel_roles::ADMIN, 'Wrong roles for admin');
 
         // Checking that the gates were set up correctly
 
@@ -131,7 +131,7 @@ mod test_sentinel {
     #[should_panic(expected: 'SE: Yang cannot be zero address')]
     fn test_add_yang_yang_zero_addr() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel
             .add_yang(
                 Zero::zero(),
@@ -147,7 +147,7 @@ mod test_sentinel {
     #[should_panic(expected: 'SE: Gate cannot be zero address')]
     fn test_add_yang_gate_zero_addr() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel
             .add_yang(
                 sentinel_utils::DUMMY_YANG_ADDR,
@@ -163,7 +163,7 @@ mod test_sentinel {
     #[should_panic(expected: 'SE: Start price cannot be zero')]
     fn test_add_yang_zero_price() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel
             .add_yang(
                 sentinel_utils::DUMMY_YANG_ADDR,
@@ -184,7 +184,7 @@ mod test_sentinel {
         let eth = *yangs[0];
         let eth_gate = *gates[0];
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel
             .add_yang(
                 eth,
@@ -206,7 +206,7 @@ mod test_sentinel {
         let eth_gate = *gates[0];
         let wbtc: ContractAddress = common::wbtc_token_deploy(classes.token);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel
             .add_yang(
                 wbtc,
@@ -227,18 +227,18 @@ mod test_sentinel {
         let new_asset_max = sentinel_utils::ETH_ASSET_MAX * 2;
 
         // Test increasing the max
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.set_yang_asset_max(eth, new_asset_max);
         assert(sentinel.get_yang_asset_max(eth) == new_asset_max, 'Wrong asset max');
 
         // Test decreasing the max
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.set_yang_asset_max(eth, new_asset_max - 1);
         assert(sentinel.get_yang_asset_max(eth) == new_asset_max - 1, 'Wrong asset max');
 
         // Test decreasing the max to below the current yang total
         let initial_deposit_amt: u128 = sentinel_utils::get_initial_asset_amt(eth);
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.set_yang_asset_max(eth, initial_deposit_amt - 1);
         assert(sentinel.get_yang_asset_max(eth) == initial_deposit_amt - 1, 'Wrong asset max');
 
@@ -277,7 +277,7 @@ mod test_sentinel {
     fn test_set_yang_asset_max_non_existent_yang() {
         let SentinelTestConfig { sentinel, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.set_yang_asset_max(sentinel_utils::DUMMY_YANG_ADDR, sentinel_utils::ETH_ASSET_MAX);
     }
 
@@ -488,7 +488,7 @@ mod test_sentinel {
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
         // Kill the gate
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.kill_gate(eth);
 
         assert(!sentinel.get_gate_live(eth), 'Gate should be killed');
@@ -520,7 +520,7 @@ mod test_sentinel {
         shrine.deposit(eth, trove_id, yang_amt);
 
         // Killing the gate
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.kill_gate(eth);
 
         // Exiting
@@ -537,7 +537,7 @@ mod test_sentinel {
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
         // Kill the gate
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.kill_gate(eth);
 
         // Attempt to enter a killed gate should fail
@@ -556,7 +556,7 @@ mod test_sentinel {
         let status = shrine.get_yang_suspension_status(eth);
         assert(status == YangSuspensionStatus::None, 'status 1');
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.suspend_yang(eth);
         let status = shrine.get_yang_suspension_status(eth);
         assert(status == YangSuspensionStatus::Temporary, 'status 2');
@@ -564,7 +564,7 @@ mod test_sentinel {
         // move time forward by 1 day
         start_cheat_block_timestamp_global(shrine_utils::DEPLOYMENT_TIMESTAMP + 86400);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.unsuspend_yang(eth);
         let status = shrine.get_yang_suspension_status(eth);
         assert(status == YangSuspensionStatus::None, 'status 3');
@@ -575,7 +575,7 @@ mod test_sentinel {
     fn test_try_enter_when_yang_suspended() {
         let SentinelTestConfig { sentinel, yangs, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
         let eth = *yangs[0];
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.suspend_yang(eth);
 
         let user: ContractAddress = common::ETH_HOARDER;

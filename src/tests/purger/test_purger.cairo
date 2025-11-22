@@ -273,8 +273,7 @@ mod test_purger {
             default_trove_debt
         } else {
             let target_trove_yang_amts: Span<Wad> = array![
-                purger_utils::TARGET_TROVE_ETH_DEPOSIT_AMT.into(),
-                (purger_utils::TARGET_TROVE_WBTC_DEPOSIT_AMT * 10_u128.pow(10)).into(),
+                common::SMALL_ETH_DEPOSIT.into(), (common::MEDIUM_WBTC_DEPOSIT * 10_u128.pow(10)).into(),
             ]
                 .span();
 
@@ -307,7 +306,7 @@ mod test_purger {
 
     #[test]
     fn test_liquidate_pass() {
-        let searcher_start_yin: Wad = purger_utils::SEARCHER_YIN.into();
+        let searcher_start_yin: Wad = common::LARGE_FORGE.into();
         let PurgerTestConfig {
             shrine, abbot, seer, purger, yangs, gates, ..,
         } = purger_utils::purger_deploy_with_searcher(searcher_start_yin, Option::None);
@@ -411,7 +410,7 @@ mod test_purger {
     fn test_liquidate_with_flashmint_pass() {
         let PurgerTestConfig {
             shrine, abbot, seer, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         purger_utils::create_whale_trove(abbot, yangs, gates);
 
@@ -504,7 +503,7 @@ mod test_purger {
             .span();
 
         for target_ltv in target_ltvs {
-            let searcher_start_yin: Wad = purger_utils::SEARCHER_YIN.into();
+            let searcher_start_yin: Wad = common::LARGE_FORGE.into();
             let PurgerTestConfig {
                 shrine, abbot, seer, purger, yangs, gates, ..,
             } = purger_utils::purger_deploy_with_searcher(searcher_start_yin, classes);
@@ -532,8 +531,7 @@ mod test_purger {
                 // raising the trove's LTV to the given *higher* LTV,
                 // not lowering it.
                 let target_trove_yang_amts: Span<Wad> = array![
-                    purger_utils::TARGET_TROVE_ETH_DEPOSIT_AMT.into(),
-                    (purger_utils::TARGET_TROVE_WBTC_DEPOSIT_AMT * 10_u128.pow(10)).into(),
+                    common::SMALL_ETH_DEPOSIT.into(), (common::MEDIUM_WBTC_DEPOSIT * 10_u128.pow(10)).into(),
                 ]
                     .span();
 
@@ -631,7 +629,7 @@ mod test_purger {
     fn test_liquidate_trove_healthy_fail() {
         let PurgerTestConfig {
             shrine, abbot, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
         let healthy_trove: u64 = purger_utils::funded_healthy_trove(
             abbot, yangs, gates, purger_utils::TARGET_TROVE_YIN.into(),
         );
@@ -648,7 +646,7 @@ mod test_purger {
     fn test_liquidate_trove_healthy_high_threshold_fail() {
         let PurgerTestConfig {
             shrine, abbot, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
         let healthy_trove: u64 = purger_utils::funded_healthy_trove(
             abbot, yangs, gates, purger_utils::TARGET_TROVE_YIN.into(),
         );
@@ -815,7 +813,7 @@ mod test_purger {
     fn test_full_absorb_pass() {
         let PurgerTestConfig {
             shrine, abbot, seer, absorber, purger, yangs, gates,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
         let mut spy = spy_events();
 
         let initial_trove_debt: Wad = purger_utils::TARGET_TROVE_YIN.into();
@@ -1005,7 +1003,7 @@ mod test_purger {
 
             let mut spy = spy_events();
 
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
             shrine.set_debt_ceiling((2000000 * WAD_ONE).into());
 
             let target_trove_owner: ContractAddress = purger_utils::TARGET_TROVE_OWNER;
@@ -1696,7 +1694,7 @@ mod test_purger {
 
                 let mut spy = spy_events();
 
-                cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+                cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
                 shrine.set_debt_ceiling((2000000 * WAD_ONE).into());
 
                 let initial_trove_debt: Wad = purger_utils::TARGET_TROVE_YIN.into();
@@ -2173,7 +2171,7 @@ mod test_purger {
     fn test_absorb_trove_healthy_fail() {
         let PurgerTestConfig {
             shrine, abbot, absorber, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         let trove_debt: Wad = purger_utils::TARGET_TROVE_YIN.into();
         let healthy_trove: u64 = purger_utils::funded_healthy_trove(abbot, yangs, gates, trove_debt);
@@ -2191,7 +2189,7 @@ mod test_purger {
     fn test_absorb_below_absorbable_ltv_fail() {
         let PurgerTestConfig {
             shrine, abbot, seer, absorber, purger, yangs, gates,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         purger_utils::create_whale_trove(abbot, yangs, gates);
 
@@ -2222,7 +2220,7 @@ mod test_purger {
         let (mut thresholds, mut target_ltvs) = purger_utils::interesting_thresholds_and_ltvs_below_absorption_ltv();
 
         for threshold in thresholds {
-            let searcher_start_yin: Wad = purger_utils::SEARCHER_YIN.into();
+            let searcher_start_yin: Wad = common::LARGE_FORGE.into();
             let PurgerTestConfig {
                 shrine, abbot, seer, absorber, purger, yangs, gates,
             } = purger_utils::purger_deploy_with_searcher(searcher_start_yin, classes);
@@ -2264,7 +2262,7 @@ mod test_purger {
     fn test_liquidate_suspended_yang() {
         let PurgerTestConfig {
             shrine, abbot, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         // user 1 opens a trove with ETH and BTC that is close to liquidation
         // `funded_healthy_trove` supplies 2 ETH and 0.5 BTC totalling $9000 in value, so we
@@ -2276,7 +2274,7 @@ mod test_purger {
         let btc: ContractAddress = *yangs[1];
         let current_timestamp: u64 = get_block_timestamp();
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.suspend_yang(btc);
 
         // The trove has $6000 in debt and $9000 in collateral. BTC's value must decrease
@@ -2333,10 +2331,7 @@ mod test_purger {
         assert(target_trove_after_health.debt < target_trove_start_health.debt, 'trove not correctly liquidated');
 
         assert(
-            shrine_utils::yin(shrine.contract_address)
-                .balance_of(searcher)
-                .try_into()
-                .unwrap() < purger_utils::SEARCHER_YIN,
+            shrine_utils::yin(shrine.contract_address).balance_of(searcher).try_into().unwrap() < common::LARGE_FORGE,
             'searcher yin not used',
         );
 
@@ -2427,7 +2422,7 @@ mod test_purger {
     ) {
         let PurgerTestConfig {
             shrine, abbot, seer, absorber, purger, yangs, gates,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         let eth: ContractAddress = *yangs[0];
         let eth_gate: IGateDispatcher = *gates[0];
@@ -2439,7 +2434,7 @@ mod test_purger {
 
         // Have the searcher provide half of his yin to the absorber
         let searcher = purger_utils::SEARCHER;
-        let searcher_yin: Wad = (purger_utils::SEARCHER_YIN / 2).into();
+        let searcher_yin: Wad = (common::LARGE_FORGE / 2).into();
         let yin_erc20 = shrine_utils::yin(shrine.contract_address);
 
         cheat_caller_address(shrine.contract_address, searcher, CheatSpan::TargetCalls(1));
@@ -2459,7 +2454,7 @@ mod test_purger {
         );
 
         // Suspend ETH
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.suspend_yang(eth);
 
         // Advance the time stamp such that the ETH threshold falls to `desired_threshold`
@@ -2525,7 +2520,7 @@ mod test_purger {
             assert(yin_erc20.balance_of(searcher) < before_liquidation_yin_balance, 'searcher yin not used');
         }
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.unsuspend_yang(eth);
     }
 
@@ -2547,7 +2542,7 @@ mod test_purger {
         let classes = Option::Some(purger_utils::declare_contracts());
 
         let searcher = purger_utils::SEARCHER;
-        let searcher_start_yin: Wad = (purger_utils::SEARCHER_YIN * 6).into();
+        let searcher_start_yin: Wad = (common::LARGE_FORGE * 6).into();
 
         let minimum_operational_shares: Wad = (absorber_contract::INITIAL_SHARES
             + absorber_contract::MINIMUM_RECIPIENT_SHARES)
@@ -2565,7 +2560,7 @@ mod test_purger {
                     shrine, abbot, absorber, purger, yangs, gates, ..,
                 } = purger_utils::purger_deploy_with_searcher(searcher_start_yin, classes);
 
-                cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+                cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
                 shrine.set_debt_ceiling((10000000 * WAD_ONE).into());
 
                 // Create whale trove to either:
@@ -2582,8 +2577,8 @@ mod test_purger {
                 // Calculating the `trove_debt` necessary to achieve
                 // the `target_ltv`
                 let target_trove_yang_amts: Span<Wad> = array![
-                    (*gates[0]).convert_to_yang(purger_utils::TARGET_TROVE_ETH_DEPOSIT_AMT),
-                    (*gates[1]).convert_to_yang(purger_utils::TARGET_TROVE_WBTC_DEPOSIT_AMT),
+                    (*gates[0]).convert_to_yang(common::SMALL_ETH_DEPOSIT),
+                    (*gates[1]).convert_to_yang(common::MEDIUM_WBTC_DEPOSIT),
                 ]
                     .span();
 
@@ -2680,12 +2675,10 @@ mod test_purger {
                     purger_contract::COMPENSATION_CAP.into(), target_trove_start_health.value,
                 );
 
-                let expected_eth_comp: u128 = scale_u128_by_ray(
-                    purger_utils::TARGET_TROVE_ETH_DEPOSIT_AMT, expected_compensation_pct,
-                );
+                let expected_eth_comp: u128 = scale_u128_by_ray(common::SMALL_ETH_DEPOSIT, expected_compensation_pct);
 
                 let expected_wbtc_comp: u128 = scale_u128_by_ray(
-                    purger_utils::TARGET_TROVE_WBTC_DEPOSIT_AMT, expected_compensation_pct,
+                    common::MEDIUM_WBTC_DEPOSIT, expected_compensation_pct,
                 );
 
                 common::assert_equalish(expected_eth_comp, actual_eth_comp.amount, 1_u128, 'wrong eth compensation');

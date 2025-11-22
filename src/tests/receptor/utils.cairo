@@ -30,7 +30,7 @@ pub mod receptor_utils {
 
     pub fn invalid_token(token_class: Option<ContractClass>) -> ContractAddress {
         common::deploy_token(
-            'Invalid', 'INV', (WAD_DECIMALS + 1).into(), WAD_ONE.into(), shrine_utils::ADMIN, token_class,
+            'Invalid', 'INV', (WAD_DECIMALS + 1).into(), WAD_ONE.into(), common::SHRINE_ADMIN, token_class,
         )
     }
 
@@ -66,7 +66,7 @@ pub mod receptor_utils {
         let mock_ekubo_oracle_extension_addr: ContractAddress = mock_ekubo_oracle_extension_deploy(Option::None);
 
         let mut calldata: Array<felt252> = array![
-            shrine_utils::ADMIN.into(),
+            common::SHRINE_ADMIN.into(),
             shrine.contract_address.into(),
             mock_ekubo_oracle_extension_addr.into(),
             INITIAL_UPDATE_FREQUENCY.into(),
@@ -81,7 +81,7 @@ pub mod receptor_utils {
         let (receptor_addr, _) = receptor_class.deploy(@calldata).expect('receptor deploy failed');
 
         // Grant UPDATE_YIN_SPOT_PRICE role to receptor contract
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         let shrine_accesscontrol = IAccessControlDispatcher { contract_address: shrine.contract_address };
         shrine_accesscontrol.grant_role(shrine_roles::RECEPTOR, receptor_addr);
 

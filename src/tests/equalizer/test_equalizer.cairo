@@ -24,7 +24,7 @@ mod test_equalizer {
         assert(equalizer.get_allocator() == allocator.contract_address, 'wrong allocator address');
 
         let equalizer_ac = IAccessControlDispatcher { contract_address: equalizer.contract_address };
-        let admin = shrine_utils::ADMIN;
+        let admin = common::SHRINE_ADMIN;
         assert(equalizer_ac.get_admin() == admin, 'wrong admin');
         assert(equalizer_ac.get_roles(admin) == equalizer_roles::ADMIN, 'wrong role');
         assert(equalizer_ac.has_role(equalizer_roles::SET_ALLOCATOR, admin), 'role not granted');
@@ -36,7 +36,7 @@ mod test_equalizer {
         let mut spy = spy_events();
 
         let surplus: Wad = (500 * WAD_ONE).into();
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(surplus.into());
         assert(shrine.get_budget() == surplus.into(), 'sanity check');
 
@@ -67,7 +67,7 @@ mod test_equalizer {
 
         // Create a deficit
         let deficit = -((500 * WAD_ONE).into());
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(deficit);
 
         assert(equalizer.equalize().is_zero(), 'minted surplus should be zero');
@@ -78,13 +78,13 @@ mod test_equalizer {
         let EqualizerTestConfig { shrine, equalizer, .. } = equalizer_utils::equalizer_deploy(Option::None);
         let mut spy = spy_events();
 
-        let yangs = array![shrine_utils::YANG1_ADDR, shrine_utils::YANG2_ADDR].span();
+        let yangs = array![common::YANG1_ADDR, common::YANG2_ADDR].span();
         let debt_ceiling: Wad = shrine.get_debt_ceiling();
 
         // deposit 1000 ETH and forge the debt ceiling
         shrine_utils::trove1_deposit(shrine, (1000 * WAD_ONE).into());
         shrine_utils::trove1_forge(shrine, debt_ceiling);
-        let eth: ContractAddress = shrine_utils::YANG1_ADDR;
+        let eth: ContractAddress = common::YANG1_ADDR;
         let (eth_price, _, _) = shrine.get_current_yang_price(eth);
 
         let mut loop_id = 5;
@@ -94,7 +94,7 @@ mod test_equalizer {
             common::advance_intervals_and_refresh_prices_and_multiplier(shrine, yangs, 500);
 
             // update price to speed up calculation
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
             shrine.advance(eth, eth_price);
 
             shrine_utils::trove1_deposit(shrine, Zero::zero());
@@ -141,7 +141,7 @@ mod test_equalizer {
 
         // Simulate minted surplus by injecting to Equalizer directly
         let surplus: Wad = (1000 * WAD_ONE + 123).into();
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(equalizer.contract_address, surplus);
 
         let recipients = equalizer_utils::initial_recipients();
@@ -204,7 +204,7 @@ mod test_equalizer {
         ]
             .span();
 
-        let admin: ContractAddress = shrine_utils::ADMIN;
+        let admin: ContractAddress = common::SHRINE_ADMIN;
 
         for normalize_amt in normalize_amts {
             // Create the deficit
@@ -261,7 +261,7 @@ mod test_equalizer {
         let mut new_percentages = equalizer_utils::new_percentages();
         let new_allocator = equalizer_utils::allocator_deploy(new_recipients, new_percentages, allocator_class);
 
-        cheat_caller_address(equalizer.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(equalizer.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         equalizer.set_allocator(new_allocator.contract_address);
 
         // Check allocator is updated

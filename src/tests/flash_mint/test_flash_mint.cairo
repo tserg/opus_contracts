@@ -41,14 +41,14 @@ mod test_flash_mint {
         // deposit 1000 ETH and forge the debt ceiling
         shrine_utils::trove1_deposit(shrine, (1000 * WAD_ONE).into());
         shrine_utils::trove1_forge(shrine, debt_ceiling);
-        let eth: ContractAddress = shrine_utils::YANG1_ADDR;
+        let eth: ContractAddress = common::YANG1_ADDR;
         let (eth_price, _, _) = shrine.get_current_yang_price(eth);
 
         // accrue interest to exceed the debt ceiling
         common::advance_intervals(1000);
 
         // update price to speed up calculation
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.advance(eth, eth_price);
 
         shrine_utils::trove1_deposit(shrine, Zero::zero());
@@ -104,7 +104,7 @@ mod test_flash_mint {
         // check that flash loan still functions normally when yin supply is at debt ceiling
         let debt_ceiling: Wad = shrine_utils::shrine(shrine).get_debt_ceiling();
         let debt_to_ceiling: Wad = debt_ceiling - shrine_utils::shrine(shrine).get_total_yin();
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine_utils::shrine(shrine).inject(common::NON_ZERO_ADDR, debt_to_ceiling);
 
         let fourth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
@@ -113,7 +113,7 @@ mod test_flash_mint {
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         // and the budget has a deficit
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine_utils::shrine(shrine).adjust_budget((1000 * WAD_ONE).into());
 
         let fifth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
@@ -122,7 +122,7 @@ mod test_flash_mint {
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         // and the budget has a surplus
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine_utils::shrine(shrine).adjust_budget((2000 * WAD_ONE).into());
 
         let sixth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();

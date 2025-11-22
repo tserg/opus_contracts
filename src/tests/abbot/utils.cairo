@@ -10,7 +10,7 @@ pub mod abbot_utils {
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
-    use wadray::{WAD_ONE, Wad};
+    use wadray::Wad;
 
     // Struct to group together all contract classes
     // needed for abbot tests
@@ -44,10 +44,6 @@ pub mod abbot_utils {
     // Constants
     //
 
-    pub const OPEN_TROVE_FORGE_AMT: u128 = 2000 * WAD_ONE; // 2_000 (Wad)
-    pub const ETH_DEPOSIT_AMT: u128 = 10 * WAD_ONE; // 10 (Wad);
-    pub const WBTC_DEPOSIT_AMT: u128 = 50000000; // 0.5 (WBTC decimals);
-
     pub const SUBSEQUENT_ETH_DEPOSIT_AMT: u128 = 2345000000000000000; // 2.345 (Wad);
     pub const SUBSEQUENT_WBTC_DEPOSIT_AMT: u128 = 44300000; // 0.443 (WBTC decimals);
 
@@ -56,11 +52,11 @@ pub mod abbot_utils {
     //
 
     pub fn initial_asset_amts() -> Span<u128> {
-        array![ETH_DEPOSIT_AMT * 10, WBTC_DEPOSIT_AMT * 10].span()
+        array![common::LARGE_ETH_DEPOSIT, common::LARGE_WBTC_DEPOSIT].span()
     }
 
     pub fn open_trove_yang_asset_amts() -> Span<u128> {
-        array![ETH_DEPOSIT_AMT, WBTC_DEPOSIT_AMT].span()
+        array![common::MEDIUM_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT].span()
     }
 
     pub fn subsequent_deposit_amts() -> Span<u128> {
@@ -102,12 +98,12 @@ pub mod abbot_utils {
         let abbot = IAbbotDispatcher { contract_address: abbot_addr };
 
         // Grant Shrine roles to Abbot
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
         shrine_ac.grant_role(shrine_roles::ABBOT, abbot_addr);
 
         // Grant Sentinel roles to Abbot
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
         sentinel_ac.grant_role(sentinel_roles::ABBOT, abbot_addr);
 
@@ -118,7 +114,7 @@ pub mod abbot_utils {
         let abbot_test_config = abbot_deploy(classes);
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
 
-        let forge_amt: Wad = OPEN_TROVE_FORGE_AMT.into();
+        let forge_amt: Wad = common::MEDIUM_FORGE.into();
         common::fund_user(trove_owner, abbot_test_config.yangs, initial_asset_amts());
         let yang_asset_amts: Span<u128> = open_trove_yang_asset_amts();
         let trove_id: u64 = common::open_trove_helper(

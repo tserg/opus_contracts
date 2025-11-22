@@ -1783,7 +1783,7 @@ mod test_absorber {
 
         shrine_utils::recovery_mode_test_setup(shrine, yangs, common::RecoveryModeSetupType::BufferLowerBound);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
 
         assert(!shrine.get_live(), 'should be killed');
@@ -1817,7 +1817,7 @@ mod test_absorber {
         let eth_addr: ContractAddress = *yangs.at(0);
         let (eth_yang_price, _, _) = shrine.get_current_yang_price(eth_addr);
         let new_eth_yang_price: Wad = (eth_yang_price.into() / 5_u128).into(); // 80% drop in price
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.advance(eth_addr, new_eth_yang_price);
         assert(shrine.is_recovery_mode(), 'sanity check for RM threshold');
 

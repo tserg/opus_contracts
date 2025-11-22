@@ -399,7 +399,7 @@ mod test_seer {
         assert(shrine_wbtc_vault_price == wbtc_price * vault_multiplier, 'wrong wbtc(v) price in shrine 2');
 
         // Check that delisted yangs are skipped by suspending ETH
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.suspend_yang(eth_addr);
 
         // avoid hitting iteration limit by splitting the suspension period into parts

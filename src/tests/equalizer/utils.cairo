@@ -5,6 +5,7 @@ pub mod equalizer_utils {
     use opus::interfaces::IAllocator::IAllocatorDispatcher;
     use opus::interfaces::IEqualizer::IEqualizerDispatcher;
     use opus::interfaces::IShrine::IShrineDispatcher;
+    use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
@@ -72,7 +73,7 @@ pub mod equalizer_utils {
     pub fn allocator_deploy(
         mut recipients: Span<ContractAddress>, mut percentages: Span<Ray>, allocator_class: Option<ContractClass>,
     ) -> IAllocatorDispatcher {
-        let mut calldata: Array<felt252> = array![shrine_utils::ADMIN.into(), recipients.len().into()];
+        let mut calldata: Array<felt252> = array![common::SHRINE_ADMIN.into(), recipients.len().into()];
 
         for recipient in recipients {
             calldata.append((*recipient).into());
@@ -97,7 +98,7 @@ pub mod equalizer_utils {
         tcr_allocator_class: Option<ContractClass>,
     ) -> IAllocatorDispatcher {
         let mut calldata: Array<felt252> = array![
-            shrine.into(), shrine_utils::ADMIN.into(), absorber.into(), stabilizer.into(),
+            shrine.into(), common::SHRINE_ADMIN.into(), absorber.into(), stabilizer.into(),
         ];
 
         let tcr_allocator_class = tcr_allocator_class.unwrap_or(*declare("tcr_allocator").unwrap().contract_class());
@@ -117,7 +118,7 @@ pub mod equalizer_utils {
         let allocator: IAllocatorDispatcher = allocator_deploy(
             initial_recipients(), initial_percentages(), allocator_class,
         );
-        let admin = shrine_utils::ADMIN;
+        let admin = common::SHRINE_ADMIN;
 
         let mut calldata: Array<felt252> = array![admin.into(), shrine.into(), allocator.contract_address.into()];
 
