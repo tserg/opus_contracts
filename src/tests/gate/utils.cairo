@@ -8,7 +8,7 @@ pub mod gate_utils {
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
         ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global,
-        start_cheat_caller_address, stop_cheat_caller_address,
+        cheat_caller_address, CheatSpan,
     };
     use starknet::ContractAddress;
 
@@ -49,7 +49,7 @@ pub mod gate_utils {
     }
 
     pub fn add_eth_as_yang(shrine: ContractAddress, eth: ContractAddress) {
-        start_cheat_caller_address(shrine, shrine_utils::ADMIN);
+        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
         let shrine = IShrineDispatcher { contract_address: shrine };
         shrine
             .add_yang(
@@ -60,11 +60,10 @@ pub mod gate_utils {
                 Zero::zero() // initial amount
             );
         shrine.set_debt_ceiling(shrine_utils::DEBT_CEILING.into());
-        stop_cheat_caller_address(shrine.contract_address);
     }
 
     pub fn add_wbtc_as_yang(shrine: ContractAddress, wbtc: ContractAddress) {
-        start_cheat_caller_address(shrine, shrine_utils::ADMIN);
+        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
         let shrine = IShrineDispatcher { contract_address: shrine };
         shrine
             .add_yang(
@@ -75,14 +74,12 @@ pub mod gate_utils {
                 Zero::zero() // initial amount
             );
         shrine.set_debt_ceiling(shrine_utils::DEBT_CEILING.into());
-        stop_cheat_caller_address(shrine.contract_address);
     }
 
     pub fn approve_gate_for_token(gate: ContractAddress, token: ContractAddress, user: ContractAddress) {
         // user no-limit approves gate to handle their share of token
-        start_cheat_caller_address(token, user);
+        cheat_caller_address(token, user, CheatSpan::TargetCalls(1));
         IERC20Dispatcher { contract_address: token }.approve(gate, Bounded::MAX);
-        stop_cheat_caller_address(token);
     }
 
     pub fn rebase(gate: ContractAddress, token: ContractAddress, amount: u128) {
