@@ -11,10 +11,7 @@ pub mod seer_utils {
     use opus::tests::sentinel::utils::sentinel_utils;
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::PriceType;
-    use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        stop_cheat_caller_address,
-    };
+    use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::{ContractAddress, get_block_timestamp};
     use wadray::{WAD_ONE, Wad};
 
@@ -76,9 +73,8 @@ pub mod seer_utils {
 
         // Allow Seer to advance Shrine
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine };
-        start_cheat_caller_address(shrine, shrine_utils::ADMIN);
+        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine_ac.grant_role(shrine_roles::SEER, seer_addr);
-        stop_cheat_caller_address(shrine);
 
         SeerTestConfig {
             seer: ISeerDispatcher { contract_address: seer_addr },
@@ -100,19 +96,17 @@ pub mod seer_utils {
 
         // Allow Seer to advance Shrine
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine };
-        start_cheat_caller_address(shrine, shrine_utils::ADMIN);
+        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine_ac.grant_role(shrine_roles::SEER, seer_addr);
-        stop_cheat_caller_address(shrine);
 
         ISeerDispatcher { contract_address: seer_addr }
     }
 
     pub fn set_price_types_to_vault(seer: ISeerDispatcher, mut vaults: Span<ContractAddress>) {
-        start_cheat_caller_address(seer.contract_address, ADMIN);
+        cheat_caller_address(seer.contract_address, ADMIN, CheatSpan::TargetCalls(vaults.len().try_into().unwrap()));
         for vault in vaults {
             seer.set_yang_price_type(*vault, PriceType::Vault);
         }
-        stop_cheat_caller_address(seer.contract_address);
     }
 
     pub fn add_oracles(
@@ -132,9 +126,8 @@ pub mod seer_utils {
         } = ekubo_utils::ekubo_deploy(oracle_classes.ekubo, oracle_classes.mock_ekubo, token_class);
         oracles.append(ekubo.contract_address);
 
-        start_cheat_caller_address(seer.contract_address, ADMIN);
+        cheat_caller_address(seer.contract_address, ADMIN, CheatSpan::TargetCalls(1));
         seer.set_oracles(oracles.span());
-        stop_cheat_caller_address(seer.contract_address);
 
         oracles.span()
     }
