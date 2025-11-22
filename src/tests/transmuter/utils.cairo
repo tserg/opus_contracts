@@ -9,10 +9,7 @@ pub mod transmuter_utils {
     };
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        stop_cheat_caller_address,
-    };
+    use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
     use wadray::{WAD_ONE, Wad};
 
@@ -63,7 +60,7 @@ pub mod transmuter_utils {
 
         let (transmuter_addr, _) = transmuter_class.deploy(@calldata).expect('transmuter deploy failed');
 
-        start_cheat_caller_address(shrine, shrine_utils::ADMIN);
+        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         let shrine_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine };
         shrine_ac.grant_role(shrine_roles::TRANSMUTER, transmuter_addr);
 
@@ -97,16 +94,14 @@ pub mod transmuter_utils {
         user: ContractAddress,
     ) {
         // set debt ceiling to 30m
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
         shrine.set_debt_ceiling(shrine_ceiling);
         shrine.inject(start_yin_recipient, shrine_start_yin);
-        stop_cheat_caller_address(shrine.contract_address);
 
         // approve transmuter to deal with user's tokens
         let asset: ContractAddress = transmuter.get_asset();
-        start_cheat_caller_address(asset, user);
+        cheat_caller_address(asset, user, CheatSpan::TargetCalls(1));
         IERC20Dispatcher { contract_address: asset }.approve(transmuter.contract_address, Bounded::MAX);
-        stop_cheat_caller_address(asset);
     }
 
     pub fn shrine_with_wad_usd_stable_transmuter(
