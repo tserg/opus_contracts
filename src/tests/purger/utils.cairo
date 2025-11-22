@@ -19,8 +19,8 @@ pub mod purger_utils {
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, Health, HealthTrait};
     use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, Event, declare, start_cheat_caller_address,
-        stop_cheat_caller_address,
+        CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, Event, cheat_caller_address, declare,
+        start_cheat_caller_address, stop_cheat_caller_address,
     };
     use starknet::ContractAddress;
     use wadray::{RAY_ONE, RAY_PERCENT, Ray, WAD_ONE, Wad};
@@ -376,9 +376,8 @@ pub mod purger_utils {
         );
         pragma_utils::add_yangs(*oracles.at(0), yangs);
 
-        start_cheat_caller_address(seer.contract_address, seer_utils::ADMIN);
+        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
-        stop_cheat_caller_address(seer.contract_address);
 
         let admin: ContractAddress = ADMIN;
 
@@ -396,32 +395,27 @@ pub mod purger_utils {
 
         // Approve Purger in Shrine
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
         shrine_ac.grant_role(shrine_roles::PURGER, purger_addr);
 
         // Increase debt ceiling
         let debt_ceiling: Wad = (100000 * WAD_ONE).into();
         shrine.set_debt_ceiling(debt_ceiling);
 
-        stop_cheat_caller_address(shrine.contract_address);
-
         // Approve Purger in Sentinel
         let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
-        start_cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN);
+        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
         sentinel_ac.grant_role(sentinel_roles::PURGER, purger_addr);
-        stop_cheat_caller_address(sentinel.contract_address);
 
         // Approve Purger in Seer
         let oracle_ac = IAccessControlDispatcher { contract_address: seer.contract_address };
-        start_cheat_caller_address(seer.contract_address, seer_utils::ADMIN);
+        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
         oracle_ac.grant_role(seer_roles::PURGER, purger_addr);
-        stop_cheat_caller_address(seer.contract_address);
 
         // Approve Purger in Absorber
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber.contract_address };
-        start_cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN);
+        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
         absorber_ac.grant_role(absorber_roles::PURGER, purger_addr);
-        stop_cheat_caller_address(absorber.contract_address);
 
         PurgerTestConfig { shrine, abbot, seer, absorber, purger, yangs, gates }
     }
@@ -494,11 +488,12 @@ pub mod purger_utils {
 
     // Update thresholds for all yangs to the given value
     pub fn set_thresholds(shrine: IShrineDispatcher, yangs: Span<ContractAddress>, threshold: Ray) {
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(
+            shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(yangs.len().try_into().unwrap()),
+        );
         for yang in yangs {
             shrine.set_threshold(*yang, threshold);
         }
-        stop_cheat_caller_address(shrine.contract_address);
     }
 
     // Helper function to decrease yang prices by the given percentage

@@ -7,8 +7,8 @@ pub mod gate_utils {
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global,
-        cheat_caller_address, CheatSpan,
+        CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
+        start_cheat_block_timestamp_global,
     };
     use starknet::ContractAddress;
 

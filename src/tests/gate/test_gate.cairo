@@ -9,7 +9,7 @@ mod test_gate {
     use opus::tests::common;
     use opus::tests::gate::utils::gate_utils;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{cheat_caller_address, CheatSpan};
+    use snforge_std::{CheatSpan, cheat_caller_address};
     use starknet::ContractAddress;
     use wadray::{WAD_SCALE, Wad};
 
