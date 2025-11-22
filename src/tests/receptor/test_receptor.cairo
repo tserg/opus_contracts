@@ -15,7 +15,7 @@ mod test_receptor {
     use opus::types::QuoteTokenInfo;
     use opus::utils::ekubo_oracle_adapter::{IEkuboOracleAdapterDispatcher, IEkuboOracleAdapterDispatcherTrait};
     use snforge_std::{
-        EventSpyAssertionsTrait, spy_events, start_cheat_block_timestamp_global, start_cheat_caller_address,
+        CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events, start_cheat_block_timestamp_global,
     };
     use starknet::get_block_timestamp;
     use wadray::Wad;
@@ -59,7 +59,7 @@ mod test_receptor {
         let ReceptorTestConfig { receptor, .. } = receptor_utils::receptor_deploy(Option::None, Option::None);
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: receptor.contract_address };
 
-        start_cheat_caller_address(receptor.contract_address, common::BAD_GUY);
+        cheat_caller_address(receptor.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         ekubo_oracle_adapter.set_oracle_extension(receptor_utils::MOCK_ORACLE_EXTENSION);
     }
 
@@ -71,7 +71,7 @@ mod test_receptor {
         } = receptor_utils::receptor_deploy(Option::None, Option::None);
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: receptor.contract_address };
 
-        start_cheat_caller_address(receptor.contract_address, common::BAD_GUY);
+        cheat_caller_address(receptor.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         ekubo_oracle_adapter.set_quote_tokens(quote_tokens);
     }
 
@@ -81,7 +81,7 @@ mod test_receptor {
         let ReceptorTestConfig { receptor, .. } = receptor_utils::receptor_deploy(Option::None, Option::None);
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: receptor.contract_address };
 
-        start_cheat_caller_address(receptor.contract_address, common::BAD_GUY);
+        cheat_caller_address(receptor.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         ekubo_oracle_adapter.set_twap_duration(receptor_utils::INITIAL_TWAP_DURATION + 1);
     }
 
@@ -92,7 +92,7 @@ mod test_receptor {
 
         let old_frequency: u64 = receptor_utils::INITIAL_UPDATE_FREQUENCY;
         let new_frequency: u64 = old_frequency + 1;
-        start_cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         receptor.set_update_frequency(new_frequency);
 
         assert_eq!(receptor.get_update_frequency(), new_frequency, "wrong update frequency");
@@ -113,7 +113,7 @@ mod test_receptor {
     #[should_panic(expected: 'Caller missing role')]
     fn test_set_update_frequency_unauthorized() {
         let ReceptorTestConfig { receptor, .. } = receptor_utils::receptor_deploy(Option::None, Option::None);
-        start_cheat_caller_address(receptor.contract_address, common::BAD_GUY);
+        cheat_caller_address(receptor.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         receptor.set_update_frequency(receptor_utils::INITIAL_UPDATE_FREQUENCY - 1);
     }
 
@@ -123,7 +123,7 @@ mod test_receptor {
         let ReceptorTestConfig { receptor, .. } = receptor_utils::receptor_deploy(Option::None, Option::None);
 
         let new_frequency: u64 = receptor_contract::LOWER_UPDATE_FREQUENCY_BOUND - 1;
-        start_cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         receptor.set_update_frequency(new_frequency);
     }
 
@@ -133,7 +133,7 @@ mod test_receptor {
         let ReceptorTestConfig { receptor, .. } = receptor_utils::receptor_deploy(Option::None, Option::None);
 
         let new_frequency: u64 = receptor_contract::UPPER_UPDATE_FREQUENCY_BOUND + 1;
-        start_cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         receptor.set_update_frequency(new_frequency);
     }
 
@@ -177,7 +177,7 @@ mod test_receptor {
             common::assert_equalish(*quote, expected, error_margin, 'wrong quote');
         }
 
-        start_cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         receptor.update_yin_price();
 
         let after_yin_spot_price: Wad = shrine.get_yin_spot_price();
@@ -217,6 +217,7 @@ mod test_receptor {
 
         let quotes: Span<Wad> = receptor.get_quotes();
 
+        cheat_caller_address(receptor.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         receptor.update_yin_price();
 
         assert_eq!(shrine.get_yin_spot_price(), expected_yin_spot_price, "wrong yin price in shrine #2");
