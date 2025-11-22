@@ -16,8 +16,7 @@ mod test_pragma {
     use opus::tests::sentinel::utils::sentinel_utils;
     use opus::types::pragma::{AggregationMode, PairSettings, PragmaPricesResponse, PriceValidityThresholds};
     use snforge_std::{
-        EventSpyAssertionsTrait, spy_events, start_cheat_block_timestamp_global, start_cheat_caller_address,
-        stop_cheat_caller_address,
+        CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events, start_cheat_block_timestamp_global,
     };
     use starknet::{ContractAddress, get_block_timestamp};
     use wadray::{WAD_DECIMALS, WAD_SCALE, Wad};
@@ -71,7 +70,7 @@ mod test_pragma {
         let new_freshness: u64 = 5 * 60; // 5 minutes * 60 seconds
         let new_sources: u32 = 8;
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(new_freshness, new_sources);
 
         let expected_events = array![
@@ -98,7 +97,7 @@ mod test_pragma {
         let invalid_freshness: u64 = pragma_contract::LOWER_FRESHNESS_BOUND - 1;
         let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(invalid_freshness, valid_sources);
     }
 
@@ -110,7 +109,7 @@ mod test_pragma {
         let invalid_freshness: u64 = pragma_contract::UPPER_FRESHNESS_BOUND + 1;
         let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(invalid_freshness, valid_sources);
     }
 
@@ -122,7 +121,7 @@ mod test_pragma {
         let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
         let invalid_sources: u32 = pragma_contract::LOWER_SOURCES_BOUND - 1;
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(valid_freshness, invalid_sources);
     }
 
@@ -134,7 +133,7 @@ mod test_pragma {
         let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
         let invalid_sources: u32 = pragma_contract::UPPER_SOURCES_BOUND + 1;
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(valid_freshness, invalid_sources);
     }
 
@@ -146,7 +145,7 @@ mod test_pragma {
         let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
         let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
-        start_cheat_caller_address(pragma.contract_address, common::BAD_GUY);
+        cheat_caller_address(pragma.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(valid_freshness, valid_sources);
     }
 
@@ -168,9 +167,9 @@ mod test_pragma {
         let pair_settings = PairSettings { pair_id: pepe_token_pair_id, aggregation_mode: AggregationMode::Median };
 
         start_cheat_block_timestamp_global(TS);
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token, pair_settings);
-        stop_cheat_caller_address(pragma.contract_address);
+
         let expected_events = array![
             (
                 pragma.contract_address,
@@ -201,7 +200,7 @@ mod test_pragma {
         // Seed first price update for PEPE token so that `Pragma.set_yang_pair_settings` passes
         pragma_utils::mock_valid_price_update(mock_pragma, pepe_token, price.into(), current_ts);
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token, pair_settings);
 
         // fake data for a second set_yang_pair_settings, so its distinct from the first call
@@ -221,6 +220,7 @@ mod test_pragma {
         let twap_response: (u128, u32) = (price, PRAGMA_DECIMALS.into());
         mock_pragma.next_calculate_twap(pepe_token_pair_id_2, twap_response);
 
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token, new_pair_settings);
         let expected_events = array![
             (
@@ -245,7 +245,8 @@ mod test_pragma {
     fn test_set_yang_pair_settings_unauthorized_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
-        start_cheat_caller_address(pragma.contract_address, common::BAD_GUY);
+
+        cheat_caller_address(pragma.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(mock_eth_token_addr(), pair_settings);
     }
 
@@ -253,9 +254,10 @@ mod test_pragma {
     #[should_panic(expected: 'PGM: Invalid pair ID')]
     fn test_set_yang_pair_settings_invalid_pair_id_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
         let invalid_pair_id = 0;
         let pair_settings = PairSettings { pair_id: invalid_pair_id, aggregation_mode: AggregationMode::Median };
+
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(mock_eth_token_addr(), pair_settings);
     }
 
@@ -263,9 +265,10 @@ mod test_pragma {
     #[should_panic(expected: 'PGM: Invalid yang address')]
     fn test_set_yang_pair_settings_invalid_yang_address_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
         let invalid_yang_addr = Zero::zero();
         let pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
+
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(invalid_yang_addr, pair_settings);
     }
 
@@ -276,7 +279,7 @@ mod test_pragma {
         let pair_settings = PairSettings {
             pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
         };
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
     }
 
@@ -297,8 +300,8 @@ mod test_pragma {
             pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
         };
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
         start_cheat_block_timestamp_global(TS);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
     }
 
@@ -322,7 +325,7 @@ mod test_pragma {
             pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
         };
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
     }
 
@@ -348,7 +351,7 @@ mod test_pragma {
             pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
         };
 
-        start_cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN);
+        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
         start_cheat_block_timestamp_global(TS);
         pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
     }
@@ -377,8 +380,8 @@ mod test_pragma {
         let mut wbtc_price: Wad = seer_utils::WBTC_INIT_PRICE.into();
         pragma_utils::mock_valid_price_update(mock_pragma, wbtc_addr, wbtc_price, first_ts);
 
-        start_cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR);
         let pragma_oracle = IOracleDispatcher { contract_address: pragma.contract_address };
+        cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(2));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
         let fetched_wbtc: Result<Wad, felt252> = pragma_oracle.fetch_price(wbtc_addr);
 
@@ -391,6 +394,8 @@ mod test_pragma {
         pragma_utils::mock_valid_price_update(mock_pragma, eth_addr, eth_price, next_ts);
         wbtc_price += (10 * WAD_SCALE).into();
         pragma_utils::mock_valid_price_update(mock_pragma, wbtc_addr, wbtc_price, next_ts);
+
+        cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(2));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
         let fetched_wbtc: Result<Wad, felt252> = pragma_oracle.fetch_price(wbtc_addr);
 
@@ -421,10 +426,10 @@ mod test_pragma {
             );
         mock_pragma.next_calculate_twap(ETH_USD_PAIR_ID, (twap_eth_price, WAD_DECIMALS.into()));
 
-        start_cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR);
         start_cheat_block_timestamp_global(TS);
 
         let pragma_oracle = IOracleDispatcher { contract_address: pragma.contract_address };
+        cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
 
         assert(fetched_eth.unwrap() == spot_eth_price.into(), 'wrong ETH price');
@@ -453,10 +458,10 @@ mod test_pragma {
             );
         mock_pragma.next_calculate_twap(ETH_USD_PAIR_ID, (twap_eth_price, WAD_DECIMALS.into()));
 
-        start_cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR);
         start_cheat_block_timestamp_global(TS);
 
         let pragma_oracle = IOracleDispatcher { contract_address: pragma.contract_address };
+        cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
 
         assert(fetched_eth.unwrap() == twap_eth_price.into(), 'wrong ETH price');
@@ -478,14 +483,15 @@ mod test_pragma {
         let eth_price: Wad = seer_utils::ETH_INIT_PRICE.into();
         pragma_utils::mock_valid_price_update(mock_pragma, eth_addr, eth_price, now);
 
-        start_cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR);
         let pragma_oracle = IOracleDispatcher { contract_address: pragma.contract_address };
+        cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
 
         // check if first fetch works, advance block time to be out of freshness range
         // and check if there's a error and if an event was emitted
         assert(eth_price == fetched_eth.unwrap(), 'wrong ETH price 1');
         start_cheat_block_timestamp_global(now + pragma_utils::FRESHNESS_THRESHOLD + 1);
+        cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
         assert(fetched_eth.unwrap_err() == 'PGM: Invalid price update', 'wrong result');
 
@@ -535,8 +541,8 @@ mod test_pragma {
                 },
             );
 
-        start_cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR);
         let pragma_oracle = IOracleDispatcher { contract_address: pragma.contract_address };
+        cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
 
         assert(fetched_eth.unwrap_err() == 'PGM: Invalid price update', 'wrong result');

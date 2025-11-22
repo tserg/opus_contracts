@@ -6,10 +6,7 @@ pub mod equalizer_utils {
     use opus::interfaces::IEqualizer::IEqualizerDispatcher;
     use opus::interfaces::IShrine::IShrineDispatcher;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        stop_cheat_caller_address,
-    };
+    use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
     use wadray::Ray;
 
@@ -128,14 +125,12 @@ pub mod equalizer_utils {
         let (equalizer_addr, _) = equalizer_class.deploy(@calldata).expect('failed equalizer deploy');
 
         let equalizer_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: equalizer_addr };
-        start_cheat_caller_address(equalizer_addr, admin);
+        cheat_caller_address(equalizer_addr, admin, CheatSpan::TargetCalls(1));
         equalizer_ac.grant_role(equalizer_roles::ADMIN, admin);
-        stop_cheat_caller_address(equalizer_addr);
 
-        start_cheat_caller_address(shrine, admin);
         let shrine_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine };
+        cheat_caller_address(shrine, admin, CheatSpan::TargetCalls(1));
         shrine_ac.grant_role(shrine_roles::EQUALIZER, equalizer_addr);
-        stop_cheat_caller_address(shrine);
 
         EqualizerTestConfig {
             shrine: IShrineDispatcher { contract_address: shrine },

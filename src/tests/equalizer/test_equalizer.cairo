@@ -12,8 +12,7 @@ mod test_equalizer {
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::Health;
     use snforge_std::{
-        DeclareResultTrait, EventSpyAssertionsTrait, declare, spy_events, start_cheat_caller_address,
-        stop_cheat_caller_address,
+        CheatSpan, DeclareResultTrait, EventSpyAssertionsTrait, cheat_caller_address, declare, spy_events,
     };
     use starknet::ContractAddress;
     use wadray::{WAD_ONE, Wad};
@@ -37,7 +36,7 @@ mod test_equalizer {
         let mut spy = spy_events();
 
         let surplus: Wad = (500 * WAD_ONE).into();
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(surplus.into());
         assert(shrine.get_budget() == surplus.into(), 'sanity check');
 
@@ -68,6 +67,7 @@ mod test_equalizer {
 
         // Create a deficit
         let deficit = -((500 * WAD_ONE).into());
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(deficit);
 
         assert(equalizer.equalize().is_zero(), 'minted surplus should be zero');
@@ -94,9 +94,8 @@ mod test_equalizer {
             common::advance_intervals_and_refresh_prices_and_multiplier(shrine, yangs, 500);
 
             // update price to speed up calculation
-            start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
             shrine.advance(eth, eth_price);
-            stop_cheat_caller_address(shrine.contract_address);
 
             shrine_utils::trove1_deposit(shrine, Zero::zero());
             let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
@@ -141,8 +140,8 @@ mod test_equalizer {
         let mut spy = spy_events();
 
         // Simulate minted surplus by injecting to Equalizer directly
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
         let surplus: Wad = (1000 * WAD_ONE + 123).into();
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(equalizer.contract_address, surplus);
 
         let recipients = equalizer_utils::initial_recipients();
@@ -151,8 +150,6 @@ mod test_equalizer {
         let tokens: Span<ContractAddress> = array![shrine.contract_address].span();
         let mut before_balances = common::get_token_balances(tokens, recipients);
         let mut before_yin_balances = *before_balances.pop_front().unwrap();
-
-        stop_cheat_caller_address(shrine.contract_address);
 
         equalizer.allocate();
 
@@ -212,15 +209,15 @@ mod test_equalizer {
         for normalize_amt in normalize_amts {
             // Create the deficit
             let deficit = -(inject_amt.into());
-            start_cheat_caller_address(shrine.contract_address, admin);
+            cheat_caller_address(shrine.contract_address, admin, CheatSpan::TargetCalls(1));
             shrine.adjust_budget(deficit);
             assert(shrine.get_budget() == deficit, 'sanity check #1');
 
             // Mint the deficit amount to the admin
+            cheat_caller_address(shrine.contract_address, admin, CheatSpan::TargetCalls(1));
             shrine.inject(admin, inject_amt);
-            stop_cheat_caller_address(shrine.contract_address);
 
-            start_cheat_caller_address(equalizer.contract_address, admin);
+            cheat_caller_address(equalizer.contract_address, admin, CheatSpan::TargetCalls(1));
             let normalized_amt: Wad = equalizer.normalize(*normalize_amt);
 
             let expected_normalized_amt: Wad = min(inject_amt, *normalize_amt);
@@ -241,15 +238,16 @@ mod test_equalizer {
             }
 
             // Reset by normalizing all remaining deficit
+            cheat_caller_address(equalizer.contract_address, admin, CheatSpan::TargetCalls(1));
             equalizer.normalize(Bounded::MAX);
 
             assert(shrine.get_budget().is_zero(), 'sanity check #2');
 
             // Assert nothing happens if we try to normalize again
+            cheat_caller_address(equalizer.contract_address, admin, CheatSpan::TargetCalls(1));
             equalizer.normalize(Bounded::MAX);
 
             assert(shrine.get_budget().is_zero(), 'sanity check #3');
-            stop_cheat_caller_address(equalizer.contract_address);
         };
     }
 
@@ -263,7 +261,7 @@ mod test_equalizer {
         let mut new_percentages = equalizer_utils::new_percentages();
         let new_allocator = equalizer_utils::allocator_deploy(new_recipients, new_percentages, allocator_class);
 
-        start_cheat_caller_address(equalizer.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(equalizer.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         equalizer.set_allocator(new_allocator.contract_address);
 
         // Check allocator is updated
@@ -291,7 +289,7 @@ mod test_equalizer {
             equalizer_utils::new_recipients(), equalizer_utils::new_percentages(), allocator_class,
         );
 
-        start_cheat_caller_address(equalizer.contract_address, common::BAD_GUY);
+        cheat_caller_address(equalizer.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         equalizer.set_allocator(new_allocator.contract_address);
     }
 }

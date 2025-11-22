@@ -6,7 +6,7 @@ mod test_allocator {
     use opus::tests::common;
     use opus::tests::equalizer::utils::equalizer_utils;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address};
+    use snforge_std::{CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events};
     use starknet::ContractAddress;
     use wadray::Ray;
 
@@ -54,9 +54,9 @@ mod test_allocator {
 
         let mut spy = spy_events();
 
-        start_cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN);
         let new_recipients = equalizer_utils::new_recipients();
         let new_percentages = equalizer_utils::new_percentages();
+        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
 
         let (recipients, percentages) = allocator.get_allocation();
@@ -84,7 +84,6 @@ mod test_allocator {
             equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        start_cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN);
         let new_recipients: Span<ContractAddress> = array![
             'new recipient 1'.try_into().unwrap(),
             'new recipient 2'.try_into().unwrap(),
@@ -93,6 +92,8 @@ mod test_allocator {
         ]
             .span();
         let new_percentages = equalizer_utils::new_percentages();
+
+        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
     }
 
@@ -103,10 +104,11 @@ mod test_allocator {
             equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        start_cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN);
         let new_recipients = equalizer_utils::new_recipients();
         let mut new_percentages = equalizer_utils::new_percentages();
         let _ = new_percentages.pop_front();
+
+        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
     }
 
@@ -117,9 +119,10 @@ mod test_allocator {
             equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        start_cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN);
         let recipients: Array<ContractAddress> = ArrayTrait::new();
         let percentages: Array<Ray> = ArrayTrait::new();
+
+        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(recipients.span(), percentages.span());
     }
 
@@ -130,11 +133,12 @@ mod test_allocator {
             equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        start_cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN);
         let mut new_recipients = equalizer_utils::new_recipients();
         // Pop one off new recipients to set it to same length as invalid percentages
         let _ = new_recipients.pop_front();
         let new_percentages = equalizer_utils::invalid_percentages();
+
+        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
     }
 
@@ -145,7 +149,7 @@ mod test_allocator {
             equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        start_cheat_caller_address(allocator.contract_address, common::BAD_GUY);
+        cheat_caller_address(allocator.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         allocator.set_allocation(equalizer_utils::new_recipients(), equalizer_utils::new_percentages());
     }
 }

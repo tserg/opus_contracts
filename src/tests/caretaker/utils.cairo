@@ -11,8 +11,8 @@ pub mod caretaker_utils {
     use opus::tests::sentinel::utils::sentinel_utils;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
-        ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global, start_cheat_caller_address,
-        stop_cheat_caller_address,
+        CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
+        start_cheat_block_timestamp_global,
     };
     use starknet::ContractAddress;
 
@@ -50,17 +50,14 @@ pub mod caretaker_utils {
         let (caretaker, _) = caretaker_class.deploy(@calldata).expect('caretaker deploy failed');
 
         // allow Caretaker to do its business with Shrine
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         IAccessControlDispatcher { contract_address: shrine.contract_address }
             .grant_role(shrine_roles::CARETAKER, caretaker);
-        stop_cheat_caller_address(shrine.contract_address);
 
         // allow Caretaker to call exit in Sentinel during shut
-        start_cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN);
+        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
         IAccessControlDispatcher { contract_address: sentinel.contract_address }
             .grant_role(sentinel_roles::CARETAKER, caretaker);
-
-        stop_cheat_caller_address(sentinel.contract_address);
 
         let caretaker = ICaretakerDispatcher { contract_address: caretaker };
 

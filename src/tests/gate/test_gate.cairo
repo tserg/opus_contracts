@@ -9,7 +9,7 @@ mod test_gate {
     use opus::tests::common;
     use opus::tests::gate::utils::gate_utils;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{start_cheat_caller_address, stop_cheat_caller_address};
+    use snforge_std::{CheatSpan, cheat_caller_address};
     use starknet::ContractAddress;
     use wadray::{WAD_SCALE, Wad};
 
@@ -57,8 +57,7 @@ mod test_gate {
         let asset_amt = 20_u128 * WAD_SCALE;
 
         // a gate can only be called from a sentinel
-        start_cheat_caller_address(gate, gate_utils::MOCK_SENTINEL);
-
+        cheat_caller_address(gate, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let gate = IGateDispatcher { contract_address: gate };
         let enter_yang_amt: Wad = gate.enter(user, asset_amt);
 
@@ -81,9 +80,7 @@ mod test_gate {
 
         let asset_amt = 3_u128 * common::WBTC_SCALE;
 
-        // a gate can only be called from a sentinel
-        start_cheat_caller_address(gate, gate_utils::MOCK_SENTINEL);
-
+        cheat_caller_address(gate, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let gate = IGateDispatcher { contract_address: gate };
         let enter_yang_amt: Wad = gate.enter(user, asset_amt);
 
@@ -110,9 +107,7 @@ mod test_gate {
         let exit_yang_amt: Wad = (2_u128 * WAD_SCALE).into();
         let remaining_yang_amt = 8_u128 * WAD_SCALE;
 
-        // a gate can only be called from a sentinel
-        start_cheat_caller_address(gate, gate_utils::MOCK_SENTINEL);
-
+        cheat_caller_address(gate, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(2));
         let gate = IGateDispatcher { contract_address: gate };
         gate.enter(user, asset_amt);
 
@@ -155,20 +150,20 @@ mod test_gate {
         gate_utils::approve_gate_for_token(gate.contract_address, eth.contract_address, user1);
 
         // fund user1
-        start_cheat_caller_address(eth.contract_address, common::ETH_HOARDER);
+        cheat_caller_address(eth.contract_address, common::ETH_HOARDER, CheatSpan::TargetCalls(1));
         eth.transfer(user1, (enter1_amt + enter2_amt).into());
-        stop_cheat_caller_address(eth.contract_address);
+
         //
         // first deposit to trove1
         //
 
         // simulate sentinel calling enter
-        start_cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL);
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter1_yang_amt = gate.enter(user1, enter1_amt);
 
         // simulate depositing
         shrine_utils::make_root(shrine.contract_address, shrine_utils::ADMIN);
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(eth.contract_address, trove1, enter1_yang_amt);
 
         //
@@ -189,11 +184,11 @@ mod test_gate {
         //
 
         // simulate sentinel calling enter
-        start_cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL);
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter2_yang_amt = gate.enter(user1, enter2_amt);
 
         // simulate depositing
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(eth.contract_address, trove1, enter2_yang_amt);
 
         //
@@ -218,20 +213,19 @@ mod test_gate {
         let enter4_amt = 8_u128 * WAD_SCALE;
 
         gate_utils::approve_gate_for_token(gate.contract_address, eth.contract_address, user2);
-        start_cheat_caller_address(eth.contract_address, common::ETH_HOARDER);
+        cheat_caller_address(eth.contract_address, common::ETH_HOARDER, CheatSpan::TargetCalls(1));
         eth.transfer(user2, (enter3_amt + enter4_amt).into());
-        stop_cheat_caller_address(eth.contract_address);
 
         let before_total_yang: Wad = gate.get_total_yang();
         let before_total_assets: u128 = gate.get_total_assets();
         let before_asset_amt_per_yang: Wad = gate.get_asset_amt_per_yang();
 
         // simulate sentinel calling enter
-        start_cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL);
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter3_yang_amt = gate.enter(user2, enter3_amt);
 
         // simulate depositing
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(eth.contract_address, trove2, enter3_yang_amt);
 
         //
@@ -261,11 +255,11 @@ mod test_gate {
         let before_asset_amt_per_yang = gate.get_asset_amt_per_yang();
 
         // simulate sentinel calling enter
-        start_cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL);
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter4_yang_amt = gate.enter(user2, enter4_amt);
 
         // simulate depositing
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(eth.contract_address, trove2, enter4_yang_amt);
 
         //
@@ -283,11 +277,11 @@ mod test_gate {
         //
 
         // simulate sentinel calling exit
-        start_cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL);
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let exit_amt = gate.exit(eth.contract_address, enter4_yang_amt);
 
         // simulate withdrawing
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.withdraw(eth.contract_address, trove2, enter4_yang_amt);
 
         //
@@ -316,12 +310,11 @@ mod test_gate {
         // make funds available and fund user
         gate_utils::approve_gate_for_token(gate.contract_address, eth.contract_address, user);
 
-        start_cheat_caller_address(eth.contract_address, common::ETH_HOARDER);
+        cheat_caller_address(eth.contract_address, common::ETH_HOARDER, CheatSpan::TargetCalls(1));
         eth.transfer(user, (enter_amt - 1).into());
-        stop_cheat_caller_address(eth.contract_address);
 
         // simulate sentinel calling enter
-        start_cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL);
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         gate.enter(user, enter_amt);
     }
 
@@ -342,26 +335,26 @@ mod test_gate {
 
         // make funds available and fund user
         gate_utils::approve_gate_for_token(gate.contract_address, eth.contract_address, user);
-        start_cheat_caller_address(eth.contract_address, common::ETH_HOARDER);
+        cheat_caller_address(eth.contract_address, common::ETH_HOARDER, CheatSpan::TargetCalls(1));
         eth.transfer(user, enter_amt.into());
-        stop_cheat_caller_address(eth.contract_address);
 
         //
         // enter
         //
 
         // simulate sentinel calling enter
-        start_cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL);
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter_yang_amt = gate.enter(user, enter_amt);
 
         // simulate depositing
         shrine_utils::make_root(shrine.contract_address, shrine_utils::ADMIN);
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(eth.contract_address, trove_id, enter_yang_amt);
 
         //
         // exit
         //
+        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         gate.exit(user, exit_amt.into());
     }
 }

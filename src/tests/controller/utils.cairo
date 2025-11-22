@@ -5,8 +5,8 @@ pub mod controller_utils {
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
-        ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global, start_cheat_caller_address,
-        stop_cheat_caller_address,
+        CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
+        start_cheat_block_timestamp_global,
     };
     use starknet::{ContractAddress, get_block_timestamp};
     use wadray::{RAY_ONE, Wad};
@@ -51,9 +51,8 @@ pub mod controller_utils {
         let (controller_addr, _) = controller_class.deploy(@calldata).expect('controller deploy failed');
 
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine_addr };
-        start_cheat_caller_address(shrine_addr, shrine_utils::ADMIN);
+        cheat_caller_address(shrine_addr, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine_ac.grant_role(shrine_roles::CONTROLLER, controller_addr);
-        stop_cheat_caller_address(shrine_addr);
 
         ControllerTestConfig {
             controller: IControllerDispatcher { contract_address: controller_addr },
@@ -63,9 +62,8 @@ pub mod controller_utils {
 
     #[inline(always)]
     pub fn set_yin_spot_price(shrine: IShrineDispatcher, spot_price: Wad) {
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.update_yin_spot_price(spot_price);
-        stop_cheat_caller_address(shrine.contract_address);
     }
 
     #[inline(always)]

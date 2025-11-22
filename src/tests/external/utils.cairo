@@ -17,10 +17,7 @@ pub mod pragma_utils {
     use opus::mock::mock_pragma::{IMockPragmaDispatcher, IMockPragmaDispatcherTrait};
     use opus::tests::seer::utils::seer_utils::{ETH_INIT_PRICE, WBTC_INIT_PRICE};
     use opus::types::pragma::{AggregationMode, PairSettings, PragmaPricesResponse};
-    use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        stop_cheat_caller_address,
-    };
+    use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::{ContractAddress, get_block_timestamp};
     use wadray::{WAD_DECIMALS, Wad};
 
@@ -94,13 +91,12 @@ pub mod pragma_utils {
         mock_valid_price_update(mock_pragma, wbtc_yang, WBTC_INIT_PRICE.into(), get_block_timestamp());
 
         // Add yangs to Pragma
-        start_cheat_caller_address(pragma, ADMIN);
         let pragma_dispatcher = IPragmaDispatcher { contract_address: pragma };
         let eth_pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
         let wbtc_pair_settings = PairSettings { pair_id: WBTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
+        cheat_caller_address(pragma, ADMIN, CheatSpan::TargetCalls(2));
         pragma_dispatcher.set_yang_pair_settings(eth_yang, eth_pair_settings);
         pragma_dispatcher.set_yang_pair_settings(wbtc_yang, wbtc_pair_settings);
-        stop_cheat_caller_address(pragma);
     }
 
     //

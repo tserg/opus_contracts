@@ -14,10 +14,7 @@ pub mod absorber_utils {
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, DistributionInfo};
-    use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        stop_cheat_caller_address,
-    };
+    use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
     use wadray::{Ray, WAD_ONE, WAD_SCALE, Wad};
 
@@ -135,10 +132,9 @@ pub mod absorber_utils {
         let absorber_class = classes.absorber.unwrap();
         let (absorber_addr, _) = absorber_class.deploy(@calldata).expect('absorber deploy failed');
 
-        start_cheat_caller_address(absorber_addr, admin);
+        cheat_caller_address(absorber_addr, admin, CheatSpan::TargetCalls(1));
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber_addr };
         absorber_ac.grant_role(absorber_roles::PURGER, MOCK_PURGER);
-        stop_cheat_caller_address(absorber_addr);
 
         let absorber = IAbsorberDispatcher { contract_address: absorber_addr };
         AbsorberTestConfig { shrine, sentinel, abbot, absorber, yangs, gates }
@@ -210,13 +206,12 @@ pub mod absorber_utils {
     pub fn add_rewards_to_absorber(
         absorber: IAbsorberDispatcher, tokens: Span<ContractAddress>, mut blessers: Span<ContractAddress>,
     ) {
-        start_cheat_caller_address(absorber.contract_address, ADMIN);
-
+        cheat_caller_address(
+            absorber.contract_address, ADMIN, CheatSpan::TargetCalls(tokens.len().try_into().unwrap()),
+        );
         for token in tokens {
             absorber.set_reward(*token, *blessers.pop_front().unwrap(), true);
         }
-
-        stop_cheat_caller_address(absorber.contract_address);
     }
 
     pub fn absorber_with_first_provider(
@@ -272,13 +267,11 @@ pub mod absorber_utils {
         );
 
         let yin = shrine_utils::yin(shrine.contract_address);
-        start_cheat_caller_address(shrine.contract_address, provider);
+        cheat_caller_address(shrine.contract_address, provider, CheatSpan::TargetCalls(1));
         yin.approve(absorber.contract_address, Bounded::MAX);
-        stop_cheat_caller_address(shrine.contract_address);
 
-        start_cheat_caller_address(absorber.contract_address, provider);
+        cheat_caller_address(absorber.contract_address, provider, CheatSpan::TargetCalls(1));
         absorber.provide(amt);
-        stop_cheat_caller_address(absorber.contract_address);
 
         trove
     }
@@ -335,9 +328,8 @@ pub mod absorber_utils {
         burn_amt: Wad,
     ) {
         // Simulate burning a percentage of absorber's yin
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
         shrine.eject(absorber.contract_address, burn_amt);
-        stop_cheat_caller_address(shrine.contract_address);
 
         // Simulate transfer of "freed" assets to absorber
         let mut yang_asset_amts_copy = yang_asset_amts;
@@ -349,15 +341,13 @@ pub mod absorber_utils {
 
         let absorbed_assets: Span<AssetBalance> = common::combine_assets_and_amts(yangs, yang_asset_amts);
 
-        start_cheat_caller_address(absorber.contract_address, MOCK_PURGER);
+        cheat_caller_address(absorber.contract_address, MOCK_PURGER, CheatSpan::TargetCalls(1));
         absorber.update(absorbed_assets);
-        stop_cheat_caller_address(absorber.contract_address);
     }
 
     pub fn kill_absorber(absorber: IAbsorberDispatcher) {
-        start_cheat_caller_address(absorber.contract_address, ADMIN);
+        cheat_caller_address(absorber.contract_address, ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
-        stop_cheat_caller_address(absorber.contract_address);
     }
 
     pub fn get_gate_balances(sentinel: ISentinelDispatcher, yangs: Span<ContractAddress>) -> Span<u128> {

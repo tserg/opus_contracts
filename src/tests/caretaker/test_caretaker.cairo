@@ -13,7 +13,7 @@ mod test_caretaker {
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, Health};
     use opus::utils::math::fixed_point_to_wad;
-    use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address};
+    use snforge_std::{CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events};
     use wadray::{Ray, WAD_ONE, Wad, ray_to_wad};
 
     #[test]
@@ -47,7 +47,7 @@ mod test_caretaker {
     #[should_panic(expected: 'Caller missing role')]
     fn test_shut_by_badguy_throws() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        start_cheat_caller_address(caretaker.contract_address, common::BAD_GUY);
+        cheat_caller_address(caretaker.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         caretaker.shut();
     }
 
@@ -89,7 +89,7 @@ mod test_caretaker {
                 .append(shrine.get_yang_total(*yang) - shrine.get_protocol_owned_yang_amt(*yang));
         }
 
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         // assert Shrine killed
@@ -167,10 +167,10 @@ mod test_caretaker {
         let trove1_yang0_deposit: Wad = shrine.get_deposit(*yangs[0], trove1_id);
         let trove1_yang1_deposit: Wad = shrine.get_deposit(*yangs[1], trove1_id);
 
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
-        start_cheat_caller_address(caretaker.contract_address, user1);
+        cheat_caller_address(caretaker.contract_address, user1, CheatSpan::TargetCalls(1));
         let trove1_released_assets: Span<AssetBalance> = caretaker.release(trove1_id);
 
         let user1_yang0_after_balance: u256 = y0.balance_of(user1);
@@ -208,7 +208,7 @@ mod test_caretaker {
         assert(shrine.get_deposit(*yangs[1], trove1_id).is_zero(), 'trove1 yang1 deposit');
 
         // sanity check that for user with only one yang, release reports a 0 asset amount
-        start_cheat_caller_address(caretaker.contract_address, user2);
+        cheat_caller_address(caretaker.contract_address, user2, CheatSpan::TargetCalls(1));
         let trove2_released_assets: Span<AssetBalance> = caretaker.release(trove2_id);
         assert(*trove2_released_assets.at(0).address == *yangs[0], 'yang 1 not released #2');
         assert(*trove2_released_assets.at(1).address == *yangs[1], 'yang 2 not released #2');
@@ -243,7 +243,7 @@ mod test_caretaker {
             abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
         );
 
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         let (reclaimed_yin, reclaimable_assets) = caretaker.preview_reclaim(trove1_forge_amt + WAD_ONE.into());
@@ -279,9 +279,9 @@ mod test_caretaker {
         // => user1 got scammed, poor guy
         let scammer = common::BAD_GUY;
         let scam_amt: u256 = (4000 * WAD_ONE).into();
-        start_cheat_caller_address(shrine.contract_address, user1);
+        cheat_caller_address(shrine.contract_address, user1, CheatSpan::TargetCalls(1));
         shrine_utils::yin(shrine.contract_address).transfer(scammer, scam_amt);
-        stop_cheat_caller_address(shrine.contract_address);
+
         let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
         let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
 
@@ -290,7 +290,7 @@ mod test_caretaker {
         let scammer_yang0_before_balance: u256 = y0.balance_of(scammer);
         let scammer_yang1_before_balance: u256 = y1.balance_of(scammer);
 
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         //
@@ -302,7 +302,7 @@ mod test_caretaker {
         let ct_yang1_before_balance: u256 = y1.balance_of(caretaker.contract_address);
 
         // do the reclaiming
-        start_cheat_caller_address(caretaker.contract_address, user1);
+        cheat_caller_address(caretaker.contract_address, user1, CheatSpan::TargetCalls(1));
         let user1_yin: Wad = shrine.get_yin(user1);
         let (user1_reclaimed_yin, user1_reclaimed_assets) = caretaker.reclaim(user1_yin);
 
@@ -340,8 +340,8 @@ mod test_caretaker {
         let ct_yang1_before_balance: u256 = y1.balance_of(caretaker.contract_address);
 
         // do the reclaiming
-        start_cheat_caller_address(caretaker.contract_address, scammer);
         let scammer_yin: Wad = shrine.get_yin(scammer);
+        cheat_caller_address(caretaker.contract_address, scammer, CheatSpan::TargetCalls(1));
         let (scammer_reclaimed_yin, scammer_reclaimed_assets) = caretaker.reclaim(scammer_yin);
 
         // assert all yin has been reclaimed
@@ -416,16 +416,14 @@ mod test_caretaker {
 
         // manipulate prices to be waaaay below start price to force
         // all yang deposits to be used to back yin
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
         let new_eth_price: Wad = (50 * WAD_ONE).into();
         let new_wbtc_price: Wad = (20 * WAD_ONE).into();
+        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
         shrine.advance(*yangs[0], new_eth_price);
         shrine.advance(*yangs[1], new_wbtc_price);
-        stop_cheat_caller_address(shrine.contract_address);
 
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
-        stop_cheat_caller_address(caretaker.contract_address);
 
         let tolerance: Wad = 1_u128.into();
 
@@ -441,7 +439,7 @@ mod test_caretaker {
         common::assert_equalish(ct_yang1_balance, gate1_before_balance, tolerance, 'caretaker yang1 after balance');
 
         // calling release still works, but nothing gets released
-        start_cheat_caller_address(caretaker.contract_address, user1);
+        cheat_caller_address(caretaker.contract_address, user1, CheatSpan::TargetCalls(1));
         let released_assets: Span<AssetBalance> = caretaker.release(trove1_id);
 
         // 0 released amounts also mean no `sentinel.exit` and `shrine.seize`
@@ -474,7 +472,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: System is live')]
     fn test_release_when_system_live_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.release(1);
     }
 
@@ -482,7 +480,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: Owner should not be zero')]
     fn test_release_foreign_trove_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(2));
         caretaker.shut();
         caretaker.release(1);
     }
@@ -491,7 +489,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: System is live')]
     fn test_reclaim_when_system_live_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.reclaim(WAD_ONE.into());
     }
 
@@ -522,17 +520,16 @@ mod test_caretaker {
         // order of operations in `shrine.melt_helper`.
         let user2 = common::TROVE2_OWNER_ADDR;
         let transfer_amt: u256 = (4000 * WAD_ONE).into();
-        start_cheat_caller_address(caretaker.contract_address, user1);
         shrine_utils::yin(shrine.contract_address).transfer(user2, transfer_amt);
 
         // Activating global settlement mode
-        start_cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN);
+        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         // User1 attempts to reclaim more yin than they have
-        start_cheat_caller_address(caretaker.contract_address, user1);
         let user1_yin: Wad = shrine.get_yin(user1);
         // This should revert
+        cheat_caller_address(caretaker.contract_address, user1, CheatSpan::TargetCalls(1));
         caretaker.reclaim(user1_yin + 1_u128.into());
     }
 }
