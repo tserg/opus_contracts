@@ -48,16 +48,13 @@ pub const WHALE_TROVE: u64 = 0xb17b01;
 // Centralized Address Registry
 //
 
-// Global admin addresses
+// Access control addresses
 pub const ADMIN: ContractAddress = 'admin'.try_into().unwrap();
 pub const SHRINE_ADMIN: ContractAddress = 'shrine admin'.try_into().unwrap();
 pub const SENTINEL_ADMIN: ContractAddress = 'sentinel admin'.try_into().unwrap();
 
-// Test role addresses
 pub const BAD_GUY: ContractAddress = 'bad guy'.try_into().unwrap();
 pub const MOCK_ABBOT: ContractAddress = 'mock abbot'.try_into().unwrap();
-pub const DUMMY_YANG_ADDR: ContractAddress = 'dummy yang'.try_into().unwrap();
-pub const DUMMY_YANG_GATE_ADDR: ContractAddress = 'dummy yang token'.try_into().unwrap();
 
 // Trove owner addresses
 pub const TROVE1_OWNER_ADDR: ContractAddress = 'trove1 owner'.try_into().unwrap();
@@ -75,6 +72,9 @@ pub const USDC_HOARDER: ContractAddress = 'usdc hoarder'.try_into().unwrap();
 pub const YANG1_ADDR: ContractAddress = 'yang 1'.try_into().unwrap();
 pub const YANG2_ADDR: ContractAddress = 'yang 2'.try_into().unwrap();
 pub const YANG3_ADDR: ContractAddress = 'yang 3'.try_into().unwrap();
+
+pub const DUMMY_YANG_ADDR: ContractAddress = 'dummy yang'.try_into().unwrap();
+pub const DUMMY_YANG_GATE_ADDR: ContractAddress = 'dummy yang token'.try_into().unwrap();
 
 //
 // Standard Asset Amounts
