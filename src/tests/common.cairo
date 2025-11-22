@@ -1,3 +1,4 @@
+use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
 use core::num::traits::{Pow, Zero};
 use opus::constants::{DAI_DECIMALS, LUSD_DECIMALS, USDC_DECIMALS, USDT_DECIMALS};
 use opus::core::shrine::shrine;
@@ -439,4 +440,11 @@ pub fn combine_spans(lhs: Span<u128>, mut rhs: Span<u128>) -> Span<u128> {
     }
 
     combined_asset_amts.span()
+}
+
+// Helper function to grant a role to an address with proper caller context
+pub fn grant_role_helper(contract: ContractAddress, admin: ContractAddress, role: u128, address: ContractAddress) {
+    let ac = IAccessControlDispatcher { contract_address: contract };
+    cheat_caller_address(contract, admin, CheatSpan::TargetCalls(1));
+    ac.grant_role(role, address);
 }
