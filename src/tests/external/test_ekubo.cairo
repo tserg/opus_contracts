@@ -14,7 +14,7 @@ mod test_ekubo {
         IEkuboOracleAdapterDispatcher, IEkuboOracleAdapterDispatcherTrait, ekubo_oracle_adapter_component,
     };
     use opus::utils::math::convert_ekubo_oracle_price_to_wad;
-    use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address};
+    use snforge_std::{CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events};
     use starknet::ContractAddress;
     use wadray::{WAD_DECIMALS, Wad};
 
@@ -47,7 +47,7 @@ mod test_ekubo {
         let EkuboTestConfig { ekubo, .. } = ekubo_utils::ekubo_deploy(Option::None, Option::None, Option::None);
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: ekubo.contract_address };
 
-        start_cheat_caller_address(ekubo.contract_address, common::BAD_GUY);
+        cheat_caller_address(ekubo.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         ekubo_oracle_adapter.set_oracle_extension(Zero::zero());
     }
 
@@ -59,7 +59,7 @@ mod test_ekubo {
         } = ekubo_utils::ekubo_deploy(Option::None, Option::None, Option::None);
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: ekubo.contract_address };
 
-        start_cheat_caller_address(ekubo.contract_address, common::BAD_GUY);
+        cheat_caller_address(ekubo.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         ekubo_oracle_adapter.set_quote_tokens(quote_tokens);
     }
 
@@ -69,7 +69,7 @@ mod test_ekubo {
         let EkuboTestConfig { ekubo, .. } = ekubo_utils::ekubo_deploy(Option::None, Option::None, Option::None);
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: ekubo.contract_address };
 
-        start_cheat_caller_address(ekubo.contract_address, common::BAD_GUY);
+        cheat_caller_address(ekubo.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         ekubo_oracle_adapter.set_twap_duration(ekubo_oracle_adapter_component::MIN_TWAP_DURATION + 1);
     }
 
