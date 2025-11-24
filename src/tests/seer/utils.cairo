@@ -39,12 +39,6 @@ pub mod seer_utils {
     pub const UPDATE_FREQUENCY: u64 = 30 * 60; // 30 minutes
 
     //
-    // Address constants
-    //
-
-    pub const DUMMY_ETH: ContractAddress = 'eth token'.try_into().unwrap();
-
-    //
     // Test setup helpers
     //
 
