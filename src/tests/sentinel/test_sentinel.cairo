@@ -118,12 +118,12 @@ mod test_sentinel {
 
         sentinel
             .add_yang(
-                sentinel_utils::DUMMY_YANG_ADDR,
+                common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
                 shrine_utils::YANG1_THRESHOLD.into(),
                 shrine_utils::YANG1_START_PRICE.into(),
                 shrine_utils::YANG1_BASE_RATE.into(),
-                sentinel_utils::DUMMY_YANG_GATE_ADDR,
+                common::DUMMY_YANG_GATE_ADDR,
             );
     }
 
@@ -139,7 +139,7 @@ mod test_sentinel {
                 shrine_utils::YANG1_THRESHOLD.into(),
                 shrine_utils::YANG1_START_PRICE.into(),
                 shrine_utils::YANG1_BASE_RATE.into(),
-                sentinel_utils::DUMMY_YANG_GATE_ADDR,
+                common::DUMMY_YANG_GATE_ADDR,
             );
     }
 
@@ -150,7 +150,7 @@ mod test_sentinel {
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel
             .add_yang(
-                sentinel_utils::DUMMY_YANG_ADDR,
+                common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
                 shrine_utils::YANG1_THRESHOLD.into(),
                 shrine_utils::YANG1_START_PRICE.into(),
@@ -166,12 +166,12 @@ mod test_sentinel {
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel
             .add_yang(
-                sentinel_utils::DUMMY_YANG_ADDR,
+                common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
                 shrine_utils::YANG1_THRESHOLD.into(),
                 Zero::zero(),
                 shrine_utils::YANG1_BASE_RATE.into(),
-                sentinel_utils::DUMMY_YANG_GATE_ADDR,
+                common::DUMMY_YANG_GATE_ADDR,
             );
     }
 
@@ -278,7 +278,7 @@ mod test_sentinel {
         let SentinelTestConfig { sentinel, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
 
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        sentinel.set_yang_asset_max(sentinel_utils::DUMMY_YANG_ADDR, sentinel_utils::ETH_ASSET_MAX);
+        sentinel.set_yang_asset_max(common::DUMMY_YANG_ADDR, sentinel_utils::ETH_ASSET_MAX);
     }
 
     #[test]
@@ -412,7 +412,7 @@ mod test_sentinel {
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
         cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
-        sentinel.enter(sentinel_utils::DUMMY_YANG_ADDR, user, deposit_amt.into());
+        sentinel.enter(common::DUMMY_YANG_ADDR, user, deposit_amt.into());
     }
 
     #[test]
@@ -436,7 +436,7 @@ mod test_sentinel {
         let user: ContractAddress = common::ETH_HOARDER;
 
         cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
-        sentinel.exit(sentinel_utils::DUMMY_YANG_ADDR, user, WAD_ONE.into());
+        sentinel.exit(common::DUMMY_YANG_ADDR, user, WAD_ONE.into());
     }
 
     #[test]

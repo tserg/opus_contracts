@@ -187,7 +187,7 @@ mod test_abbot {
     fn test_open_trove_invalid_yang_fail() {
         let AbbotTestConfig { abbot, .. } = abbot_utils::abbot_deploy(Option::None);
 
-        let invalid_yang: ContractAddress = sentinel_utils::DUMMY_YANG_ADDR;
+        let invalid_yang: ContractAddress = common::DUMMY_YANG_ADDR;
         let mut yangs: Array<ContractAddress> = array![invalid_yang];
         let mut yang_amts: Array<u128> = array![WAD_SCALE];
         let forge_amt: Wad = 1_u128.into();
@@ -371,7 +371,7 @@ mod test_abbot {
             Option::None,
         );
 
-        let asset_addr = sentinel_utils::DUMMY_YANG_ADDR;
+        let asset_addr = common::DUMMY_YANG_ADDR;
         let amount: u128 = 0;
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
@@ -535,7 +535,7 @@ mod test_abbot {
             Option::None,
         );
 
-        let asset_addr = sentinel_utils::DUMMY_YANG_ADDR;
+        let asset_addr = common::DUMMY_YANG_ADDR;
         let amount: u128 = 0;
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));

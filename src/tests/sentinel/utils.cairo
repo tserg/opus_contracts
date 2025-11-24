@@ -39,8 +39,6 @@ pub mod sentinel_utils {
     pub const WBTC_ASSET_MAX: u128 = 100000000000; // 1000 * 10**8
 
     pub const MOCK_ABBOT: ContractAddress = 'mock abbot'.try_into().unwrap();
-    pub const DUMMY_YANG_ADDR: ContractAddress = 'dummy yang'.try_into().unwrap();
-    pub const DUMMY_YANG_GATE_ADDR: ContractAddress = 'dummy yang token'.try_into().unwrap();
 
     //
     // Test setup
