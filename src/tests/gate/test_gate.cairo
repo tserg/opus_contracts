@@ -57,7 +57,7 @@ mod test_gate {
         let asset_amt = 20_u128 * WAD_SCALE;
 
         // a gate can only be called from a sentinel
-        cheat_caller_address(gate, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let gate = IGateDispatcher { contract_address: gate };
         let enter_yang_amt: Wad = gate.enter(user, asset_amt);
 
@@ -80,7 +80,7 @@ mod test_gate {
 
         let asset_amt = 3_u128 * common::WBTC_SCALE;
 
-        cheat_caller_address(gate, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let gate = IGateDispatcher { contract_address: gate };
         let enter_yang_amt: Wad = gate.enter(user, asset_amt);
 
@@ -107,7 +107,7 @@ mod test_gate {
         let exit_yang_amt: Wad = (2_u128 * WAD_SCALE).into();
         let remaining_yang_amt = 8_u128 * WAD_SCALE;
 
-        cheat_caller_address(gate, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(2));
+        cheat_caller_address(gate, common::MOCK_SENTINEL, CheatSpan::TargetCalls(2));
         let gate = IGateDispatcher { contract_address: gate };
         gate.enter(user, asset_amt);
 
@@ -158,7 +158,7 @@ mod test_gate {
         //
 
         // simulate sentinel calling enter
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter1_yang_amt = gate.enter(user1, enter1_amt);
 
         // simulate depositing
@@ -184,7 +184,7 @@ mod test_gate {
         //
 
         // simulate sentinel calling enter
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter2_yang_amt = gate.enter(user1, enter2_amt);
 
         // simulate depositing
@@ -221,7 +221,7 @@ mod test_gate {
         let before_asset_amt_per_yang: Wad = gate.get_asset_amt_per_yang();
 
         // simulate sentinel calling enter
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter3_yang_amt = gate.enter(user2, enter3_amt);
 
         // simulate depositing
@@ -255,7 +255,7 @@ mod test_gate {
         let before_asset_amt_per_yang = gate.get_asset_amt_per_yang();
 
         // simulate sentinel calling enter
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter4_yang_amt = gate.enter(user2, enter4_amt);
 
         // simulate depositing
@@ -277,7 +277,7 @@ mod test_gate {
         //
 
         // simulate sentinel calling exit
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let exit_amt = gate.exit(eth.contract_address, enter4_yang_amt);
 
         // simulate withdrawing
@@ -314,7 +314,7 @@ mod test_gate {
         eth.transfer(user, (enter_amt - 1).into());
 
         // simulate sentinel calling enter
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         gate.enter(user, enter_amt);
     }
 
@@ -343,7 +343,7 @@ mod test_gate {
         //
 
         // simulate sentinel calling enter
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter_yang_amt = gate.enter(user, enter_amt);
 
         // simulate depositing
@@ -354,7 +354,7 @@ mod test_gate {
         //
         // exit
         //
-        cheat_caller_address(gate.contract_address, gate_utils::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
+        cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         gate.exit(user, exit_amt.into());
     }
 }

@@ -38,7 +38,6 @@ pub mod sentinel_utils {
     pub const ETH_ASSET_MAX: u128 = 1000 * WAD_ONE; // 1000 (wad)
     pub const WBTC_ASSET_MAX: u128 = 100000000000; // 1000 * 10**8
 
-    pub const MOCK_ABBOT: ContractAddress = 'mock abbot'.try_into().unwrap();
 
     //
     // Test setup
@@ -64,12 +63,13 @@ pub mod sentinel_utils {
 
         // Grant `abbot` role to `mock_abbot`
         cheat_caller_address(sentinel_addr, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        IAccessControlDispatcher { contract_address: sentinel_addr }.grant_role(sentinel_roles::ABBOT, MOCK_ABBOT);
+        IAccessControlDispatcher { contract_address: sentinel_addr }
+            .grant_role(sentinel_roles::ABBOT, common::MOCK_ABBOT);
 
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine_addr };
         cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine_ac.grant_role(shrine_roles::SENTINEL, sentinel_addr);
-        shrine_ac.grant_role(shrine_roles::ABBOT, MOCK_ABBOT);
+        shrine_ac.grant_role(shrine_roles::ABBOT, common::MOCK_ABBOT);
 
         (ISentinelDispatcher { contract_address: sentinel_addr }, shrine_addr)
     }

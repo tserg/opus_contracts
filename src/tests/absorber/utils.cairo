@@ -86,7 +86,6 @@ pub mod absorber_utils {
 
     pub const PROVIDER_1: ContractAddress = 'provider 1'.try_into().unwrap();
     pub const PROVIDER_2: ContractAddress = 'provider 2'.try_into().unwrap();
-    pub const MOCK_PURGER: ContractAddress = 'mock purger'.try_into().unwrap();
 
     //
     // Test setup helpers
@@ -131,7 +130,7 @@ pub mod absorber_utils {
 
         cheat_caller_address(absorber_addr, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber_addr };
-        absorber_ac.grant_role(absorber_roles::PURGER, MOCK_PURGER);
+        absorber_ac.grant_role(absorber_roles::PURGER, common::MOCK_PURGER);
 
         let absorber = IAbsorberDispatcher { contract_address: absorber_addr };
         AbsorberTestConfig { shrine, sentinel, abbot, absorber, yangs, gates }
@@ -338,7 +337,7 @@ pub mod absorber_utils {
 
         let absorbed_assets: Span<AssetBalance> = common::combine_assets_and_amts(yangs, yang_asset_amts);
 
-        cheat_caller_address(absorber.contract_address, MOCK_PURGER, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::MOCK_PURGER, CheatSpan::TargetCalls(1));
         absorber.update(absorbed_assets);
     }
 

@@ -34,7 +34,6 @@ pub mod receptor_utils {
         )
     }
 
-    pub const MOCK_ORACLE_EXTENSION: ContractAddress = 'mock oracle extension'.try_into().unwrap();
 
     //
     // Test setup helpers

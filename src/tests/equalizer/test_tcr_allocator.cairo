@@ -10,11 +10,9 @@ mod test_tcr_allocator {
     use starknet::ContractAddress;
     use wadray::{RAY_PERCENT, Ray, WAD_ONE, Wad};
 
-    const MOCK_ABSORBER: ContractAddress = 'mock absorber'.try_into().unwrap();
-    const MOCK_STABILIZER: ContractAddress = 'mock stabilizer'.try_into().unwrap();
 
     fn initial_tcr_recipients() -> Span<ContractAddress> {
-        array![common::SHRINE_ADMIN, MOCK_ABSORBER, MOCK_STABILIZER].span()
+        array![common::SHRINE_ADMIN, common::MOCK_ABSORBER, common::MOCK_STABILIZER].span()
     }
 
     fn setup_trove(shrine: IShrineDispatcher) {
@@ -27,7 +25,7 @@ mod test_tcr_allocator {
     fn test_tcr_allocator_recovery_mode() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
-            shrine.contract_address, MOCK_ABSORBER, MOCK_STABILIZER, Option::None,
+            shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
         setup_trove(shrine);
 
@@ -59,7 +57,7 @@ mod test_tcr_allocator {
     fn test_tcr_allocator_above_adjustment_threshold() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
-            shrine.contract_address, MOCK_ABSORBER, MOCK_STABILIZER, Option::None,
+            shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
 
         shrine_utils::create_whale_trove(shrine);
@@ -88,7 +86,7 @@ mod test_tcr_allocator {
     fn test_tcr_allocator_adjustments() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
-            shrine.contract_address, MOCK_ABSORBER, MOCK_STABILIZER, Option::None,
+            shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
         setup_trove(shrine);
 

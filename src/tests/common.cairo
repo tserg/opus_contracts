@@ -66,6 +66,14 @@ pub const EKUBO_ADMIN: ContractAddress = 'ekubo owner'.try_into().unwrap();
 
 pub const BAD_GUY: ContractAddress = 'bad guy'.try_into().unwrap();
 
+// Mock contract addresses
+pub const MOCK_ABBOT: ContractAddress = 'mock abbot'.try_into().unwrap();
+pub const MOCK_ABSORBER: ContractAddress = 'mock absorber'.try_into().unwrap();
+pub const MOCK_STABILIZER: ContractAddress = 'mock stabilizer'.try_into().unwrap();
+pub const MOCK_PURGER: ContractAddress = 'mock purger'.try_into().unwrap();
+pub const MOCK_SENTINEL: ContractAddress = 'mock sentinel'.try_into().unwrap();
+pub const MOCK_ORACLE_EXTENSION: ContractAddress = 'mock oracle extension'.try_into().unwrap();
+
 // Trove owner addresses
 pub const TROVE1_OWNER_ADDR: ContractAddress = 'trove1 owner'.try_into().unwrap();
 pub const TROVE2_OWNER_ADDR: ContractAddress = 'trove2 owner'.try_into().unwrap();

@@ -59,7 +59,7 @@ mod test_receptor {
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: receptor.contract_address };
 
         cheat_caller_address(receptor.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        ekubo_oracle_adapter.set_oracle_extension(receptor_utils::MOCK_ORACLE_EXTENSION);
+        ekubo_oracle_adapter.set_oracle_extension(common::MOCK_ORACLE_EXTENSION);
     }
 
     #[test]

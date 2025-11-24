@@ -306,9 +306,9 @@ mod test_sentinel {
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
         let preview_yang_amt: Wad = sentinel.convert_to_yang(eth, deposit_amt.into());
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         let yang_amt: Wad = sentinel.enter(eth, user, deposit_amt.into());
-        cheat_caller_address(shrine.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.deposit(eth, trove_id, yang_amt);
 
         let expected_initial_eth_amt: u128 = sentinel_utils::get_initial_asset_amt(eth);
@@ -322,9 +322,9 @@ mod test_sentinel {
         assert(shrine.get_deposit(eth, trove_id) == yang_amt, 'Wrong yang bal in shrine');
 
         let preview_eth_amt: u128 = sentinel.convert_to_assets(eth, WAD_ONE.into());
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         let eth_amt: u128 = sentinel.exit(eth, user, WAD_ONE.into());
-        cheat_caller_address(shrine.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.withdraw(eth, trove_id, WAD_ONE.into());
 
         assert(preview_eth_amt == eth_amt, 'Wrong preview exit eth amt');
@@ -357,9 +357,9 @@ mod test_sentinel {
         let deposit_amt: u128 = 9_u128;
 
         let preview_yang_amt: Wad = sentinel.convert_to_yang(wbtc, deposit_amt);
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         let yang_amt: Wad = sentinel.enter(wbtc, user, deposit_amt);
-        cheat_caller_address(shrine.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.deposit(wbtc, trove_id, yang_amt);
 
         assert(preview_yang_amt == yang_amt, 'Wrong preview enter yang amt');
@@ -371,9 +371,9 @@ mod test_sentinel {
         assert(shrine.get_deposit(wbtc, trove_id) == yang_amt, 'Wrong yang bal in shrine');
 
         let preview_wbtc_amt: u128 = sentinel.convert_to_assets(wbtc, yang_amt);
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         let wbtc_amt: u128 = sentinel.exit(wbtc, user, yang_amt);
-        cheat_caller_address(shrine.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.withdraw(wbtc, trove_id, yang_amt);
 
         assert(preview_wbtc_amt == deposit_amt, 'Wrong preview exit WBTC amt');
@@ -399,7 +399,7 @@ mod test_sentinel {
         cheat_caller_address(eth, user, CheatSpan::TargetCalls(1));
         eth_erc20.transfer(common::NON_ZERO_ADDR, eth_erc20.balance_of(user) - deposit_amt.into() - 1);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.enter(eth, user, deposit_amt.into());
     }
 
@@ -411,7 +411,7 @@ mod test_sentinel {
         let user: ContractAddress = common::ETH_HOARDER;
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.enter(common::DUMMY_YANG_ADDR, user, deposit_amt.into());
     }
 
@@ -424,7 +424,7 @@ mod test_sentinel {
         let user: ContractAddress = common::ETH_HOARDER;
         let deposit_amt: Wad = (sentinel_utils::ETH_ASSET_MAX + 1).into(); // Deposit amount exceeds max deposit
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.enter(eth, user, deposit_amt.into());
     }
 
@@ -435,7 +435,7 @@ mod test_sentinel {
 
         let user: ContractAddress = common::ETH_HOARDER;
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.exit(common::DUMMY_YANG_ADDR, user, WAD_ONE.into());
     }
 
@@ -447,7 +447,7 @@ mod test_sentinel {
 
         let user: ContractAddress = common::ETH_HOARDER;
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.exit(eth, user, WAD_ONE.into()); // User does not have any yang to exit
     }
 
@@ -494,7 +494,7 @@ mod test_sentinel {
         assert(!sentinel.get_gate_live(eth), 'Gate should be killed');
 
         // Attempt to enter a killed gate should fail
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.enter(eth, user, deposit_amt.into());
     }
 
@@ -514,9 +514,9 @@ mod test_sentinel {
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         let yang_amt: Wad = sentinel.enter(eth, user, deposit_amt.into());
-        cheat_caller_address(shrine.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.deposit(eth, trove_id, yang_amt);
 
         // Killing the gate
@@ -524,7 +524,7 @@ mod test_sentinel {
         sentinel.kill_gate(eth);
 
         // Exiting
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.exit(eth, user, yang_amt);
     }
 
@@ -541,7 +541,7 @@ mod test_sentinel {
         sentinel.kill_gate(eth);
 
         // Attempt to enter a killed gate should fail
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.convert_to_yang(eth, deposit_amt.into());
     }
 
@@ -581,7 +581,7 @@ mod test_sentinel {
         let user: ContractAddress = common::ETH_HOARDER;
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::MOCK_ABBOT, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.enter(eth, user, deposit_amt.into());
     }
 
