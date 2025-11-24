@@ -31,23 +31,20 @@ pub mod flash_mint_utils {
     }
 
     pub fn flashmint_setup() -> (ContractAddress, IFlashMintDispatcher) {
-        let shrine: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-        let flashmint: IFlashMintDispatcher = flashmint_deploy(shrine);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
+        let flashmint: IFlashMintDispatcher = flashmint_deploy(shrine.contract_address);
 
-        let shrine_dispatcher = IShrineDispatcher { contract_address: shrine };
-
-        shrine_utils::shrine_setup(shrine);
         shrine_utils::advance_prices_and_set_multiplier(
-            shrine_dispatcher,
+            shrine,
             3,
             shrine_utils::three_yang_addrs(),
             array![(1000 * WAD_ONE).into(), (10000 * WAD_ONE).into(), (500 * WAD_ONE).into()].span(),
         );
 
         // Mint some yin in shrine
-        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine_dispatcher.inject(Zero::zero(), YIN_TOTAL_SUPPLY.into());
-        (shrine, flashmint)
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
+        shrine.inject(Zero::zero(), YIN_TOTAL_SUPPLY.into());
+        (shrine.contract_address, flashmint)
     }
 
     pub fn flash_borrower_deploy(flashmint: ContractAddress) -> ContractAddress {

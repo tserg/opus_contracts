@@ -23,7 +23,7 @@ mod test_tcr_allocator {
 
     #[test]
     fn test_tcr_allocator_recovery_mode() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
             shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
@@ -55,7 +55,7 @@ mod test_tcr_allocator {
 
     #[test]
     fn test_tcr_allocator_above_adjustment_threshold() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
             shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
@@ -84,7 +84,7 @@ mod test_tcr_allocator {
 
     #[test]
     fn test_tcr_allocator_adjustments() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
             shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );

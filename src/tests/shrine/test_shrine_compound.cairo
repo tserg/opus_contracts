@@ -21,7 +21,7 @@ mod test_shrine_compound {
     // T+START--------------T+END
     #[test]
     fn test_compound_and_charge_scenario_1() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
@@ -103,7 +103,7 @@ mod test_shrine_compound {
     // T+START------X-------T+END
     #[test]
     fn test_charge_scenario_1b() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
@@ -202,7 +202,7 @@ mod test_shrine_compound {
     // T+LAST_UPDATED       T+START-------------T+END
     #[test]
     fn test_charge_scenario_2() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
@@ -308,7 +308,7 @@ mod test_shrine_compound {
     // T+START/LAST_UPDATED-------------T+END
     #[test]
     fn test_charge_scenario_3() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
@@ -409,7 +409,7 @@ mod test_shrine_compound {
     // T+START-------T+LAST_UPDATED------T+END
     #[test]
     fn test_charge_scenario_4() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
@@ -498,7 +498,7 @@ mod test_shrine_compound {
     // T+LAST_UPDATED_BEFORE_START       T+START----T+LAST_UPDATED_AFTER_START---------T+END
     #[test]
     fn test_charge_scenario_5() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         let trove_id: u64 = common::TROVE_1;
@@ -627,7 +627,7 @@ mod test_shrine_compound {
     //
     #[test]
     fn setup_charge_scenario_6() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         let trove_id: u64 = common::TROVE_1;
@@ -736,7 +736,7 @@ mod test_shrine_compound {
     // two yangs deposited into the trove
     #[test]
     fn test_charge_scenario_7() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
@@ -995,7 +995,7 @@ mod test_shrine_compound {
     // Check that a delisted yang is not taken into account for interest
     #[test]
     fn test_compound_and_charge_delisted_yang() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         // Advance one interval to avoid overwriting the last price
         shrine_utils::advance_interval();
@@ -1037,7 +1037,7 @@ mod test_shrine_compound {
 
     #[test]
     fn test_adjust_budget_pass() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
         let surplus: Wad = (500 * WAD_ONE).into();
@@ -1095,7 +1095,7 @@ mod test_shrine_compound {
     #[test]
     #[should_panic(expected: 'Caller missing role')]
     fn test_adjust_budget_unauthorized() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         cheat_caller_address(shrine.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
 
         let surplus: SignedWad = (500 * WAD_ONE).into();

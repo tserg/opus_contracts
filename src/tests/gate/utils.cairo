@@ -33,14 +33,14 @@ pub mod gate_utils {
     }
 
     pub fn eth_gate_deploy(token_class: Option<ContractClass>) -> (ContractAddress, ContractAddress, ContractAddress) {
-        let shrine = shrine_utils::shrine_deploy_with_debt_ceiling(Option::None);
+        let shrine = shrine_utils::shrine_deploy_and_setup(Option::None);
         let eth: ContractAddress = common::eth_token_deploy(token_class);
         let gate: ContractAddress = gate_deploy(eth, shrine, common::MOCK_SENTINEL, Option::None);
         (shrine, eth, gate)
     }
 
     pub fn wbtc_gate_deploy(token_class: Option<ContractClass>) -> (ContractAddress, ContractAddress, ContractAddress) {
-        let shrine = shrine_utils::shrine_deploy_with_debt_ceiling(Option::None);
+        let shrine = shrine_utils::shrine_deploy_and_setup(Option::None);
         let wbtc: ContractAddress = common::wbtc_token_deploy(token_class);
         let gate: ContractAddress = gate_deploy(wbtc, shrine, common::MOCK_SENTINEL, Option::None);
         (shrine, wbtc, gate)

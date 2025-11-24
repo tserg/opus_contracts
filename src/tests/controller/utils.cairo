@@ -32,9 +32,7 @@ pub mod controller_utils {
     // Addresses
 
     pub fn deploy_controller() -> ControllerTestConfig {
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-        shrine_utils::make_root(shrine_addr, common::SHRINE_ADMIN);
-
+        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy_and_setup(Option::None);
         let calldata: Array<felt252> = array![
             common::CONTROLLER_ADMIN.into(),
             shrine_addr.into(),

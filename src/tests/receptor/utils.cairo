@@ -61,7 +61,7 @@ pub mod receptor_utils {
 
         let quote_tokens = common::quote_tokens(token_class);
 
-        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_and_setup(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
         let mock_ekubo_oracle_extension_addr: ContractAddress = mock_ekubo_oracle_extension_deploy(Option::None);
 
         let mut calldata: Array<felt252> = array![

@@ -104,7 +104,7 @@ pub mod transmuter_utils {
     pub fn shrine_with_wad_usd_stable_transmuter(
         transmuter_class: Option<ContractClass>, token_class: Option<ContractClass>,
     ) -> TransmuterTestConfig {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let wad_usd_stable = wad_usd_stable_deploy(token_class);
 
         let transmuter: ITransmuterDispatcher = transmuter_deploy(

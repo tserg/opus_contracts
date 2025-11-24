@@ -108,7 +108,7 @@ pub mod equalizer_utils {
     }
 
     pub fn equalizer_deploy(allocator_class: Option<ContractClass>) -> EqualizerTestConfig {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         equalizer_deploy_with_shrine(shrine.contract_address, allocator_class)
     }
 

@@ -62,7 +62,7 @@ mod test_shrine_redistribution {
     // - Trove 1 deposits and forges the amounts specified in `src/tests/shrine/utils.cairo`
     // - Troves 2 and 3 deposits and forges the amounts specified in this file
     fn redistribution_setup(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(shrine_class);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(shrine_class);
 
         setup_trove1(shrine);
         setup_trove2(shrine);
@@ -520,7 +520,7 @@ mod test_shrine_redistribution {
     #[test]
     fn test_shrine_redistribute_dust_yang_rounding() {
         // Manually set up troves so that the redistributed trove has a dust amount of one yang
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         setup_trove1(shrine);
         setup_trove3(shrine);
@@ -589,7 +589,9 @@ mod test_shrine_redistribution {
             .span();
 
         for pct_value_to_redistribute in pct_value_to_redistribute_arr {
-            let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::Some(shrine_class));
+            let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(
+                Option::Some(shrine_class),
+            );
             let mut spy = spy_events();
 
             // Manually set up troves so that the redistributed trove (trove 1) uses all three yangs
@@ -841,7 +843,7 @@ mod test_shrine_redistribution {
     // initial yangs, and the value can be accessed in the event of a shutdown.
     #[test]
     fn test_shrine_redistribution_only_one_trove_remaining() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         setup_trove1(shrine);
 
@@ -963,7 +965,7 @@ mod test_shrine_redistribution {
 
     #[test]
     fn test_shrine_redistribution_delisted_yang_only() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
         let yang_to_delist: ContractAddress = *yangs[0];
@@ -1046,7 +1048,9 @@ mod test_shrine_redistribution {
             let target_trove_forge_amts: Span<Wad> = array![Zero::zero(), WAD_ONE.into()].span();
 
             for target_trove_forge_amt in target_trove_forge_amts {
-                let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::Some(shrine_class));
+                let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(
+                    Option::Some(shrine_class),
+                );
 
                 // Create a trove and accrue some interest
                 cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));

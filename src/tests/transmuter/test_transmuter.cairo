@@ -723,7 +723,9 @@ mod test_transmuter {
         };
         let asset_decimals: u8 = asset.decimals();
 
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::Some(shrine_class));
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(
+            Option::Some(shrine_class),
+        );
 
         let transmuter: ITransmuterDispatcher = transmuter_utils::transmuter_deploy(
             Option::Some(transmuter_class), shrine.contract_address, asset.contract_address, receiver,
@@ -800,7 +802,9 @@ mod test_transmuter {
         let receiver: ContractAddress = transmuter_utils::RECEIVER;
         let user: ContractAddress = common::NON_ZERO_ADDR;
 
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::Some(shrine_class));
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(
+            Option::Some(shrine_class),
+        );
         let asset = transmuter_utils::wad_usd_stable_deploy(Option::Some(token_class));
 
         let kill_transmuter_toggle: Span<bool> = array![true, false].span();
@@ -951,7 +955,9 @@ mod test_transmuter {
             let mut transmuter_yin_amts: Span<Wad> = transmuter_yin_amts.span();
 
             for transmuter_yin_amt in transmuter_yin_amts {
-                let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::Some(shrine_class));
+                let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(
+                    Option::Some(shrine_class),
+                );
 
                 let transmuter: ITransmuterDispatcher = transmuter_utils::transmuter_deploy(
                     Option::Some(transmuter_class), shrine.contract_address, asset.contract_address, receiver,
@@ -1095,7 +1101,9 @@ mod test_transmuter {
         let asset_decimal_scale: u128 = 10_u128.pow(asset_decimals.into());
         let transmute_asset_amt: u128 = 1000 * asset_decimal_scale;
 
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::Some(shrine_class));
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(
+            Option::Some(shrine_class),
+        );
 
         let transmuter: ITransmuterDispatcher = transmuter_utils::transmuter_deploy(
             Option::Some(transmuter_class), shrine.contract_address, asset.contract_address, receiver,
