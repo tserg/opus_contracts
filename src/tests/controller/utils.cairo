@@ -31,14 +31,12 @@ pub mod controller_utils {
 
     // Addresses
 
-    pub const ADMIN: ContractAddress = 'controller admin'.try_into().unwrap();
-
     pub fn deploy_controller() -> ControllerTestConfig {
         let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
         shrine_utils::make_root(shrine_addr, common::SHRINE_ADMIN);
 
         let calldata: Array<felt252> = array![
-            ADMIN.into(),
+            common::CONTROLLER_ADMIN.into(),
             shrine_addr.into(),
             P_GAIN.into(),
             I_GAIN.into(),

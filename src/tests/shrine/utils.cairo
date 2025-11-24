@@ -66,8 +66,6 @@ pub mod shrine_utils {
     // Address constants
     //
 
-    pub const ADMIN: ContractAddress = 'shrine admin'.try_into().unwrap();
-
     pub const YANG1_ADDR: ContractAddress = 'yang 1'.try_into().unwrap();
     pub const YANG2_ADDR: ContractAddress = 'yang 2'.try_into().unwrap();
     pub const YANG3_ADDR: ContractAddress = 'yang 3'.try_into().unwrap();
@@ -138,7 +136,7 @@ pub mod shrine_utils {
     pub fn shrine_deploy(shrine_class: Option<ContractClass>) -> ContractAddress {
         let shrine_class = shrine_class.unwrap_or(declare_shrine());
 
-        let calldata: Array<felt252> = array![ADMIN.into(), YIN_NAME, YIN_SYMBOL];
+        let calldata: Array<felt252> = array![common::SHRINE_ADMIN.into(), YIN_NAME, YIN_SYMBOL];
 
         start_cheat_block_timestamp_global(DEPLOYMENT_TIMESTAMP);
 
@@ -148,14 +146,14 @@ pub mod shrine_utils {
     }
 
     pub fn make_root(shrine_addr: ContractAddress, user: ContractAddress) {
-        cheat_caller_address(shrine_addr, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         IAccessControlDispatcher { contract_address: shrine_addr }.grant_role(shrine_roles::ALL_ROLES, user);
     }
 
     pub fn setup_debt_ceiling(shrine_addr: ContractAddress) {
-        make_root(shrine_addr, ADMIN);
+        make_root(shrine_addr, common::SHRINE_ADMIN);
         // Set debt ceiling
-        cheat_caller_address(shrine_addr, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         let shrine = shrine(shrine_addr);
         shrine.set_debt_ceiling(DEBT_CEILING.into());
     }
@@ -163,7 +161,7 @@ pub mod shrine_utils {
     pub fn shrine_setup(shrine_addr: ContractAddress) {
         setup_debt_ceiling(shrine_addr);
         let shrine = shrine(shrine_addr);
-        cheat_caller_address(shrine_addr, ADMIN, CheatSpan::TargetCalls(4));
+        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(4));
 
         // Add yangs
         shrine
@@ -213,7 +211,7 @@ pub mod shrine_utils {
         let feed_len: u32 = num_intervals.try_into().unwrap();
         let mut timestamp: u64 = get_block_timestamp();
 
-        start_cheat_caller_address(shrine.contract_address, ADMIN);
+        start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
         while idx != feed_len {
             start_cheat_block_timestamp_global(timestamp);
 
@@ -252,25 +250,25 @@ pub mod shrine_utils {
 
     #[inline(always)]
     pub fn trove1_deposit(shrine: IShrineDispatcher, amt: Wad) {
-        cheat_caller_address(shrine.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(YANG1_ADDR, common::TROVE_1, amt);
     }
 
     #[inline(always)]
     pub fn trove1_withdraw(shrine: IShrineDispatcher, amt: Wad) {
-        cheat_caller_address(shrine.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.withdraw(YANG1_ADDR, common::TROVE_1, amt);
     }
 
     #[inline(always)]
     pub fn trove1_forge(shrine: IShrineDispatcher, amt: Wad) {
-        cheat_caller_address(shrine.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_1, amt, Zero::zero());
     }
 
     #[inline(always)]
     pub fn trove1_melt(shrine: IShrineDispatcher, amt: Wad) {
-        cheat_caller_address(shrine.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(common::TROVE1_OWNER_ADDR, common::TROVE_1, amt);
     }
 
@@ -282,7 +280,7 @@ pub mod shrine_utils {
         let (time_per_period, rem_time) = DivRem::div_rem(total_time, num_periods.try_into().unwrap());
         let mut next_ts: u64 = get_block_timestamp();
 
-        start_cheat_caller_address(shrine.contract_address, ADMIN);
+        start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
         while num_periods != 0 {
             next_ts += time_per_period;
             start_cheat_block_timestamp_global(next_ts);
@@ -519,7 +517,7 @@ pub mod shrine_utils {
     }
 
     pub fn create_whale_trove(shrine: IShrineDispatcher) {
-        cheat_caller_address(shrine.contract_address, ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         // Deposit 100 of yang1
         shrine.deposit(YANG1_ADDR, common::WHALE_TROVE, WHALE_TROVE_YANG1_DEPOSIT.into());
         // Mint 10,000 yin (5% LTV at yang1's start price)
@@ -573,7 +571,7 @@ pub mod shrine_utils {
         let target_ltv: Ray = shrine_health.threshold * threshold_factor;
         let decrease_pct: Ray = get_price_decrease_pct_for_target_ltv(shrine_health, target_ltv);
 
-        start_cheat_caller_address(shrine.contract_address, ADMIN);
+        start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
 
         for yang in yangs {
             let (yang_price, _, _) = shrine.get_current_yang_price(*yang);
@@ -649,10 +647,10 @@ pub mod shrine_utils {
         let mut cumulative_troves_debt: Wad = Zero::zero();
         let mut trove_id: u64 = 1;
 
-        start_cheat_caller_address(shrine.contract_address, ADMIN);
+        start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
         while trove_id != troves_loop_end {
             // Accrue interest on trove
-            shrine.melt(ADMIN, trove_id, Zero::zero());
+            shrine.melt(common::SHRINE_ADMIN, trove_id, Zero::zero());
 
             let trove_health: Health = shrine.get_trove_health(trove_id);
             cumulative_troves_debt += trove_health.debt;

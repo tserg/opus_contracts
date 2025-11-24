@@ -37,7 +37,7 @@ mod test_seer {
         let mut spy = spy_events();
         let SeerTestConfig { seer, .. } = seer_utils::deploy_seer(Option::None, Option::None);
         let seer_ac = IAccessControlDispatcher { contract_address: seer.contract_address };
-        assert(seer_ac.get_roles(seer_utils::ADMIN) == seer_roles::ADMIN, 'wrong role for admin');
+        assert(seer_ac.get_roles(common::SEER_ADMIN) == seer_roles::ADMIN, 'wrong role for admin');
         assert(seer.get_update_frequency() == seer_utils::UPDATE_FREQUENCY, 'wrong update frequency');
         assert(seer.get_oracles().len() == 0, 'wrong number of oracles');
 
@@ -63,7 +63,7 @@ mod test_seer {
         let oracles: Span<ContractAddress> = array!['pragma addr'.try_into().unwrap(), 'ekubo addr'.try_into().unwrap()]
             .span();
 
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_oracles(oracles);
 
         assert(oracles == seer.get_oracles(), 'wrong set oracles');
@@ -88,7 +88,7 @@ mod test_seer {
         let mut spy = spy_events();
 
         let new_frequency: u64 = 1200;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_update_frequency(new_frequency);
 
         assert(seer.get_update_frequency() == new_frequency, 'wrong update frequency');
@@ -122,7 +122,7 @@ mod test_seer {
         let SeerTestConfig { seer, .. } = seer_utils::deploy_seer(Option::None, Option::None);
 
         let new_frequency: u64 = seer_contract::LOWER_UPDATE_FREQUENCY_BOUND - 1;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_update_frequency(new_frequency);
     }
 
@@ -132,7 +132,7 @@ mod test_seer {
         let SeerTestConfig { seer, .. } = seer_utils::deploy_seer(Option::None, Option::None);
 
         let new_frequency: u64 = seer_contract::UPPER_UPDATE_FREQUENCY_BOUND + 1;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_update_frequency(new_frequency);
     }
 
@@ -165,12 +165,12 @@ mod test_seer {
         assert_eq!(seer.get_yang_price_type(eth_vault), price_type, "wrong price type 1");
 
         let price_type = PriceType::Direct;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_yang_price_type(eth_vault, price_type);
         assert_eq!(seer.get_yang_price_type(eth_vault), price_type, "wrong price type 2");
 
         let price_type = PriceType::Vault;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_yang_price_type(eth_vault, price_type);
         assert_eq!(seer.get_yang_price_type(eth_vault), price_type, "wrong price type 3");
 
@@ -195,11 +195,14 @@ mod test_seer {
     #[test]
     #[should_panic(expected: 'Caller missing role')]
     fn test_set_yang_price_type_unauthorized() {
-        let SeerTestConfig { seer, .. } = seer_utils::deploy_seer(Option::None, Option::None);
+        let classes = sentinel_utils::declare_contracts();
+        let SeerTestConfig { seer, .. } = seer_utils::deploy_seer(Option::None, Option::Some(classes));
+
+        let eth = common::eth_token_deploy(classes.token);
 
         let price_type = PriceType::Direct;
         cheat_caller_address(seer.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        seer.set_yang_price_type(seer_utils::DUMMY_ETH, price_type);
+        seer.set_yang_price_type(eth, price_type);
     }
 
     #[test]
@@ -210,11 +213,11 @@ mod test_seer {
 
         let eth = common::eth_token_deploy(classes.token);
         let irregular_vault = common::deploy_vault(
-            'Irregular Vault', 'iVAULT', 8, Zero::zero(), seer_utils::ADMIN, eth, Option::None,
+            'Irregular Vault', 'iVAULT', 8, Zero::zero(), common::SEER_ADMIN, eth, Option::None,
         );
 
         let price_type = PriceType::Vault;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_yang_price_type(irregular_vault, price_type);
     }
 
@@ -226,13 +229,13 @@ mod test_seer {
 
         let eth = common::eth_token_deploy(classes.token);
         let irregular_vault = common::deploy_vault(
-            'Irregular Vault', 'iVAULT', 18, Zero::zero(), seer_utils::ADMIN, eth, Option::None,
+            'Irregular Vault', 'iVAULT', 18, Zero::zero(), common::SEER_ADMIN, eth, Option::None,
         );
 
         IMockERC4626Dispatcher { contract_address: irregular_vault }.set_convert_to_assets_per_wad_scale(Zero::zero());
 
         let price_type = PriceType::Vault;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_yang_price_type(irregular_vault, price_type);
     }
 
@@ -243,14 +246,14 @@ mod test_seer {
         let SeerTestConfig { seer, .. } = seer_utils::deploy_seer(Option::None, Option::Some(classes));
 
         let irregular_token = common::deploy_token(
-            'Irregular Token', 'iTOKEN', 19, Zero::zero(), seer_utils::ADMIN, classes.token,
+            'Irregular Token', 'iTOKEN', 19, Zero::zero(), common::SEER_ADMIN, classes.token,
         );
         let irregular_vault = common::deploy_vault(
-            'Irregular Vault', 'iVAULT', 18, Zero::zero(), seer_utils::ADMIN, irregular_token, Option::None,
+            'Irregular Vault', 'iVAULT', 18, Zero::zero(), common::SEER_ADMIN, irregular_token, Option::None,
         );
 
         let price_type = PriceType::Vault;
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_yang_price_type(irregular_vault, price_type);
     }
 
@@ -288,7 +291,7 @@ mod test_seer {
         let wbtc_vault_gate: IGateDispatcher = *vault_gates.at(1);
         let pragma: ContractAddress = *(oracles[0]);
 
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
 
         let (shrine_eth_price, _, _) = shrine.get_current_yang_price(eth_addr);
@@ -383,7 +386,7 @@ mod test_seer {
         pragma_utils::mock_valid_price_update(mock_pragma, eth_addr, eth_price, next_ts);
         pragma_utils::mock_valid_price_update(mock_pragma, wbtc_addr, wbtc_price, next_ts);
 
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
 
         let (shrine_eth_price, _, _) = shrine.get_current_yang_price(eth_addr);
@@ -414,7 +417,7 @@ mod test_seer {
             pragma_utils::mock_valid_price_update(mock_pragma, eth_addr, eth_price, next_ts);
             pragma_utils::mock_valid_price_update(mock_pragma, wbtc_addr, wbtc_price, next_ts);
 
-            cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+            cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
             seer.update_prices();
 
             if period_div != 1 {
@@ -502,7 +505,7 @@ mod test_seer {
         let exact_eth_price: Wad = convert_ekubo_oracle_price_to_wad(eth_usdc_x128_price, WAD_DECIMALS, USDC_DECIMALS);
 
         let mut spy = spy_events();
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
 
         let expected_eth_price: Wad = 3335573392107353791360_u128.into();
@@ -638,7 +641,7 @@ mod test_seer {
             Option::None, shrine.contract_address, sentinel.contract_address,
         );
         seer_utils::add_oracles(seer, Option::None, classes.token);
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
     }
 
@@ -657,7 +660,7 @@ mod test_seer {
         let yangs = array![eth_yang, eth_yang].span();
         pragma_utils::add_yangs(*oracles.at(0), yangs);
 
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
     }
 
@@ -756,7 +759,7 @@ mod test_seer {
         let task = ITaskDispatcher { contract_address: seer.contract_address };
         assert(task.probe_task(), 'should be ready 1');
 
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
 
         assert(!task.probe_task(), 'should not be ready 1');

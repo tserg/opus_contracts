@@ -35,7 +35,7 @@ mod test_absorber {
         assert(!absorber.is_operational(), 'should not be operational');
 
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber.contract_address };
-        assert(absorber_ac.get_roles(absorber_utils::ADMIN) == absorber_roles::ADMIN, 'wrong role for admin');
+        assert(absorber_ac.get_roles(common::ABSORBER_ADMIN) == absorber_roles::ADMIN, 'wrong role for admin');
     }
 
     //
@@ -61,7 +61,7 @@ mod test_absorber {
 
         let mut expected_events: Array<(ContractAddress, absorber_contract::Event)> = ArrayTrait::new();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(opus_token, opus_blesser, true);
 
         assert(absorber.get_rewards_count() == 1, 'rewards count not updated');
@@ -84,7 +84,7 @@ mod test_absorber {
             );
 
         // Add another reward
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(veopus_token, veopus_blesser, true);
 
         assert(absorber.get_rewards_count() == 2, 'rewards count not updated');
@@ -111,7 +111,7 @@ mod test_absorber {
         opus_reward.is_active = false;
         opus_reward.blesser = IBlesserDispatcher { contract_address: new_opus_blesser };
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(opus_token, new_opus_blesser, false);
 
         let mut expected_rewards: Array<Reward> = array![opus_reward, veopus_reward];
@@ -138,7 +138,7 @@ mod test_absorber {
         let valid_address = common::NON_ZERO_ADDR;
         let invalid_address = Zero::zero();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(valid_address, invalid_address, true);
     }
 
@@ -150,7 +150,7 @@ mod test_absorber {
         let valid_address = common::NON_ZERO_ADDR;
         let invalid_address = Zero::zero();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(invalid_address, valid_address, true);
     }
 
@@ -167,7 +167,7 @@ mod test_absorber {
 
         let mut spy = spy_events();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
 
         assert(!absorber.get_live(), 'should be killed');
@@ -221,7 +221,7 @@ mod test_absorber {
         let expected_absorption_id = 1;
 
         // Step 2
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
 
         // Step 3
@@ -330,7 +330,7 @@ mod test_absorber {
     fn test_provide_after_kill_fail() {
         let AbsorberTestConfig { absorber, .. } = absorber_utils::absorber_deploy(Option::None);
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(2));
         absorber.kill();
         absorber.provide(1_u128.into());
     }
@@ -2000,7 +2000,7 @@ mod test_absorber {
             .get_cumulative_reward_amt_by_epoch(veopus_addr, expected_epoch);
 
         // Set veopus to inactive
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(veopus_addr, veopus_blesser_addr, false);
 
         // Trigger rewards
@@ -2040,7 +2040,7 @@ mod test_absorber {
         spy.assert_emitted(@expected_events);
 
         // Set OPUS to inactive
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(opus_addr, opus_blesser_addr, false);
 
         // Trigger rewards

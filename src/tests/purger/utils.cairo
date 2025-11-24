@@ -64,7 +64,6 @@ pub mod purger_utils {
     // Address constants
     //
 
-    pub const ADMIN: ContractAddress = 'purger owner'.try_into().unwrap();
     pub const SEARCHER: ContractAddress = 'searcher'.try_into().unwrap();
     pub const TARGET_TROVE_OWNER: ContractAddress = 'target trove owner'.try_into().unwrap();
 
@@ -371,13 +370,11 @@ pub mod purger_utils {
         );
         pragma_utils::add_yangs(*oracles.at(0), yangs);
 
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
 
-        let admin: ContractAddress = ADMIN;
-
         let calldata = array![
-            admin.into(),
+            common::PURGER_ADMIN.into(),
             shrine.contract_address.into(),
             sentinel.contract_address.into(),
             absorber.contract_address.into(),
@@ -404,12 +401,12 @@ pub mod purger_utils {
 
         // Approve Purger in Seer
         let oracle_ac = IAccessControlDispatcher { contract_address: seer.contract_address };
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         oracle_ac.grant_role(seer_roles::PURGER, purger_addr);
 
         // Approve Purger in Absorber
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber.contract_address };
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber_ac.grant_role(absorber_roles::PURGER, purger_addr);
 
         PurgerTestConfig { shrine, abbot, seer, absorber, purger, yangs, gates }

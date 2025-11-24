@@ -84,7 +84,6 @@ pub mod absorber_utils {
     // Address constants
     //
 
-    pub const ADMIN: ContractAddress = 'absorber owner'.try_into().unwrap();
     pub const PROVIDER_1: ContractAddress = 'provider 1'.try_into().unwrap();
     pub const PROVIDER_2: ContractAddress = 'provider 2'.try_into().unwrap();
     pub const MOCK_PURGER: ContractAddress = 'mock purger'.try_into().unwrap();
@@ -123,16 +122,14 @@ pub mod absorber_utils {
                 ),
             );
 
-        let admin: ContractAddress = ADMIN;
-
         let calldata: Array<felt252> = array![
-            admin.into(), shrine.contract_address.into(), sentinel.contract_address.into(),
+            common::ABSORBER_ADMIN.into(), shrine.contract_address.into(), sentinel.contract_address.into(),
         ];
 
         let absorber_class = classes.absorber.unwrap();
         let (absorber_addr, _) = absorber_class.deploy(@calldata).expect('absorber deploy failed');
 
-        cheat_caller_address(absorber_addr, admin, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber_addr, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber_addr };
         absorber_ac.grant_role(absorber_roles::PURGER, MOCK_PURGER);
 
@@ -141,11 +138,11 @@ pub mod absorber_utils {
     }
 
     pub fn opus_token_deploy(token_class: Option<ContractClass>) -> ContractAddress {
-        common::deploy_token('Opus', 'OPUS', 18, 0_u256, ADMIN, token_class)
+        common::deploy_token('Opus', 'OPUS', 18, 0_u256, common::ABSORBER_ADMIN, token_class)
     }
 
     pub fn veopus_token_deploy(token_class: Option<ContractClass>) -> ContractAddress {
-        common::deploy_token('veOpus', 'veOPUS', 18, 0_u256, ADMIN, token_class)
+        common::deploy_token('veOpus', 'veOPUS', 18, 0_u256, common::ABSORBER_ADMIN, token_class)
     }
 
     // Convenience fixture for reward token addresses constants
@@ -168,7 +165,7 @@ pub mod absorber_utils {
         blesser_class: Option<ContractClass>,
     ) -> ContractAddress {
         let mut calldata: Array<felt252> = array![
-            ADMIN.into(), asset.into(), absorber.contract_address.into(), bless_amt.into(),
+            common::ABSORBER_ADMIN.into(), asset.into(), absorber.contract_address.into(), bless_amt.into(),
         ];
 
         let blesser_class = blesser_class.unwrap_or(*declare("blesser").unwrap().contract_class());
@@ -207,7 +204,7 @@ pub mod absorber_utils {
         absorber: IAbsorberDispatcher, tokens: Span<ContractAddress>, mut blessers: Span<ContractAddress>,
     ) {
         cheat_caller_address(
-            absorber.contract_address, ADMIN, CheatSpan::TargetCalls(tokens.len().try_into().unwrap()),
+            absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(tokens.len().try_into().unwrap()),
         );
         for token in tokens {
             absorber.set_reward(*token, *blessers.pop_front().unwrap(), true);
@@ -346,7 +343,7 @@ pub mod absorber_utils {
     }
 
     pub fn kill_absorber(absorber: IAbsorberDispatcher) {
-        cheat_caller_address(absorber.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
     }
 

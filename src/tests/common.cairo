@@ -54,8 +54,17 @@ pub const ADMIN: ContractAddress = 'admin'.try_into().unwrap();
 pub const SHRINE_ADMIN: ContractAddress = 'shrine admin'.try_into().unwrap();
 pub const SENTINEL_ADMIN: ContractAddress = 'sentinel admin'.try_into().unwrap();
 
+// Component-specific admin/owner addresses
+pub const CONTROLLER_ADMIN: ContractAddress = 'controller admin'.try_into().unwrap();
+pub const TRANSMUTER_ADMIN: ContractAddress = 'transmuter admin'.try_into().unwrap();
+pub const SEER_ADMIN: ContractAddress = 'seer owner'.try_into().unwrap();
+pub const CARETAKER_ADMIN: ContractAddress = 'caretaker admin'.try_into().unwrap();
+pub const ABSORBER_ADMIN: ContractAddress = 'absorber owner'.try_into().unwrap();
+pub const PURGER_ADMIN: ContractAddress = 'purger owner'.try_into().unwrap();
+pub const PRAGMA_ADMIN: ContractAddress = 'pragma owner'.try_into().unwrap();
+pub const EKUBO_ADMIN: ContractAddress = 'ekubo owner'.try_into().unwrap();
+
 pub const BAD_GUY: ContractAddress = 'bad guy'.try_into().unwrap();
-pub const MOCK_ABBOT: ContractAddress = 'mock abbot'.try_into().unwrap();
 
 // Trove owner addresses
 pub const TROVE1_OWNER_ADDR: ContractAddress = 'trove1 owner'.try_into().unwrap();

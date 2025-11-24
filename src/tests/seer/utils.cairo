@@ -42,7 +42,6 @@ pub mod seer_utils {
     // Address constants
     //
 
-    pub const ADMIN: ContractAddress = 'seer owner'.try_into().unwrap();
     pub const DUMMY_ETH: ContractAddress = 'eth token'.try_into().unwrap();
 
     //
@@ -63,7 +62,10 @@ pub mod seer_utils {
     ) -> SeerTestConfig {
         let (sentinel_dispatcher, shrine) = sentinel_utils::deploy_sentinel(sentinel_classes);
         let calldata: Array<felt252> = array![
-            ADMIN.into(), shrine.into(), sentinel_dispatcher.contract_address.into(), UPDATE_FREQUENCY.into(),
+            common::SEER_ADMIN.into(),
+            shrine.into(),
+            sentinel_dispatcher.contract_address.into(),
+            UPDATE_FREQUENCY.into(),
         ];
 
         let seer_class = seer_class.unwrap_or(*declare("seer").unwrap().contract_class());
@@ -86,7 +88,7 @@ pub mod seer_utils {
         seer_class: Option<ContractClass>, shrine: ContractAddress, sentinel: ContractAddress,
     ) -> ISeerDispatcher {
         let mut calldata: Array<felt252> = array![
-            ADMIN.into(), shrine.into(), sentinel.into(), UPDATE_FREQUENCY.into(),
+            common::SEER_ADMIN.into(), shrine.into(), sentinel.into(), UPDATE_FREQUENCY.into(),
         ];
 
         let seer_class = seer_class.unwrap_or(*declare("seer").unwrap().contract_class());
@@ -102,7 +104,9 @@ pub mod seer_utils {
     }
 
     pub fn set_price_types_to_vault(seer: ISeerDispatcher, mut vaults: Span<ContractAddress>) {
-        cheat_caller_address(seer.contract_address, ADMIN, CheatSpan::TargetCalls(vaults.len().try_into().unwrap()));
+        cheat_caller_address(
+            seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(vaults.len().try_into().unwrap()),
+        );
         for vault in vaults {
             seer.set_yang_price_type(*vault, PriceType::Vault);
         }
@@ -125,7 +129,7 @@ pub mod seer_utils {
         } = ekubo_utils::ekubo_deploy(oracle_classes.ekubo, oracle_classes.mock_ekubo, token_class);
         oracles.append(ekubo.contract_address);
 
-        cheat_caller_address(seer.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_oracles(oracles.span());
 
         oracles.span()

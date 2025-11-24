@@ -22,8 +22,8 @@ mod test_caretaker {
 
         let caretaker_ac = IAccessControlDispatcher { contract_address: caretaker.contract_address };
 
-        assert(caretaker_ac.get_admin() == caretaker_utils::ADMIN, 'setup admin');
-        assert(caretaker_ac.get_roles(caretaker_utils::ADMIN) == caretaker_roles::SHUT, 'admin roles');
+        assert(caretaker_ac.get_admin() == common::CARETAKER_ADMIN, 'setup admin');
+        assert(caretaker_ac.get_roles(common::CARETAKER_ADMIN) == caretaker_roles::SHUT, 'admin roles');
 
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
         assert(shrine_ac.has_role(shrine_roles::KILL, caretaker.contract_address), 'caretaker cant kill shrine');
@@ -89,7 +89,7 @@ mod test_caretaker {
                 .append(shrine.get_yang_total(*yang) - shrine.get_protocol_owned_yang_amt(*yang));
         }
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         // assert Shrine killed
@@ -167,7 +167,7 @@ mod test_caretaker {
         let trove1_yang0_deposit: Wad = shrine.get_deposit(*yangs[0], trove1_id);
         let trove1_yang1_deposit: Wad = shrine.get_deposit(*yangs[1], trove1_id);
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         cheat_caller_address(caretaker.contract_address, user1, CheatSpan::TargetCalls(1));
@@ -243,7 +243,7 @@ mod test_caretaker {
             abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
         );
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         let (reclaimed_yin, reclaimable_assets) = caretaker.preview_reclaim(trove1_forge_amt + WAD_ONE.into());
@@ -290,7 +290,7 @@ mod test_caretaker {
         let scammer_yang0_before_balance: u256 = y0.balance_of(scammer);
         let scammer_yang1_before_balance: u256 = y1.balance_of(scammer);
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         //
@@ -422,7 +422,7 @@ mod test_caretaker {
         shrine.advance(*yangs[0], new_eth_price);
         shrine.advance(*yangs[1], new_wbtc_price);
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         let tolerance: Wad = 1_u128.into();
@@ -472,7 +472,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: System is live')]
     fn test_release_when_system_live_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.release(1);
     }
 
@@ -480,7 +480,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: Owner should not be zero')]
     fn test_release_foreign_trove_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(2));
         caretaker.shut();
         caretaker.release(1);
     }
@@ -489,7 +489,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: System is live')]
     fn test_reclaim_when_system_live_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.reclaim(WAD_ONE.into());
     }
 
@@ -523,7 +523,7 @@ mod test_caretaker {
         shrine_utils::yin(shrine.contract_address).transfer(user2, transfer_amt);
 
         // Activating global settlement mode
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         // User1 attempts to reclaim more yin than they have

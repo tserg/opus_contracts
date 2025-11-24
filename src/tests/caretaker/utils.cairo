@@ -26,7 +26,6 @@ pub mod caretaker_utils {
         pub gates: Span<IGateDispatcher>,
     }
 
-    pub const ADMIN: ContractAddress = 'caretaker admin'.try_into().unwrap();
 
     pub fn caretaker_deploy() -> CaretakerTestConfig {
         start_cheat_block_timestamp_global(shrine_utils::DEPLOYMENT_TIMESTAMP);
@@ -39,7 +38,7 @@ pub mod caretaker_utils {
         } = equalizer_utils::equalizer_deploy_with_shrine(shrine.contract_address, Option::None);
 
         let calldata: Array<felt252> = array![
-            ADMIN.into(),
+            common::CARETAKER_ADMIN.into(),
             shrine.contract_address.into(),
             abbot.contract_address.into(),
             sentinel.contract_address.into(),

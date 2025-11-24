@@ -40,7 +40,7 @@ mod test_purger {
         let PurgerTestConfig { purger, .. } = purger_utils::purger_deploy(Option::None);
 
         let purger_ac = IAccessControlDispatcher { contract_address: purger.contract_address };
-        assert(purger_ac.get_roles(purger_utils::ADMIN) == purger_roles::ADMIN, 'wrong role for admin');
+        assert(purger_ac.get_roles(common::PURGER_ADMIN) == purger_roles::ADMIN, 'wrong role for admin');
 
         let expected_events = array![
             (
@@ -88,7 +88,7 @@ mod test_purger {
         let mut expected_events: Array<(ContractAddress, purger_contract::Event)> = ArrayTrait::new();
 
         // Set scalar to 1
-        cheat_caller_address(purger.contract_address, purger_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(purger.contract_address, common::PURGER_ADMIN, CheatSpan::TargetCalls(1));
         let penalty_scalar: Ray = RAY_ONE.into();
         purger.set_penalty_scalar(penalty_scalar);
 
@@ -110,7 +110,7 @@ mod test_purger {
             );
 
         // Set scalar to 0.97
-        cheat_caller_address(purger.contract_address, purger_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(purger.contract_address, common::PURGER_ADMIN, CheatSpan::TargetCalls(1));
         let penalty_scalar: Ray = purger_contract::MIN_PENALTY_SCALAR.into();
         purger.set_penalty_scalar(penalty_scalar);
 
@@ -131,7 +131,7 @@ mod test_purger {
             );
 
         // Set scalar to 1.06
-        cheat_caller_address(purger.contract_address, purger_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(purger.contract_address, common::PURGER_ADMIN, CheatSpan::TargetCalls(1));
         let penalty_scalar: Ray = purger_contract::MAX_PENALTY_SCALAR.into();
         purger.set_penalty_scalar(penalty_scalar);
 
@@ -191,7 +191,7 @@ mod test_purger {
         assert(purger.preview_absorb(target_trove).is_none(), 'should not be absorbable #1');
 
         // Set scalar to 1.06 and check the trove is still not absorbable.
-        cheat_caller_address(purger.contract_address, purger_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(purger.contract_address, common::PURGER_ADMIN, CheatSpan::TargetCalls(1));
         let penalty_scalar: Ray = purger_contract::MAX_PENALTY_SCALAR.into();
         purger.set_penalty_scalar(penalty_scalar);
 
@@ -203,7 +203,7 @@ mod test_purger {
     fn test_set_penalty_scalar_too_low_fail() {
         let PurgerTestConfig { purger, .. } = purger_utils::purger_deploy(Option::None);
 
-        cheat_caller_address(purger.contract_address, purger_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(purger.contract_address, common::PURGER_ADMIN, CheatSpan::TargetCalls(1));
         purger.set_penalty_scalar((purger_contract::MIN_PENALTY_SCALAR - 1).into());
     }
 
@@ -212,7 +212,7 @@ mod test_purger {
     fn test_set_penalty_scalar_too_high_fail() {
         let PurgerTestConfig { purger, .. } = purger_utils::purger_deploy(Option::None);
 
-        cheat_caller_address(purger.contract_address, purger_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(purger.contract_address, common::PURGER_ADMIN, CheatSpan::TargetCalls(1));
         purger.set_penalty_scalar((purger_contract::MAX_PENALTY_SCALAR + 1).into());
     }
 

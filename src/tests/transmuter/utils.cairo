@@ -34,7 +34,6 @@ pub mod transmuter_utils {
     // 2_000_000 (6 decimals)
     pub const MOCK_NONWAD_USD_TOTAL: u128 = 2000000000000;
 
-    pub const ADMIN: ContractAddress = 'transmuter admin'.try_into().unwrap();
     pub const RECEIVER: ContractAddress = 'receiver'.try_into().unwrap();
 
 
@@ -53,7 +52,7 @@ pub mod transmuter_utils {
         receiver: ContractAddress,
     ) -> ITransmuterDispatcher {
         let mut calldata: Array<felt252> = array![
-            ADMIN.into(), shrine.into(), asset.into(), receiver.into(), INITIAL_CEILING.into(),
+            common::TRANSMUTER_ADMIN.into(), shrine.into(), asset.into(), receiver.into(), INITIAL_CEILING.into(),
         ];
 
         let transmuter_class = transmuter_class.unwrap_or(declare_transmuter());
@@ -122,7 +121,7 @@ pub mod transmuter_utils {
     }
 
     pub fn transmuter_registry_deploy() -> ITransmuterRegistryDispatcher {
-        let mut calldata: Array<felt252> = array![ADMIN.into()];
+        let mut calldata: Array<felt252> = array![common::TRANSMUTER_ADMIN.into()];
 
         let transmuter_registry_class = *declare("transmuter_registry").unwrap().contract_class();
         let (transmuter_registry_addr, _) = transmuter_registry_class

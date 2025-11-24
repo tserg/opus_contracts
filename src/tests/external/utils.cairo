@@ -15,6 +15,7 @@ pub mod pragma_utils {
     use opus::interfaces::IOracle::{IOracleDispatcher, IOracleDispatcherTrait};
     use opus::interfaces::IPragma::{IPragmaDispatcher, IPragmaDispatcherTrait};
     use opus::mock::mock_pragma::{IMockPragmaDispatcher, IMockPragmaDispatcherTrait};
+    use opus::tests::common;
     use opus::tests::seer::utils::seer_utils::{ETH_INIT_PRICE, WBTC_INIT_PRICE};
     use opus::types::pragma::{AggregationMode, PairSettings, PragmaPricesResponse};
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
@@ -41,8 +42,6 @@ pub mod pragma_utils {
     // Constant addresses
     //
 
-    pub const ADMIN: ContractAddress = 'pragma owner'.try_into().unwrap();
-
     //
     // Test setup helpers
     //
@@ -62,7 +61,7 @@ pub mod pragma_utils {
     ) -> PragmaTestConfig {
         let mock_pragma: IMockPragmaDispatcher = mock_pragma_deploy(mock_pragma_class);
         let mut calldata: Array<felt252> = array![
-            ADMIN.into(),
+            common::PRAGMA_ADMIN.into(),
             mock_pragma.contract_address.into(),
             mock_pragma.contract_address.into(),
             FRESHNESS_THRESHOLD.into(),
@@ -94,7 +93,7 @@ pub mod pragma_utils {
         let pragma_dispatcher = IPragmaDispatcher { contract_address: pragma };
         let eth_pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
         let wbtc_pair_settings = PairSettings { pair_id: WBTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
-        cheat_caller_address(pragma, ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(pragma, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(2));
         pragma_dispatcher.set_yang_pair_settings(eth_yang, eth_pair_settings);
         pragma_dispatcher.set_yang_pair_settings(wbtc_yang, wbtc_pair_settings);
     }
@@ -167,8 +166,6 @@ pub mod ekubo_utils {
     // Constant addresses
     //
 
-    pub const ADMIN: ContractAddress = 'ekubo owner'.try_into().unwrap();
-
     //
     // Test setup helpers
     //
@@ -183,7 +180,7 @@ pub mod ekubo_utils {
         );
         let quote_tokens: Span<ContractAddress> = common::quote_tokens(token_class);
         let mut calldata: Array<felt252> = array![
-            ADMIN.into(),
+            common::EKUBO_ADMIN.into(),
             mock_ekubo.contract_address.into(),
             TWAP_DURATION.into(),
             quote_tokens.len().into(),

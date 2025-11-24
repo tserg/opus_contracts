@@ -21,7 +21,7 @@ mod test_transmuter_registry {
         let registry_ac: IAccessControlDispatcher = IAccessControlDispatcher {
             contract_address: registry.contract_address,
         };
-        let admin: ContractAddress = transmuter_utils::ADMIN;
+        let admin: ContractAddress = common::TRANSMUTER_ADMIN;
         assert(registry_ac.get_admin() == admin, 'wrong admin');
         assert(registry_ac.get_roles(admin) == transmuter_registry_roles::ADMIN, 'wrong admin roles');
     }
@@ -52,7 +52,7 @@ mod test_transmuter_registry {
             transmuter_utils::RECEIVER,
         );
 
-        start_cheat_caller_address(registry.contract_address, transmuter_utils::ADMIN);
+        start_cheat_caller_address(registry.contract_address, common::TRANSMUTER_ADMIN);
         registry.add_transmuter(first_transmuter.contract_address);
 
         assert(registry.get_transmuters() == array![first_transmuter.contract_address].span(), 'wrong transmuters #1');
@@ -93,7 +93,7 @@ mod test_transmuter_registry {
             transmuter, ..,
         } = transmuter_utils::shrine_with_wad_usd_stable_transmuter(Option::None, Option::None);
 
-        start_cheat_caller_address(registry.contract_address, transmuter_utils::ADMIN);
+        start_cheat_caller_address(registry.contract_address, common::TRANSMUTER_ADMIN);
         registry.add_transmuter(transmuter.contract_address);
         registry.add_transmuter(transmuter.contract_address);
     }
@@ -107,7 +107,7 @@ mod test_transmuter_registry {
             transmuter, ..,
         } = transmuter_utils::shrine_with_wad_usd_stable_transmuter(Option::None, Option::None);
 
-        start_cheat_caller_address(registry.contract_address, transmuter_utils::ADMIN);
+        start_cheat_caller_address(registry.contract_address, common::TRANSMUTER_ADMIN);
         registry.remove_transmuter(transmuter.contract_address);
     }
 }
