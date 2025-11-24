@@ -62,14 +62,10 @@ pub mod sentinel_utils {
         let (sentinel_addr, _) = classes.sentinel.unwrap().deploy(@calldata).expect('sentinel deploy failed');
 
         // Grant `abbot` role to `mock_abbot`
-        cheat_caller_address(sentinel_addr, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        IAccessControlDispatcher { contract_address: sentinel_addr }
-            .grant_role(sentinel_roles::ABBOT, common::MOCK_ABBOT);
+        common::grant_role_for_address(sentinel_addr, sentinel_roles::ABBOT, common::MOCK_ABBOT);
 
-        let shrine_ac = IAccessControlDispatcher { contract_address: shrine_addr };
-        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
-        shrine_ac.grant_role(shrine_roles::SENTINEL, sentinel_addr);
-        shrine_ac.grant_role(shrine_roles::ABBOT, common::MOCK_ABBOT);
+        common::grant_role_for_address(shrine_addr, shrine_roles::SENTINEL, sentinel_addr);
+        common::grant_role_for_address(shrine_addr, shrine_roles::ABBOT, common::MOCK_ABBOT);
 
         (ISentinelDispatcher { contract_address: sentinel_addr }, shrine_addr)
     }

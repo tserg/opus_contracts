@@ -128,9 +128,7 @@ pub mod absorber_utils {
         let absorber_class = classes.absorber.unwrap();
         let (absorber_addr, _) = absorber_class.deploy(@calldata).expect('absorber deploy failed');
 
-        cheat_caller_address(absorber_addr, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
-        let absorber_ac = IAccessControlDispatcher { contract_address: absorber_addr };
-        absorber_ac.grant_role(absorber_roles::PURGER, common::MOCK_PURGER);
+        common::grant_role_for_address(absorber_addr, absorber_roles::PURGER, common::MOCK_PURGER);
 
         let absorber = IAbsorberDispatcher { contract_address: absorber_addr };
         AbsorberTestConfig { shrine, sentinel, abbot, absorber, yangs, gates }

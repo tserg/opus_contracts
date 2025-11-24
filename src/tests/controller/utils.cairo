@@ -49,9 +49,7 @@ pub mod controller_utils {
         let controller_class = *declare("controller").unwrap().contract_class();
         let (controller_addr, _) = controller_class.deploy(@calldata).expect('controller deploy failed');
 
-        let shrine_ac = IAccessControlDispatcher { contract_address: shrine_addr };
-        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine_ac.grant_role(shrine_roles::CONTROLLER, controller_addr);
+        common::grant_role_for_address(shrine_addr, shrine_roles::CONTROLLER, controller_addr);
 
         ControllerTestConfig {
             controller: IControllerDispatcher { contract_address: controller_addr },

@@ -67,9 +67,7 @@ pub mod seer_utils {
         let (seer_addr, _) = seer_class.deploy(@calldata).expect('failed seer deploy');
 
         // Allow Seer to advance Shrine
-        let shrine_ac = IAccessControlDispatcher { contract_address: shrine };
-        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine_ac.grant_role(shrine_roles::SEER, seer_addr);
+        common::grant_role_for_address(shrine, shrine_roles::SEER, seer_addr);
 
         SeerTestConfig {
             seer: ISeerDispatcher { contract_address: seer_addr },
@@ -90,9 +88,7 @@ pub mod seer_utils {
         let (seer_addr, _) = seer_class.deploy(@calldata).expect('failed seer deploy');
 
         // Allow Seer to advance Shrine
-        let shrine_ac = IAccessControlDispatcher { contract_address: shrine };
-        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine_ac.grant_role(shrine_roles::SEER, seer_addr);
+        common::grant_role_for_address(shrine, shrine_roles::SEER, seer_addr);
 
         ISeerDispatcher { contract_address: seer_addr }
     }

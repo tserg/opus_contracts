@@ -125,13 +125,9 @@ pub mod equalizer_utils {
         let equalizer_class = declare("equalizer").unwrap().contract_class();
         let (equalizer_addr, _) = equalizer_class.deploy(@calldata).expect('failed equalizer deploy');
 
-        let equalizer_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: equalizer_addr };
-        cheat_caller_address(equalizer_addr, admin, CheatSpan::TargetCalls(1));
-        equalizer_ac.grant_role(equalizer_roles::ADMIN, admin);
+        common::grant_role_for_address(equalizer_addr, equalizer_roles::ADMIN, admin);
 
-        let shrine_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine };
-        cheat_caller_address(shrine, admin, CheatSpan::TargetCalls(1));
-        shrine_ac.grant_role(shrine_roles::EQUALIZER, equalizer_addr);
+        common::grant_role_for_address(shrine, shrine_roles::EQUALIZER, equalizer_addr);
 
         EqualizerTestConfig {
             shrine: IShrineDispatcher { contract_address: shrine },

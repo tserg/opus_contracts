@@ -26,9 +26,7 @@ pub mod flash_mint_utils {
         let flashmint = IFlashMintDispatcher { contract_address: flashmint_addr };
 
         // Grant flashmint contract the FLASHMINT role
-        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        let shrine_accesscontrol = IAccessControlDispatcher { contract_address: shrine };
-        shrine_accesscontrol.grant_role(shrine_roles::FLASH_MINT, flashmint_addr);
+        common::grant_role_for_address(shrine, shrine_roles::FLASH_MINT, flashmint_addr);
         flashmint
     }
 

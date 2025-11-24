@@ -162,7 +162,6 @@ mod test_gate {
         let enter1_yang_amt = gate.enter(user1, enter1_amt);
 
         // simulate depositing
-        shrine_utils::make_root(shrine.contract_address, common::SHRINE_ADMIN);
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(eth.contract_address, trove1, enter1_yang_amt);
 
@@ -347,7 +346,6 @@ mod test_gate {
         let enter_yang_amt = gate.enter(user, enter_amt);
 
         // simulate depositing
-        shrine_utils::make_root(shrine.contract_address, common::SHRINE_ADMIN);
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(eth.contract_address, trove_id, enter_yang_amt);
 

@@ -59,9 +59,7 @@ pub mod transmuter_utils {
 
         let (transmuter_addr, _) = transmuter_class.deploy(@calldata).expect('transmuter deploy failed');
 
-        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        let shrine_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine };
-        shrine_ac.grant_role(shrine_roles::TRANSMUTER, transmuter_addr);
+        common::grant_role_for_address(shrine, shrine_roles::TRANSMUTER, transmuter_addr);
 
         ITransmuterDispatcher { contract_address: transmuter_addr }
     }

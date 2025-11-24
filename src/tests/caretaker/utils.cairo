@@ -49,14 +49,10 @@ pub mod caretaker_utils {
         let (caretaker, _) = caretaker_class.deploy(@calldata).expect('caretaker deploy failed');
 
         // allow Caretaker to do its business with Shrine
-        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        IAccessControlDispatcher { contract_address: shrine.contract_address }
-            .grant_role(shrine_roles::CARETAKER, caretaker);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::CARETAKER, caretaker);
 
         // allow Caretaker to call exit in Sentinel during shut
-        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        IAccessControlDispatcher { contract_address: sentinel.contract_address }
-            .grant_role(sentinel_roles::CARETAKER, caretaker);
+        common::grant_role_for_address(sentinel.contract_address, sentinel_roles::CARETAKER, caretaker);
 
         let caretaker = ICaretakerDispatcher { contract_address: caretaker };
 

@@ -386,28 +386,20 @@ pub mod purger_utils {
         let purger = IPurgerDispatcher { contract_address: purger_addr };
 
         // Approve Purger in Shrine
-        let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
-        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
-        shrine_ac.grant_role(shrine_roles::PURGER, purger_addr);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::PURGER, purger_addr);
 
         // Increase debt ceiling
         let debt_ceiling: Wad = (100000 * WAD_ONE).into();
         shrine.set_debt_ceiling(debt_ceiling);
 
         // Approve Purger in Sentinel
-        let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
-        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        sentinel_ac.grant_role(sentinel_roles::PURGER, purger_addr);
+        common::grant_role_for_address(sentinel.contract_address, sentinel_roles::PURGER, purger_addr);
 
         // Approve Purger in Seer
-        let oracle_ac = IAccessControlDispatcher { contract_address: seer.contract_address };
-        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
-        oracle_ac.grant_role(seer_roles::PURGER, purger_addr);
+        common::grant_role_for_address(seer.contract_address, seer_roles::PURGER, purger_addr);
 
         // Approve Purger in Absorber
-        let absorber_ac = IAccessControlDispatcher { contract_address: absorber.contract_address };
-        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
-        absorber_ac.grant_role(absorber_roles::PURGER, purger_addr);
+        common::grant_role_for_address(absorber.contract_address, absorber_roles::PURGER, purger_addr);
 
         PurgerTestConfig { shrine, abbot, seer, absorber, purger, yangs, gates }
     }

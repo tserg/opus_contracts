@@ -465,3 +465,11 @@ pub fn grant_role_helper(contract: ContractAddress, admin: ContractAddress, role
     cheat_caller_address(contract, admin, CheatSpan::TargetCalls(1));
     ac.grant_role(role, address);
 }
+
+// Helper function to grant a role to an address (automatically gets admin)
+pub fn grant_role_for_address(contract: ContractAddress, role: u128, address: ContractAddress) {
+    let ac = IAccessControlDispatcher { contract_address: contract };
+    let admin: ContractAddress = ac.get_admin();
+    cheat_caller_address(contract, admin, CheatSpan::TargetCalls(1));
+    ac.grant_role(role, address);
+}

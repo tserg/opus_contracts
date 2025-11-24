@@ -80,9 +80,7 @@ pub mod receptor_utils {
         let (receptor_addr, _) = receptor_class.deploy(@calldata).expect('receptor deploy failed');
 
         // Grant UPDATE_YIN_SPOT_PRICE role to receptor contract
-        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        let shrine_accesscontrol = IAccessControlDispatcher { contract_address: shrine.contract_address };
-        shrine_accesscontrol.grant_role(shrine_roles::RECEPTOR, receptor_addr);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::RECEPTOR, receptor_addr);
 
         ReceptorTestConfig {
             shrine,
