@@ -383,14 +383,8 @@ pub mod purger_utils {
 
         let (purger_addr, _) = classes.purger.deploy(@calldata).expect('purger deploy failed');
 
-        let purger = IPurgerDispatcher { contract_address: purger_addr };
-
         // Approve Purger in Shrine
         common::grant_role_for_address(shrine.contract_address, shrine_roles::PURGER, purger_addr);
-
-        // Increase debt ceiling
-        let debt_ceiling: Wad = (100000 * WAD_ONE).into();
-        shrine.set_debt_ceiling(debt_ceiling);
 
         // Approve Purger in Sentinel
         common::grant_role_for_address(sentinel.contract_address, sentinel_roles::PURGER, purger_addr);
@@ -401,6 +395,12 @@ pub mod purger_utils {
         // Approve Purger in Absorber
         common::grant_role_for_address(absorber.contract_address, absorber_roles::PURGER, purger_addr);
 
+        // Increase debt ceiling
+        let debt_ceiling: Wad = (100000 * WAD_ONE).into();
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
+        shrine.set_debt_ceiling(debt_ceiling);
+
+        let purger = IPurgerDispatcher { contract_address: purger_addr };
         PurgerTestConfig { shrine, abbot, seer, absorber, purger, yangs, gates }
     }
 
