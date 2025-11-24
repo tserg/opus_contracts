@@ -1,5 +1,4 @@
 pub mod controller_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IController::IControllerDispatcher;
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};

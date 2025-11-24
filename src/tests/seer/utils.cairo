@@ -1,5 +1,4 @@
 pub mod seer_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IOracle::{IOracleDispatcher, IOracleDispatcherTrait};
     use opus::interfaces::ISeer::{ISeerDispatcher, ISeerDispatcherTrait};

@@ -1,5 +1,4 @@
 pub mod receptor_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IReceptor::IReceptorDispatcher;
     use opus::interfaces::IShrine::IShrineDispatcher;
@@ -7,7 +6,7 @@ pub mod receptor_utils {
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
-        CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
+        ContractClass, ContractClassTrait, DeclareResultTrait, declare,
         start_cheat_block_timestamp_global,
     };
     use starknet::ContractAddress;

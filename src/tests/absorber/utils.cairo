@@ -1,5 +1,4 @@
 pub mod absorber_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::{Bounded, Zero};
     use opus::core::roles::absorber_roles;
     use opus::interfaces::IAbbot::IAbbotDispatcher;

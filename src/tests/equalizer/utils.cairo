@@ -1,5 +1,4 @@
 pub mod equalizer_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::{One, Zero};
     use opus::core::roles::{equalizer_roles, shrine_roles};
     use opus::interfaces::IAllocator::IAllocatorDispatcher;
@@ -7,7 +6,7 @@ pub mod equalizer_utils {
     use opus::interfaces::IShrine::IShrineDispatcher;
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
+    use snforge_std::{ContractClass, ContractClassTrait, DeclareResultTrait, declare};
     use starknet::ContractAddress;
     use wadray::Ray;
 

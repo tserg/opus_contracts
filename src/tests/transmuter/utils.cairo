@@ -1,5 +1,4 @@
 pub mod transmuter_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Bounded;
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};

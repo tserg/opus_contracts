@@ -1,5 +1,4 @@
 pub mod purger_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Zero;
     use opus::core::absorber::absorber as absorber_contract;
     use opus::core::purger::purger as purger_contract;

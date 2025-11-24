@@ -1,5 +1,4 @@
 pub mod sentinel_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::{Bounded, Pow};
     use opus::core::roles::{sentinel_roles, shrine_roles};
     use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};

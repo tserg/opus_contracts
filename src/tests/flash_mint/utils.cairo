@@ -1,5 +1,4 @@
 pub mod flash_mint_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Zero;
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IFlashMint::IFlashMintDispatcher;

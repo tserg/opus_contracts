@@ -1,5 +1,4 @@
 pub mod caretaker_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use opus::core::roles::{sentinel_roles, shrine_roles};
     use opus::interfaces::IAbbot::IAbbotDispatcher;
     use opus::interfaces::ICaretaker::ICaretakerDispatcher;
@@ -11,7 +10,7 @@ pub mod caretaker_utils {
     use opus::tests::equalizer::utils::equalizer_utils;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
-        CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
+        ContractClassTrait, DeclareResultTrait, declare,
         start_cheat_block_timestamp_global,
     };
     use starknet::ContractAddress;

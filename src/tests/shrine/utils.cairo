@@ -1,5 +1,4 @@
 pub mod shrine_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Zero;
     use core::traits::DivRem;
     use opus::core::roles::shrine_roles;
