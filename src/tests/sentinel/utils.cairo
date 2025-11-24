@@ -55,7 +55,7 @@ pub mod sentinel_utils {
     pub fn deploy_sentinel(classes: Option<SentinelTestClasses>) -> (ISentinelDispatcher, ContractAddress) {
         let classes = classes.unwrap_or(declare_contracts());
 
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(classes.shrine);
+        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy_with_debt_ceiling(classes.shrine);
 
         let calldata: Array<felt252> = array![common::SENTINEL_ADMIN.into(), shrine_addr.into()];
 

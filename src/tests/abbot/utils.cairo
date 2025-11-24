@@ -7,7 +7,6 @@ pub mod abbot_utils {
     use opus::interfaces::IShrine::IShrineDispatcher;
     use opus::tests::common;
     use opus::tests::sentinel::utils::sentinel_utils;
-    use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
     use wadray::Wad;
@@ -89,7 +88,6 @@ pub mod abbot_utils {
                     },
                 ),
             );
-        shrine_utils::setup_debt_ceiling(shrine.contract_address);
 
         let calldata: Array<felt252> = array![shrine.contract_address.into(), sentinel.contract_address.into()];
 

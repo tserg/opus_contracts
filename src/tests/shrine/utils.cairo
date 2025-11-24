@@ -150,16 +150,19 @@ pub mod shrine_utils {
         IAccessControlDispatcher { contract_address: shrine_addr }.grant_role(shrine_roles::ALL_ROLES, user);
     }
 
-    pub fn setup_debt_ceiling(shrine_addr: ContractAddress) {
+    pub fn shrine_deploy_with_debt_ceiling(shrine_class: Option<ContractClass>) -> ContractAddress {
+        let shrine_addr = shrine_deploy(shrine_class);
+
         make_root(shrine_addr, common::SHRINE_ADMIN);
         // Set debt ceiling
         cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         let shrine = shrine(shrine_addr);
         shrine.set_debt_ceiling(DEBT_CEILING.into());
+
+        shrine_addr
     }
 
     pub fn shrine_setup(shrine_addr: ContractAddress) {
-        setup_debt_ceiling(shrine_addr);
         let shrine = shrine(shrine_addr);
         cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(4));
 
@@ -235,7 +238,7 @@ pub mod shrine_utils {
 
     #[inline(always)]
     pub fn shrine_deploy_and_setup(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
-        let shrine_addr: ContractAddress = shrine_deploy(shrine_class);
+        let shrine_addr: ContractAddress = shrine_deploy_with_debt_ceiling(shrine_class);
         shrine_setup(shrine_addr);
 
         IShrineDispatcher { contract_address: shrine_addr }

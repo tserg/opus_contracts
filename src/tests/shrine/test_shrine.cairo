@@ -92,8 +92,17 @@ mod test_shrine {
     #[test]
     fn test_shrine_setup() {
         let mut spy = spy_events();
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
+        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy_with_debt_ceiling(Option::None);
+        let shrine = shrine_utils::shrine(shrine_addr);
+        assert(shrine.get_debt_ceiling() == shrine_utils::DEBT_CEILING.into(), 'wrong debt ceiling');
+
         let expected_events = array![
+            (
+                shrine_addr,
+                shrine_contract::Event::DebtCeilingUpdated(
+                    shrine_contract::DebtCeilingUpdated { ceiling: shrine_utils::DEBT_CEILING.into() },
+                ),
+            ),
             (
                 shrine_addr,
                 shrine_contract::Event::MultiplierUpdated(
@@ -123,25 +132,9 @@ mod test_shrine {
         ];
         spy.assert_emitted(@expected_events);
 
-        let mut spy = spy_events();
         shrine_utils::shrine_setup(shrine_addr);
 
-        let expected_events = array![
-            (
-                shrine_addr,
-                shrine_contract::Event::DebtCeilingUpdated(
-                    shrine_contract::DebtCeilingUpdated { ceiling: shrine_utils::DEBT_CEILING.into() },
-                ),
-            ),
-        ];
-        spy.assert_emitted(@expected_events);
-
-        // Check debt ceiling and minimum trove value
-        let shrine = shrine_utils::shrine(shrine_addr);
         assert(shrine.get_minimum_trove_value() == shrine_utils::MINIMUM_TROVE_VALUE.into(), 'wrong min trove value');
-        assert(shrine.get_debt_ceiling() == shrine_utils::DEBT_CEILING.into(), 'wrong debt ceiling');
-
-        // Check yangs
         assert(shrine.get_yangs_count() == 3, 'wrong yangs count');
 
         let expected_era: u64 = 1;
@@ -189,7 +182,7 @@ mod test_shrine {
     // Checks `advance` and `set_multiplier`, and their cumulative values
     #[test]
     fn test_shrine_setup_with_feed() {
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
+        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy_with_debt_ceiling(Option::None);
         shrine_utils::shrine_setup(shrine_addr);
         let shrine: IShrineDispatcher = IShrineDispatcher { contract_address: shrine_addr };
 
