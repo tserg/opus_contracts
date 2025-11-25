@@ -475,13 +475,6 @@ pub fn combine_spans(lhs: Span<u128>, mut rhs: Span<u128>) -> Span<u128> {
     combined_asset_amts.span()
 }
 
-// Helper function to grant a role to an address with proper caller context
-pub fn grant_role_helper(contract: ContractAddress, admin: ContractAddress, role: u128, address: ContractAddress) {
-    let ac = IAccessControlDispatcher { contract_address: contract };
-    cheat_caller_address(contract, admin, CheatSpan::TargetCalls(1));
-    ac.grant_role(role, address);
-}
-
 // Helper function to grant a role to an address (automatically gets admin)
 pub fn grant_role_for_address(contract: ContractAddress, role: u128, address: ContractAddress) {
     let ac = IAccessControlDispatcher { contract_address: contract };
