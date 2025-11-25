@@ -424,7 +424,7 @@ mod test_seer {
                 assert(
                     shrine.get_yang_suspension_status(eth_addr) == YangSuspensionStatus::Temporary, 'yang suspended',
                 );
-                last_delisted_yang_interval = shrine_utils::get_interval(get_block_timestamp());
+                last_delisted_yang_interval = shrine_utils::get_interval(next_ts);
             }
 
             period_div -= 1;
@@ -445,8 +445,7 @@ mod test_seer {
         let (eth_price, cumulative_eth_price, eth_price_interval) = shrine.get_current_yang_price(eth_addr);
         assert(eth_price.is_zero(), 'price should be zero #2');
         assert(cumulative_eth_price.is_zero(), 'wrong cumulative price #3');
-        let current_interval: u64 = shrine_utils::get_interval(get_block_timestamp());
-        assert_eq!(eth_price_interval, current_interval, "wrong delisted price interval");
+        assert_eq!(eth_price_interval, shrine_utils::current_interval(), "wrong delisted price interval");
     }
 
     #[test]

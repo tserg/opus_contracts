@@ -1664,7 +1664,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.advance(yang, zero_price);
 
-        let expected_interval = shrine_utils::get_interval(get_block_timestamp());
+        let expected_interval = shrine_utils::current_interval();
         let expected_events = array![
             (
                 shrine.contract_address,
