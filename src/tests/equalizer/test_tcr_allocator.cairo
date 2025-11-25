@@ -30,7 +30,7 @@ mod test_tcr_allocator {
         setup_trove(shrine);
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferLowerBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
         let expected_recipients = initial_tcr_recipients();

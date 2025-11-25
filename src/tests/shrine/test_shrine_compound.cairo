@@ -34,7 +34,7 @@ mod test_shrine_compound {
         let start_interval: u64 = shrine_utils::current_interval();
 
         let trove_id: u64 = common::TROVE_1;
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
 
         // Note that this is the price at `start_interval - 1` because we advanced one interval
         // after the last price update
@@ -112,7 +112,7 @@ mod test_shrine_compound {
         let start_interval: u64 = shrine_utils::current_interval();
 
         let trove_id: u64 = common::TROVE_1;
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr = *yangs.at(0);
         // Note that this is the price at `start_interval - 1` because we advanced one interval
         // after the last price update
@@ -411,7 +411,7 @@ mod test_shrine_compound {
         let before_budget: SignedWad = shrine.get_budget();
 
         let trove_id: u64 = common::TROVE_1;
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr = *yangs.at(0);
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
@@ -494,7 +494,7 @@ mod test_shrine_compound {
         // Advance one interval to avoid overwriting the last price
         common::advance_intervals(1);
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr = *yangs.at(0);
         let yang_prices: Span<Wad> = shrine_utils::get_yang_prices(shrine, yangs);
 
@@ -719,7 +719,7 @@ mod test_shrine_compound {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         shrine_utils::advance_prices_and_set_multiplier(
             shrine, shrine_utils::FEED_LEN, yangs, shrine_utils::three_yang_start_prices(),
         );
@@ -978,7 +978,7 @@ mod test_shrine_compound {
         // Advance one interval to avoid overwriting the last price
         common::advance_intervals(1);
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang_to_delist: ContractAddress = *yangs[0];
 
         let start_debt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();

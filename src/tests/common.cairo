@@ -94,6 +94,11 @@ pub const YANG3_ADDR: ContractAddress = 'yang 3'.try_into().unwrap();
 pub const DUMMY_YANG_ADDR: ContractAddress = 'dummy yang'.try_into().unwrap();
 pub const DUMMY_YANG_GATE_ADDR: ContractAddress = 'dummy yang token'.try_into().unwrap();
 
+pub const TWO_YANG_ADDRS: [ContractAddress; 2] = [YANG1_ADDR, YANG2_ADDR];
+pub const THREE_YANG_ADDRS: [ContractAddress; 3] = [YANG1_ADDR, YANG2_ADDR, YANG3_ADDR];
+pub const TWO_YANG_ADDRS_REVERSED: [ContractAddress; 2] = [YANG2_ADDR, YANG1_ADDR];
+pub const THREE_YANG_ADDRS_REVERSED: [ContractAddress; 3] = [YANG3_ADDR, YANG2_ADDR, YANG1_ADDR];
+
 //
 // Yang Parameters
 //

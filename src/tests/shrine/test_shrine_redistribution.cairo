@@ -196,7 +196,7 @@ mod test_shrine_redistribution {
 
         let redistributed_trove: u64 = common::TROVE_1;
         let recipient_trove: u64 = common::TROVE_2;
-        let yangs: Span<ContractAddress> = shrine_utils::two_yang_addrs_reversed();
+        let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS_REVERSED.span();
         let (trove1_yang_values, _, expected_remaining_yangs, expected_error) = preview_trove_redistribution(
             shrine, yangs, redistributed_trove,
         );
@@ -286,7 +286,7 @@ mod test_shrine_redistribution {
         let redistributed_trove2: u64 = common::TROVE_2;
         let recipient_trove: u64 = common::TROVE_3;
 
-        let yangs: Span<ContractAddress> = shrine_utils::two_yang_addrs_reversed();
+        let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS_REVERSED.span();
         let (_, _, _, expected_redistributed_trove1_errors) = preview_trove_redistribution(
             shrine, yangs, redistributed_trove1,
         );
@@ -403,7 +403,7 @@ mod test_shrine_redistribution {
             let shrine: IShrineDispatcher = redistribution_setup(Option::Some(shrine_class));
             let mut spy = spy_events();
 
-            let yangs: Span<ContractAddress> = shrine_utils::two_yang_addrs_reversed();
+            let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS_REVERSED.span();
             let redistributed_trove = common::TROVE_1;
             let recipient_trove1 = common::TROVE_2;
             let recipient_trove2 = common::TROVE_3;
@@ -576,7 +576,7 @@ mod test_shrine_redistribution {
             'wrong unit debt',
         );
 
-        shrine_utils::assert_shrine_invariants(shrine, shrine_utils::two_yang_addrs(), 3);
+        shrine_utils::assert_shrine_invariants(shrine, common::TWO_YANG_ADDRS.span(), 3);
     }
 
     #[test]
@@ -596,7 +596,7 @@ mod test_shrine_redistribution {
 
             // Manually set up troves so that the redistributed trove (trove 1) uses all three yangs
             // while the recipient troves (trove 2 and 3) uses only yang 2.
-            let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs_reversed();
+            let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS_REVERSED.span();
             let yang1_addr = *yangs.at(2);
             let yang2_addr = *yangs.at(1);
             let yang3_addr = *yangs.at(0);
@@ -878,7 +878,7 @@ mod test_shrine_redistribution {
         shrine.melt(trove1_owner, common::TROVE_2, Zero::zero());
         assert(shrine.get_trove_redistribution_id(common::TROVE_2) == expected_redistribution_id, 'wrong id');
 
-        shrine_utils::assert_shrine_invariants(shrine, shrine_utils::two_yang_addrs(), 3);
+        shrine_utils::assert_shrine_invariants(shrine, common::TWO_YANG_ADDRS.span(), 3);
     }
 
     // This test asserts that the sum of troves' debt after pulling redistributed debt does not
@@ -889,7 +889,7 @@ mod test_shrine_redistribution {
     fn test_multi_troves_system_debt_not_exceeded() {
         let shrine: IShrineDispatcher = redistribution_setup(Option::None);
 
-        let yangs: Span<ContractAddress> = shrine_utils::two_yang_addrs();
+        let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS.span();
         let yang1_addr = *yangs.at(0);
         let yang2_addr = *yangs.at(1);
 
@@ -927,7 +927,7 @@ mod test_shrine_redistribution {
         let trove1_owner = common::TROVE1_OWNER_ADDR;
         let redistributed_trove: u64 = common::TROVE_1;
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang_to_delist: ContractAddress = *yangs[0];
         let yang_amt_deposited: Wad = shrine.get_deposit(yang_to_delist, redistributed_trove);
         let before_protocol_owned_delisted_yang_amt: Wad = shrine.get_protocol_owned_yang_amt(yang_to_delist);
@@ -967,7 +967,7 @@ mod test_shrine_redistribution {
     fn test_shrine_redistribution_delisted_yang_only() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang_to_delist: ContractAddress = *yangs[0];
 
         let trove1_owner = common::TROVE1_OWNER_ADDR;
@@ -1028,7 +1028,7 @@ mod test_shrine_redistribution {
     fn test_reduction_of_protocol_owned_troves_debt() {
         let shrine_class = shrine_utils::declare_shrine();
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr = *yangs.at(0);
         let yang2_addr = *yangs.at(1);
         let yang3_addr = *yangs.at(2);

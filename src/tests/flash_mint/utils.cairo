@@ -36,7 +36,7 @@ pub mod flash_mint_utils {
         shrine_utils::advance_prices_and_set_multiplier(
             shrine,
             3,
-            shrine_utils::three_yang_addrs(),
+            common::THREE_YANG_ADDRS.span(),
             array![(1000 * WAD_ONE).into(), (10000 * WAD_ONE).into(), (500 * WAD_ONE).into()].span(),
         );
 

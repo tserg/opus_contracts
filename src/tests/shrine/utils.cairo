@@ -66,25 +66,6 @@ pub mod shrine_utils {
     // Test setup helpers
     //
 
-    pub fn two_yang_addrs() -> Span<ContractAddress> {
-        array![common::YANG1_ADDR, common::YANG2_ADDR].span()
-    }
-
-    pub fn three_yang_addrs() -> Span<ContractAddress> {
-        array![common::YANG1_ADDR, common::YANG2_ADDR, common::YANG3_ADDR].span()
-    }
-
-    // Note that iteration of yangs (e.g. in redistribution) start from the latest yang ID
-    // and terminates at yang ID 0. This affects which yang receives any rounding of
-    // debt that falls below the rounding threshold.
-    pub fn two_yang_addrs_reversed() -> Span<ContractAddress> {
-        array![common::YANG2_ADDR, common::YANG1_ADDR].span()
-    }
-
-    pub fn three_yang_addrs_reversed() -> Span<ContractAddress> {
-        array![common::YANG3_ADDR, common::YANG2_ADDR, common::YANG1_ADDR].span()
-    }
-
     pub fn three_yang_start_prices() -> Span<Wad> {
         array![common::YANG1_START_PRICE.into(), common::YANG2_START_PRICE.into(), common::YANG3_START_PRICE.into()]
             .span()

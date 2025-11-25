@@ -99,7 +99,7 @@ mod test_shrine {
 
         let expected_era: u64 = 1;
 
-        let mut yang_addrs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let mut yang_addrs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let mut start_prices: Span<Wad> = shrine_utils::three_yang_start_prices();
         let mut thresholds: Span<Ray> = array![
             common::YANG1_THRESHOLD.into(), common::YANG2_THRESHOLD.into(), common::YANG3_THRESHOLD.into(),
@@ -178,7 +178,7 @@ mod test_shrine {
 
         let mut spy = spy_events();
 
-        let yang_addrs = shrine_utils::three_yang_addrs();
+        let yang_addrs = common::THREE_YANG_ADDRS.span();
         let yang_start_prices = shrine_utils::three_yang_start_prices();
         let yang_feeds = shrine_utils::advance_prices_and_set_multiplier(
             shrine, shrine_utils::FEED_LEN, yang_addrs, yang_start_prices,
@@ -449,7 +449,7 @@ mod test_shrine {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         shrine
             .update_rates(
                 yangs,
@@ -482,7 +482,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         shrine
             .update_rates(
-                shrine_utils::three_yang_addrs(),
+                common::THREE_YANG_ADDRS.span(),
                 array![
                     shrine_contract::USE_PREV_ERA_BASE_RATE.into(),
                     shrine_contract::USE_PREV_ERA_BASE_RATE.into(),
@@ -499,7 +499,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine
             .update_rates(
-                shrine_utils::three_yang_addrs(),
+                common::THREE_YANG_ADDRS.span(),
                 array![
                     shrine_contract::USE_PREV_ERA_BASE_RATE.into(),
                     shrine_contract::USE_PREV_ERA_BASE_RATE.into(),
@@ -516,7 +516,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine
             .update_rates(
-                shrine_utils::three_yang_addrs(),
+                common::THREE_YANG_ADDRS.span(),
                 array![shrine_contract::USE_PREV_ERA_BASE_RATE.into(), shrine_contract::USE_PREV_ERA_BASE_RATE.into()]
                     .span(),
             );
@@ -529,7 +529,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine
             .update_rates(
-                shrine_utils::two_yang_addrs_reversed(),
+                common::TWO_YANG_ADDRS_REVERSED.span(),
                 array![shrine_contract::USE_PREV_ERA_BASE_RATE.into(), shrine_contract::USE_PREV_ERA_BASE_RATE.into()]
                     .span(),
             );
@@ -681,7 +681,7 @@ mod test_shrine {
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
         shrine_utils::trove1_forge(shrine, forge_amt);
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let mut expected_after_yang_total_amts: Array<Wad> = ArrayTrait::new();
         for yang in yangs {
             expected_after_yang_total_amts
@@ -804,7 +804,7 @@ mod test_shrine {
         shrine_utils::trove1_deposit(shrine, deposit_amt);
 
         let trove_id = common::TROVE_1;
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang = *yangs.at(0);
 
         assert(shrine.get_yang_total(yang) == shrine_utils::TROVE1_YANG1_DEPOSIT.into(), 'incorrect yang total');
@@ -860,7 +860,7 @@ mod test_shrine {
         shrine_utils::trove1_withdraw(shrine, withdraw_amt);
 
         let trove_id: u64 = common::TROVE_1;
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr = *yangs.at(0);
         let remaining_amt: Wad = shrine_utils::TROVE1_YANG1_DEPOSIT.into() - withdraw_amt;
         assert(shrine.get_yang_total(yang1_addr) == remaining_amt, 'incorrect yang total');
@@ -999,7 +999,7 @@ mod test_shrine {
         let mut spy = spy_events();
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr: ContractAddress = *yangs.at(0);
 
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
@@ -1240,7 +1240,7 @@ mod test_shrine {
         let deposit_amt: Wad = shrine_utils::TROVE1_YANG1_DEPOSIT.into();
         shrine_utils::trove1_deposit(shrine, deposit_amt);
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr: ContractAddress = *yangs.at(0);
 
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
@@ -1867,7 +1867,7 @@ mod test_shrine {
         let yang2_price: Wad = 625000000000000000000_u128.into(); // 625 (Wad)
         let yang_prices: Span<Wad> = array![yang1_price, yang2_price].span();
 
-        let mut yangs: Span<ContractAddress> = shrine_utils::two_yang_addrs();
+        let mut yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS.span();
         let mut yang_prices_copy = yang_prices;
 
         start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
@@ -1913,7 +1913,7 @@ mod test_shrine {
     fn test_get_shrine_health() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
-        let mut yangs: Span<ContractAddress> = shrine_utils::two_yang_addrs();
+        let mut yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS.span();
         let yang_amts: Span<Wad> = array![
             shrine_utils::TROVE1_YANG1_DEPOSIT.into(), shrine_utils::TROVE1_YANG2_DEPOSIT.into(),
         ]
@@ -2337,7 +2337,7 @@ mod test_shrine {
             );
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BeforeRecoveryMode,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BeforeRecoveryMode,
         );
 
         assert(!shrine.is_recovery_mode(), 'should not be recovery mode');
@@ -2365,7 +2365,7 @@ mod test_shrine {
             );
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BeforeRecoveryMode,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BeforeRecoveryMode,
         );
 
         assert(!shrine.is_recovery_mode(), 'should not be recovery mode');
@@ -2392,7 +2392,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (5000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferLowerBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2421,7 +2421,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (5500 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferUpperBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferUpperBound,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2450,7 +2450,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (5500 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferUpperBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferUpperBound,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2486,7 +2486,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (6000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferLowerBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2528,7 +2528,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (6000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferLowerBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2568,7 +2568,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (6000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferUpperBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferUpperBound,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2607,7 +2607,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (5000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::ExceedsBuffer,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2640,7 +2640,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (5000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::ExceedsBuffer,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2667,7 +2667,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (5500 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::ExceedsBuffer,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2702,7 +2702,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (6000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::ExceedsBuffer,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2744,7 +2744,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (6000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::ExceedsBuffer,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2785,7 +2785,7 @@ mod test_shrine {
         shrine.forge(common::TROVE1_OWNER_ADDR, common::TROVE_2, (6000 * WAD_ONE).into(), Zero::zero());
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::ExceedsBuffer,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
         assert(shrine.is_recovery_mode(), 'should be recovery mode');
@@ -2837,7 +2837,7 @@ mod test_shrine {
 
         let threshold_error_margin: Ray = (RAY_PERCENT / 10).into(); // 0.1%
 
-        let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
+        let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
 
         for trove_ltv in trove_ltv_cases {
             let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::Some(shrine_class));
