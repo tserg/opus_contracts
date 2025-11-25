@@ -203,7 +203,7 @@ pub mod shrine_utils {
     #[inline(always)]
     pub fn shrine_deploy_with_dummy_yangs_and_feed(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
         let shrine: IShrineDispatcher = shrine_deploy_with_dummy_yangs(shrine_class);
-        advance_prices_and_set_multiplier(shrine, FEED_LEN, three_yang_addrs(), three_yang_start_prices());
+        advance_prices_and_set_multiplier(shrine, FEED_LEN, common::THREE_YANG_ADDRS.span(), three_yang_start_prices());
         shrine
     }
 
@@ -572,7 +572,7 @@ pub mod shrine_utils {
     // Asserts that the total troves debt is less than the sum of all troves' debt,
     // including all unpulled redistributions.
     pub fn assert_total_troves_debt_invariant(
-        shrine: IShrineDispatcher, mut yangs: Span<ContractAddress>, troves_count: u64,
+        shrine: IShrineDispatcher, troves_count: u64,
     ) {
         let troves_loop_end: u64 = troves_count + 1;
 
@@ -606,6 +606,6 @@ pub mod shrine_utils {
 
     pub fn assert_shrine_invariants(shrine: IShrineDispatcher, yangs: Span<ContractAddress>, troves_count: u64) {
         assert_total_yang_invariant(shrine, yangs, troves_count);
-        assert_total_troves_debt_invariant(shrine, yangs, troves_count);
+        assert_total_troves_debt_invariant(shrine, troves_count);
     }
 }
