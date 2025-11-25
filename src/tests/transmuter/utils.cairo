@@ -65,20 +65,20 @@ pub mod transmuter_utils {
 
     // mock stable with 18 decimals
     pub fn wad_usd_stable_deploy(token_class: Option<ContractClass>) -> IERC20Dispatcher {
-        IERC20Dispatcher {
-            contract_address: common::deploy_token(
+        common::erc20(
+            common::deploy_token(
                 'Mock USD #1', 'mUSD1', 18, MOCK_WAD_USD_TOTAL.into(), common::NON_ZERO_ADDR, token_class,
             ),
-        }
+        )
     }
 
     // mock stable with 6 decimals
     pub fn nonwad_usd_stable_deploy(token_class: Option<ContractClass>) -> IERC20Dispatcher {
-        IERC20Dispatcher {
-            contract_address: common::deploy_token(
+        common::erc20(
+            common::deploy_token(
                 'Mock USD #2', 'mUSD2', 6, MOCK_NONWAD_USD_TOTAL.into(), common::NON_ZERO_ADDR, token_class,
             ),
-        }
+        )
     }
 
     pub fn setup_shrine_with_transmuter(
@@ -97,7 +97,7 @@ pub mod transmuter_utils {
         // approve transmuter to deal with user's tokens
         let asset: ContractAddress = transmuter.get_asset();
         cheat_caller_address(asset, user, CheatSpan::TargetCalls(1));
-        IERC20Dispatcher { contract_address: asset }.approve(transmuter.contract_address, Bounded::MAX);
+        common::erc20(asset).approve(transmuter.contract_address, Bounded::MAX);
     }
 
     pub fn shrine_with_wad_usd_stable_transmuter(

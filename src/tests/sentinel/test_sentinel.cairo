@@ -3,7 +3,7 @@ mod test_sentinel {
     use core::num::traits::Zero;
     use opus::core::roles::sentinel_roles;
     use opus::core::sentinel::sentinel as sentinel_contract;
-    use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IGate::{IGateDispatcher, IGateDispatcherTrait};
     use opus::interfaces::ISentinel::ISentinelDispatcherTrait;
     use opus::interfaces::IShrine::IShrineDispatcherTrait;
@@ -35,7 +35,7 @@ mod test_sentinel {
         let eth = *yangs.at(0);
         let wbtc = *yangs.at(1);
 
-        let wbtc_erc20 = IERC20Dispatcher { contract_address: wbtc };
+        let wbtc_erc20 = common::erc20(wbtc);
 
         assert(sentinel.get_gate_address(*yangs.at(0)) == eth_gate.contract_address, 'Wrong gate address #1');
         assert(sentinel.get_gate_address(*yangs.at(1)) == wbtc_gate.contract_address, 'Wrong gate address #2');
@@ -298,7 +298,7 @@ mod test_sentinel {
         let eth = *yangs[0];
         let eth_gate = *gates[0];
 
-        let eth_erc20 = IERC20Dispatcher { contract_address: eth };
+        let eth_erc20 = common::erc20(eth);
         let user: ContractAddress = common::ETH_HOARDER;
         let trove_id: u64 = common::TROVE_1;
 
@@ -345,7 +345,7 @@ mod test_sentinel {
         } = sentinel_utils::deploy_sentinel_with_gates(Option::None);
 
         let wbtc: ContractAddress = *yangs[1];
-        let wbtc_erc20 = IERC20Dispatcher { contract_address: wbtc };
+        let wbtc_erc20 = common::erc20(wbtc);
         let wbtc_gate: IGateDispatcher = *gates[1];
         let user: ContractAddress = common::WBTC_HOARDER;
         let trove_id: u64 = common::TROVE_1;
@@ -390,7 +390,7 @@ mod test_sentinel {
         let SentinelTestConfig { sentinel, yangs, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
         let eth = *yangs[0];
 
-        let eth_erc20 = IERC20Dispatcher { contract_address: eth };
+        let eth_erc20 = common::erc20(eth);
         let user: ContractAddress = common::ETH_HOARDER;
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();

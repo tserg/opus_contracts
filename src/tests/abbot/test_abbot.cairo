@@ -50,7 +50,7 @@ mod test_abbot {
         // Check yangs
         let mut deposited_amts_copy = deposited_amts;
         for yang in yangs {
-            let decimals: u8 = IERC20Dispatcher { contract_address: *yang }.decimals();
+            let decimals: u8 = common::erc20(*yang).decimals();
             let asset_amt: u128 = *deposited_amts_copy.pop_front().unwrap();
             let expected_initial_yang: Wad = fixed_point_to_wad(sentinel_utils::get_initial_asset_amt(*yang), decimals);
             let expected_deposited_yang: Wad = fixed_point_to_wad(asset_amt, decimals);
@@ -100,7 +100,7 @@ mod test_abbot {
         // Check yangs
         let mut yangs_total = yangs_total.span();
         for yang in yangs {
-            let decimals: u8 = IERC20Dispatcher { contract_address: *yang }.decimals();
+            let decimals: u8 = common::erc20(*yang).decimals();
             let asset_amt: u128 = *second_deposit_amts.pop_front().unwrap();
             let before_yang_total: Wad = *yangs_total.pop_front().unwrap();
             let expected_deposited_yang: Wad = fixed_point_to_wad(asset_amt, decimals);
@@ -283,7 +283,7 @@ mod test_abbot {
         let mut deposited_amts_copy = yang_asset_amts;
         for yang in yangs {
             let before_trove_yang: Wad = shrine.get_deposit(*yang, trove_id);
-            let decimals: u8 = IERC20Dispatcher { contract_address: *yang }.decimals();
+            let decimals: u8 = common::erc20(*yang).decimals();
             let deposit_amt: u128 = *deposited_amts_copy.pop_front().unwrap();
             let expected_deposited_yang: Wad = fixed_point_to_wad(deposit_amt, decimals);
 
@@ -388,7 +388,7 @@ mod test_abbot {
 
         let asset_addr: ContractAddress = *yangs.at(0);
         let gate_addr: ContractAddress = *gates.at(0).contract_address;
-        let gate_bal = IERC20Dispatcher { contract_address: asset_addr }.balance_of(gate_addr);
+        let gate_bal = common::erc20(asset_addr).balance_of(gate_addr);
 
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         let new_asset_max: u128 = gate_bal.try_into().unwrap();
@@ -439,12 +439,12 @@ mod test_abbot {
 
         let eth: ContractAddress = *yangs[0];
         let eth_gate: IGateDispatcher = *gates[0];
-        let eth_erc20: IERC20Dispatcher = IERC20Dispatcher { contract_address: eth };
+        let eth_erc20: IERC20Dispatcher = common::erc20(eth);
         let eth_gate_balance: u128 = eth_erc20.balance_of(eth_gate.contract_address).try_into().unwrap();
 
         let wbtc: ContractAddress = *yangs[1];
         let wbtc_gate: IGateDispatcher = *gates[1];
-        let wbtc_erc20: IERC20Dispatcher = IERC20Dispatcher { contract_address: wbtc };
+        let wbtc_erc20: IERC20Dispatcher = common::erc20(wbtc);
         let wbtc_gate_balance: u128 = wbtc_erc20.balance_of(wbtc_gate.contract_address).try_into().unwrap();
 
         // Open a trove with maximum asset amount deposited for ETH and WBTC

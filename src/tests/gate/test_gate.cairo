@@ -3,7 +3,7 @@
 
 mod test_gate {
     use core::num::traits::Zero;
-    use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IGate::{IGateDispatcher, IGateDispatcherTrait};
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::tests::common;
@@ -60,7 +60,7 @@ mod test_gate {
         let gate = IGateDispatcher { contract_address: gate };
         let enter_yang_amt: Wad = gate.enter(user, asset_amt);
 
-        let eth = IERC20Dispatcher { contract_address: eth };
+        let eth = common::erc20(eth);
 
         // check exchange rate and gate asset balance
         assert(enter_yang_amt.into() == asset_amt, 'enter amount');
@@ -83,7 +83,7 @@ mod test_gate {
         let gate = IGateDispatcher { contract_address: gate };
         let enter_yang_amt: Wad = gate.enter(user, asset_amt);
 
-        let wbtc = IERC20Dispatcher { contract_address: wbtc };
+        let wbtc = common::erc20(wbtc);
 
         // check exchange rate and gate asset balance
         assert(enter_yang_amt.into() == asset_amt * (WAD_SCALE / common::WBTC_SCALE), 'enter amount');
@@ -100,7 +100,7 @@ mod test_gate {
         let user = common::ETH_HOARDER;
         gate_utils::approve_gate_for_token(gate, eth, user);
 
-        let eth = IERC20Dispatcher { contract_address: eth };
+        let eth = common::erc20(eth);
 
         let asset_amt = 10_u128 * WAD_SCALE;
         let exit_yang_amt: Wad = (2_u128 * WAD_SCALE).into();
@@ -138,7 +138,7 @@ mod test_gate {
         gate_utils::add_eth_as_yang(shrine, eth);
 
         let shrine = IShrineDispatcher { contract_address: shrine };
-        let eth = IERC20Dispatcher { contract_address: eth };
+        let eth = common::erc20(eth);
         let gate = IGateDispatcher { contract_address: gate };
 
         let user1: ContractAddress = common::TROVE1_OWNER_ADDR;
@@ -299,7 +299,7 @@ mod test_gate {
         let (shrine, eth, gate) = gate_utils::eth_gate_deploy(Option::None);
         gate_utils::add_eth_as_yang(shrine, eth);
 
-        let eth = IERC20Dispatcher { contract_address: eth };
+        let eth = common::erc20(eth);
         let gate = IGateDispatcher { contract_address: gate };
 
         let user: ContractAddress = common::TROVE1_OWNER_ADDR;
@@ -323,7 +323,7 @@ mod test_gate {
         gate_utils::add_eth_as_yang(shrine, eth);
 
         let shrine = IShrineDispatcher { contract_address: shrine };
-        let eth = IERC20Dispatcher { contract_address: eth };
+        let eth = common::erc20(eth);
         let gate = IGateDispatcher { contract_address: gate };
 
         let user = common::TROVE1_OWNER_ADDR;

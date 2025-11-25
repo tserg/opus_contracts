@@ -27,7 +27,7 @@ mod test_shrine {
         let shrine_addr = shrine_utils::shrine_deploy(Option::None);
 
         // Check ERC-20 getters
-        let yin = shrine_utils::yin(shrine_addr);
+        let yin = common::erc20(shrine_addr);
         assert(yin.name() == shrine_utils::YIN_NAME, 'wrong name');
         assert(yin.symbol() == shrine_utils::YIN_SYMBOL, 'wrong symbol');
         assert(yin.decimals() == WAD_DECIMALS, 'wrong decimals');
@@ -1023,7 +1023,7 @@ mod test_shrine {
         let after_max_forge_amt: Wad = shrine.get_max_forge(trove_id);
         assert(after_max_forge_amt == before_max_forge_amt - forge_amt, 'incorrect max forge amt');
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let trove1_owner_addr: ContractAddress = common::TROVE1_OWNER_ADDR;
         assert(yin.balance_of(trove1_owner_addr) == forge_amt.into(), 'incorrect ERC-20 balance');
         assert(yin.total_supply() == forge_amt.into(), 'incorrect ERC-20 balance');
@@ -1246,7 +1246,7 @@ mod test_shrine {
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
         shrine_utils::trove1_forge(shrine, forge_amt);
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let trove_id: u64 = common::TROVE_1;
         let trove1_owner_addr = common::TROVE1_OWNER_ADDR;
 
@@ -1336,7 +1336,7 @@ mod test_shrine {
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
         cheat_caller_address(shrine.contract_address, trove1_owner, CheatSpan::TargetCalls(2));
@@ -1369,7 +1369,7 @@ mod test_shrine {
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
         cheat_caller_address(shrine.contract_address, trove1_owner, CheatSpan::TargetCalls(1));
@@ -1382,7 +1382,7 @@ mod test_shrine {
     fn test_yin_transfer_fail_zero_bal() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
         cheat_caller_address(shrine.contract_address, trove1_owner, CheatSpan::TargetCalls(1));
@@ -1398,7 +1398,7 @@ mod test_shrine {
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
 
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
@@ -1443,7 +1443,7 @@ mod test_shrine {
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let camel_yin = IERC20CamelOnlyDispatcher { contract_address: yin.contract_address };
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
 
@@ -1488,7 +1488,7 @@ mod test_shrine {
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
         cheat_caller_address(shrine.contract_address, yin_user, CheatSpan::TargetCalls(1));
         yin.transfer_from(common::TROVE1_OWNER_ADDR, yin_user, 1_u256);
@@ -1504,7 +1504,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.forge(trove1_owner, common::TROVE_1, shrine_utils::TROVE1_FORGE_AMT.into(), Zero::zero());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
 
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
@@ -1526,7 +1526,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.forge(trove1_owner, common::TROVE_1, shrine_utils::TROVE1_FORGE_AMT.into(), Zero::zero());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
 
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
@@ -1547,7 +1547,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.forge(trove1_owner, common::TROVE_1, shrine_utils::TROVE1_FORGE_AMT.into(), Zero::zero());
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
 
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
@@ -1567,7 +1567,7 @@ mod test_shrine {
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
         shrine_utils::trove1_forge(shrine, forge_amt);
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let yin_user: ContractAddress = common::NON_ZERO_ADDR;
 
         let transfer_amt: Wad = (forge_amt.into() / 2_u128).into();
@@ -1726,7 +1726,7 @@ mod test_shrine {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         let trove1_owner = common::TROVE1_OWNER_ADDR;
 
         let before_total_supply: u256 = yin.total_supply();

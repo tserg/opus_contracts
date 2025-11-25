@@ -4,13 +4,12 @@ mod test_caretaker {
     use opus::core::caretaker::caretaker as caretaker_contract;
     use opus::core::roles::{caretaker_roles, shrine_roles};
     use opus::interfaces::ICaretaker::ICaretakerDispatcherTrait;
-    use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IShrine::IShrineDispatcherTrait;
     use opus::tests::abbot::utils::abbot_utils;
     use opus::tests::caretaker::utils::caretaker_utils;
     use opus::tests::caretaker::utils::caretaker_utils::CaretakerTestConfig;
     use opus::tests::common;
-    use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, Health};
     use opus::utils::math::fixed_point_to_wad;
     use snforge_std::{CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events};
@@ -75,8 +74,8 @@ mod test_caretaker {
         let shrine_health: Health = shrine.get_shrine_health();
         let backing: Ray = wadray::rdiv_ww(total_yin, shrine_health.value);
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let g0_before_balance: Wad = y0.balance_of(*gates.at(0).contract_address).try_into().unwrap();
         let g1_before_balance: Wad = y1.balance_of(*gates.at(1).contract_address).try_into().unwrap();
@@ -159,8 +158,8 @@ mod test_caretaker {
         let shrine_health: Health = shrine.get_shrine_health();
         let backing: Ray = wadray::rdiv_ww(total_yin, shrine_health.value);
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let user1_yang0_before_balance: u256 = y0.balance_of(user1);
         let user1_yang1_before_balance: u256 = y1.balance_of(user1);
@@ -280,10 +279,10 @@ mod test_caretaker {
         let scammer = common::BAD_GUY;
         let scam_amt: u256 = (4000 * WAD_ONE).into();
         cheat_caller_address(shrine.contract_address, user1, CheatSpan::TargetCalls(1));
-        shrine_utils::yin(shrine.contract_address).transfer(scammer, scam_amt);
+        common::erc20(shrine.contract_address).transfer(scammer, scam_amt);
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let user1_yang0_before_balance: u256 = y0.balance_of(user1);
         let user1_yang1_before_balance: u256 = y1.balance_of(user1);
@@ -408,8 +407,8 @@ mod test_caretaker {
             abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
         );
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let gate0_before_balance: Wad = y0.balance_of(*gates.at(0).contract_address).try_into().unwrap();
         let gate1_before_balance: Wad = y1.balance_of(*gates.at(1).contract_address).try_into().unwrap();
@@ -520,7 +519,7 @@ mod test_caretaker {
         // order of operations in `shrine.melt_helper`.
         let user2 = common::TROVE2_OWNER_ADDR;
         let transfer_amt: u256 = (4000 * WAD_ONE).into();
-        shrine_utils::yin(shrine.contract_address).transfer(user2, transfer_amt);
+        common::erc20(shrine.contract_address).transfer(user2, transfer_amt);
 
         // Activating global settlement mode
         cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));

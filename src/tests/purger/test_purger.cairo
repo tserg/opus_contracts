@@ -8,7 +8,7 @@ mod test_purger {
     use opus::core::shrine::shrine as shrine_contract;
     use opus::interfaces::IAbbot::IAbbotDispatcherTrait;
     use opus::interfaces::IAbsorber::IAbsorberDispatcherTrait;
-    use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IGate::{IGateDispatcher, IGateDispatcherTrait};
     use opus::interfaces::IPurger::IPurgerDispatcherTrait;
     use opus::interfaces::IShrine::IShrineDispatcherTrait;
@@ -1613,8 +1613,7 @@ mod test_purger {
                 let remainder_trove_yang: Wad = shrine.get_deposit(*yangs_copy.pop_front().unwrap(), target_trove);
                 let remainder_asset_amt: u128 = gate.convert_to_assets(remainder_trove_yang);
 
-                let error_margin: u128 = 10_u128
-                    .pow((IERC20Dispatcher { contract_address: gate.get_asset() }.decimals() / 2).into());
+                let error_margin: u128 = 10_u128.pow((common::erc20(gate.get_asset()).decimals() / 2).into());
                 common::assert_equalish(
                     remainder_asset_amt, *expected_asset_amt, error_margin, 'wrong remainder yang asset',
                 );
@@ -2331,7 +2330,7 @@ mod test_purger {
         assert(target_trove_after_health.debt < target_trove_start_health.debt, 'trove not correctly liquidated');
 
         assert(
-            shrine_utils::yin(shrine.contract_address).balance_of(searcher).try_into().unwrap() < common::LARGE_FORGE,
+            common::erc20(shrine.contract_address).balance_of(searcher).try_into().unwrap() < common::LARGE_FORGE,
             'searcher yin not used',
         );
 
@@ -2435,7 +2434,7 @@ mod test_purger {
         // Have the searcher provide half of his yin to the absorber
         let searcher = purger_utils::SEARCHER;
         let searcher_yin: Wad = (common::LARGE_FORGE / 2).into();
-        let yin_erc20 = shrine_utils::yin(shrine.contract_address);
+        let yin_erc20 = common::erc20(shrine.contract_address);
 
         cheat_caller_address(shrine.contract_address, searcher, CheatSpan::TargetCalls(1));
         yin_erc20.approve(absorber.contract_address, searcher_yin.into());
@@ -2571,7 +2570,7 @@ mod test_purger {
 
                 // Approve absorber for maximum yin
                 cheat_caller_address(shrine.contract_address, searcher, CheatSpan::TargetCalls(1));
-                let yin_erc20 = shrine_utils::yin(shrine.contract_address);
+                let yin_erc20 = common::erc20(shrine.contract_address);
                 yin_erc20.approve(absorber.contract_address, Bounded::MAX);
 
                 // Calculating the `trove_debt` necessary to achieve
@@ -2650,11 +2649,11 @@ mod test_purger {
                     .preview_absorb(target_trove)
                     .expect('Should be absorbable');
 
-                let absorber_eth_bal_before_absorb: u128 = IERC20Dispatcher { contract_address: *yangs[0] }
+                let absorber_eth_bal_before_absorb: u128 = common::erc20(*yangs[0])
                     .balance_of(absorber.contract_address)
                     .try_into()
                     .unwrap();
-                let absorber_wbtc_bal_before_absorb: u128 = IERC20Dispatcher { contract_address: *yangs[1] }
+                let absorber_wbtc_bal_before_absorb: u128 = common::erc20(*yangs[1])
                     .balance_of(absorber.contract_address)
                     .try_into()
                     .unwrap();

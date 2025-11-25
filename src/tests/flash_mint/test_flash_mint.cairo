@@ -80,7 +80,7 @@ mod test_flash_mint {
 
         let mut spy = spy_events();
 
-        let yin = shrine_utils::yin(shrine_addr);
+        let yin = common::erc20(shrine_addr);
 
         let mut calldata: Span<felt252> = flash_mint_utils::build_calldata(true, flash_borrower_contract::VALID_USAGE);
 

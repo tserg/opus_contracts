@@ -3,15 +3,12 @@ pub mod absorber_utils {
     use opus::core::roles::absorber_roles;
     use opus::interfaces::IAbbot::IAbbotDispatcher;
     use opus::interfaces::IAbsorber::{IAbsorberDispatcher, IAbsorberDispatcherTrait};
-    use opus::interfaces::IERC20::{
-        IERC20Dispatcher, IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait,
-    };
+    use opus::interfaces::IERC20::{IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait};
     use opus::interfaces::IGate::IGateDispatcher;
     use opus::interfaces::ISentinel::{ISentinelDispatcher, ISentinelDispatcherTrait};
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::tests::abbot::utils::abbot_utils;
     use opus::tests::common;
-    use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, DistributionInfo};
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
@@ -259,7 +256,7 @@ pub mod absorber_utils {
             abbot, provider, yangs, yang_asset_amts, gates, amt + WAD_SCALE.into(),
         );
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         cheat_caller_address(shrine.contract_address, provider, CheatSpan::TargetCalls(1));
         yin.approve(absorber.contract_address, Bounded::MAX);
 
@@ -347,7 +344,7 @@ pub mod absorber_utils {
         let mut balances: Array<u128> = ArrayTrait::new();
 
         for yang in yangs {
-            let yang_erc20 = IERC20Dispatcher { contract_address: *yang };
+            let yang_erc20 = common::erc20(*yang);
             let balance: u128 = yang_erc20.balance_of(sentinel.get_gate_address(*yang)).try_into().unwrap();
             balances.append(balance);
         }
@@ -392,10 +389,7 @@ pub mod absorber_utils {
             // Check provider has received correct amount of reward tokens
             // Convert to Wad for fixed point operations
             let absorbed_amt: u128 = *absorbed_amts.pop_front().unwrap();
-            let after_provider_bal: u128 = IERC20Dispatcher { contract_address: *asset.address }
-                .balance_of(provider)
-                .try_into()
-                .unwrap();
+            let after_provider_bal: u128 = common::erc20(*asset.address).balance_of(provider).try_into().unwrap();
             let mut before_bal_arr: Span<u128> = *before_balances.pop_front().unwrap();
             let before_bal: u128 = *before_bal_arr.pop_front().unwrap();
             let expected_bal: u128 = before_bal + absorbed_amt;
@@ -444,10 +438,7 @@ pub mod absorber_utils {
             // Convert to Wad for fixed point operations
             let reward_amt: Wad = (*reward_amts_per_blessing.pop_front().unwrap()).into();
             let blessed_amt: Wad = wadray::rmul_wr(reward_amt, blessings_multiplier);
-            let after_provider_bal: u128 = IERC20Dispatcher { contract_address: *asset.address }
-                .balance_of(provider)
-                .try_into()
-                .unwrap();
+            let after_provider_bal: u128 = common::erc20(*asset.address).balance_of(provider).try_into().unwrap();
             let mut before_bal_arr: Span<u128> = *before_balances.pop_front().unwrap();
             let expected_bal: u128 = *before_bal_arr.pop_front().unwrap() + blessed_amt.into();
 
@@ -565,7 +556,7 @@ pub mod absorber_utils {
             // Check asset amt per share is correct
             assert(actual_asset_amt_per_share == expected_asset_amt_per_share, 'wrong absorbed amount per share');
 
-            let yang_erc20 = IERC20Dispatcher { contract_address: *yang };
+            let yang_erc20 = common::erc20(*yang);
             let gate: ContractAddress = sentinel.get_gate_address(*yang);
             let updated_gate_balance: u128 = yang_erc20.balance_of(gate).try_into().unwrap();
             let actual_distribution_error: u128 = updated_gate_balance - *gate_balances.pop_front().unwrap();

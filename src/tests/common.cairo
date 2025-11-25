@@ -173,6 +173,14 @@ pub impl RewardPartialEq of PartialEq<Reward> {
 }
 
 //
+// Convenience wrappers
+//
+
+pub fn erc20(token: ContractAddress) -> IERC20Dispatcher {
+    IERC20Dispatcher { contract_address: token }
+}
+
+//
 // Helpers - Test setup
 //
 
@@ -305,9 +313,7 @@ pub fn deploy_vault(
 
     // Mock initial conversion rate of 1 : 1
     IMockERC4626Dispatcher { contract_address: vault_addr }
-        .set_convert_to_assets_per_wad_scale(
-            10_u128.pow(IERC20Dispatcher { contract_address: asset }.decimals().into()).into(),
-        );
+        .set_convert_to_assets_per_wad_scale(10_u128.pow(erc20(asset).decimals().into()).into());
 
     vault_addr
 }
@@ -377,11 +383,9 @@ pub fn get_token_balances(tokens: Span<ContractAddress>, addresses: Span<Contrac
     let mut balances: Array<Span<u128>> = ArrayTrait::new();
 
     for token in tokens {
-        let token: IERC20Dispatcher = IERC20Dispatcher { contract_address: *token };
-
         let mut yang_balances: Array<u128> = ArrayTrait::new();
         for address in addresses {
-            let bal: u128 = token.balance_of(*address).try_into().unwrap();
+            let bal: u128 = erc20(*token).balance_of(*address).try_into().unwrap();
             yang_balances.append(bal);
         }
         balances.append(yang_balances.span());
@@ -394,7 +398,7 @@ pub fn get_token_balances(tokens: Span<ContractAddress>, addresses: Span<Contrac
 // converts it to yang units.
 #[inline(always)]
 pub fn get_erc20_bal_as_yang(gate: IGateDispatcher, asset: ContractAddress, owner: ContractAddress) -> Wad {
-    gate.convert_to_yang(IERC20Dispatcher { contract_address: asset }.balance_of(owner).try_into().unwrap())
+    gate.convert_to_yang(erc20(asset).balance_of(owner).try_into().unwrap())
 }
 
 //

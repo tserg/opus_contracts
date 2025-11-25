@@ -1,8 +1,6 @@
 pub mod gate_utils {
     use core::num::traits::{Bounded, Zero};
-    use opus::interfaces::IERC20::{
-        IERC20Dispatcher, IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait,
-    };
+    use opus::interfaces::IERC20::{IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait};
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
@@ -75,7 +73,7 @@ pub mod gate_utils {
     pub fn approve_gate_for_token(gate: ContractAddress, token: ContractAddress, user: ContractAddress) {
         // user no-limit approves gate to handle their share of token
         cheat_caller_address(token, user, CheatSpan::TargetCalls(1));
-        IERC20Dispatcher { contract_address: token }.approve(gate, Bounded::MAX);
+        common::erc20(token).approve(gate, Bounded::MAX);
     }
 
     pub fn rebase(gate: ContractAddress, token: ContractAddress, amount: u128) {

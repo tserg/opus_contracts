@@ -609,7 +609,7 @@ mod test_absorber {
 
         let mut spy = spy_events();
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
 
         let before_provider_info: Provision = absorber.get_provision(provider);
         let before_last_absorption_id: u32 = absorber.get_provider_last_absorption(provider);
@@ -714,7 +714,7 @@ mod test_absorber {
         common::fund_user(donor, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, donor, yangs, yang_asset_amts, gates, provided_amt);
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         cheat_caller_address(shrine.contract_address, donor, CheatSpan::TargetCalls(2));
         yin.approve(absorber.contract_address, Bounded::MAX);
         yin.transfer(provider, provider_amt.into());
@@ -1950,7 +1950,7 @@ mod test_absorber {
         common::fund_user(provider, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, provider, yangs, yang_asset_amts, gates, provided_amt);
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         cheat_caller_address(yin.contract_address, provider, CheatSpan::TargetCalls(1));
         yin.approve(absorber.contract_address, Bounded::MAX);
 

@@ -4,9 +4,7 @@ mod test_transmuter {
     use core::num::traits::{Bounded, Pow, Zero};
     use opus::core::roles::transmuter_roles;
     use opus::core::transmuter::transmuter as transmuter_contract;
-    use opus::interfaces::IERC20::{
-        IERC20Dispatcher, IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait,
-    };
+    use opus::interfaces::IERC20::{IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait};
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::interfaces::ITransmuter::{ITransmuterDispatcher, ITransmuterDispatcherTrait};
     use opus::tests::common;
@@ -399,7 +397,7 @@ mod test_transmuter {
 
         for transmuter in transmuters {
             let transmuter = *transmuter;
-            let asset = IERC20Dispatcher { contract_address: transmuter.get_asset() };
+            let asset = common::erc20(transmuter.get_asset());
 
             let mut spy = spy_events();
 
@@ -572,7 +570,7 @@ mod test_transmuter {
 
         for transmuter in transmuters {
             let transmuter = *transmuter;
-            let asset = IERC20Dispatcher { contract_address: transmuter.get_asset() };
+            let asset = common::erc20(transmuter.get_asset());
 
             // approve Transmuter to transfer user's mock USD stable
             cheat_caller_address(asset.contract_address, user, CheatSpan::TargetCalls(1));
@@ -823,7 +821,7 @@ mod test_transmuter {
                 common::TRANSMUTER_ADMIN,
                 Option::Some(token_class),
             );
-            let secondary_asset_erc20 = IERC20Dispatcher { contract_address: secondary_asset };
+            let secondary_asset_erc20 = common::erc20(secondary_asset);
             let secondary_asset_amt: u128 = 10_u128.pow((secondary_asset_decimal).into());
 
             let shrine_debt_ceiling: Wad = transmuter_utils::INITIAL_CEILING.into();

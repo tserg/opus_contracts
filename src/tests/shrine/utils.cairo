@@ -3,7 +3,6 @@ pub mod shrine_utils {
     use core::traits::DivRem;
     use opus::core::roles::shrine_roles;
     use opus::core::shrine::shrine as shrine_contract;
-    use opus::interfaces::IERC20::IERC20Dispatcher;
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::tests::common;
     use opus::types::Health;
@@ -51,11 +50,6 @@ pub mod shrine_utils {
     //
     // Convenience helpers
     //
-
-    #[inline(always)]
-    pub fn yin(shrine_addr: ContractAddress) -> IERC20Dispatcher {
-        IERC20Dispatcher { contract_address: shrine_addr }
-    }
 
     // Returns the interval ID for the given timestamp
     #[inline(always)]
@@ -118,7 +112,7 @@ pub mod shrine_utils {
         common::grant_role_for_address(shrine_addr, shrine_roles::ALL_ROLES, common::SHRINE_ADMIN);
         // Set debt ceiling
         cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
-        let shrine = shrine(shrine_addr);
+        let shrine = IShrineDispatcher { contract_address: shrine_addr };
         shrine.set_debt_ceiling(DEBT_CEILING.into());
 
         // Set minimum trove value
@@ -130,7 +124,7 @@ pub mod shrine_utils {
     #[inline(always)]
     pub fn shrine_deploy_with_dummy_yangs(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
         let shrine_addr: ContractAddress = shrine_deploy_and_setup(shrine_class);
-        let shrine = shrine(shrine_addr);
+        let shrine = IShrineDispatcher { contract_address: shrine_addr };
         cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(3));
         shrine
             .add_yang(

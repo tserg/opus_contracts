@@ -1,7 +1,7 @@
 pub mod sentinel_utils {
     use core::num::traits::{Bounded, Pow};
     use opus::core::roles::{sentinel_roles, shrine_roles};
-    use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IGate::IGateDispatcher;
     use opus::interfaces::ISentinel::{ISentinelDispatcher, ISentinelDispatcherTrait};
     use opus::interfaces::IShrine::IShrineDispatcher;
@@ -95,7 +95,7 @@ pub mod sentinel_utils {
             eth_vault, shrine_addr, sentinel.contract_address, Option::Some(gate_class),
         );
 
-        let eth_vault_erc20 = IERC20Dispatcher { contract_address: eth_vault };
+        let eth_vault_erc20 = common::erc20(eth_vault);
         let initial_deposit_amt: u128 = get_initial_asset_amt(eth_vault);
 
         // Transferring the initial deposit amounts to `ADMIN`
@@ -132,7 +132,7 @@ pub mod sentinel_utils {
             wbtc_vault, shrine_addr, sentinel.contract_address, Option::Some(gate_class),
         );
 
-        let wbtc_vault_erc20 = IERC20Dispatcher { contract_address: wbtc_vault };
+        let wbtc_vault_erc20 = common::erc20(wbtc_vault);
         let initial_deposit_amt: u128 = get_initial_asset_amt(wbtc_vault);
 
         // Transferring the initial deposit amounts to `ADMIN`
@@ -206,7 +206,7 @@ pub mod sentinel_utils {
             eth, shrine_addr, sentinel.contract_address, gate_class,
         );
 
-        let eth_erc20 = IERC20Dispatcher { contract_address: eth };
+        let eth_erc20 = common::erc20(eth);
         let initial_deposit_amt: u128 = get_initial_asset_amt(eth);
 
         // Transferring the initial deposit amounts to `ADMIN`
@@ -241,7 +241,7 @@ pub mod sentinel_utils {
             wbtc, shrine_addr, sentinel.contract_address, gate_class,
         );
 
-        let wbtc_erc20 = IERC20Dispatcher { contract_address: wbtc };
+        let wbtc_erc20 = common::erc20(wbtc);
         let initial_deposit_amt: u128 = get_initial_asset_amt(wbtc);
 
         // Transferring the initial deposit amounts to `ADMIN`
@@ -266,12 +266,12 @@ pub mod sentinel_utils {
     }
 
     pub fn approve_max(gate: IGateDispatcher, token: ContractAddress, user: ContractAddress) {
-        let token_erc20 = IERC20Dispatcher { contract_address: token };
+        let token_erc20 = common::erc20(token);
         cheat_caller_address(token, user, CheatSpan::TargetCalls(1));
         token_erc20.approve(gate.contract_address, Bounded::MAX);
     }
 
     pub fn get_initial_asset_amt(asset_addr: ContractAddress) -> u128 {
-        10_u128.pow((IERC20Dispatcher { contract_address: asset_addr }.decimals() / 2).into())
+        10_u128.pow((common::erc20(asset_addr).decimals() / 2).into())
     }
 }

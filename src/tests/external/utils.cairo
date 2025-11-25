@@ -11,7 +11,7 @@ pub fn pepe_token_addr() -> ContractAddress {
 pub mod pragma_utils {
     use core::num::traits::Pow;
     use opus::constants::{ETH_USD_PAIR_ID, PRAGMA_DECIMALS, WBTC_USD_PAIR_ID};
-    use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IOracle::{IOracleDispatcher, IOracleDispatcherTrait};
     use opus::interfaces::IPragma::{IPragmaDispatcher, IPragmaDispatcherTrait};
     use opus::mock::mock_pragma::{IMockPragmaDispatcher, IMockPragmaDispatcherTrait};
@@ -108,7 +108,7 @@ pub mod pragma_utils {
     }
 
     pub fn get_pair_id_for_yang(yang: ContractAddress) -> felt252 {
-        let erc20 = IERC20Dispatcher { contract_address: yang };
+        let erc20 = common::erc20(yang);
         let symbol: felt252 = erc20.symbol();
 
         if symbol == 'ETH' {
