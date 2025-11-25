@@ -15,7 +15,7 @@ use snforge_std::{
     start_cheat_block_timestamp_global, start_cheat_caller_address, stop_cheat_caller_address,
 };
 use starknet::{ContractAddress, get_block_timestamp};
-use wadray::{Ray, RAY_PERCENT, WAD_ONE, Wad};
+use wadray::{RAY_PERCENT, Ray, WAD_ONE, Wad};
 
 //
 // Types
@@ -101,6 +101,14 @@ pub const DUMMY_YANG_GATE_ADDR: ContractAddress = 'dummy yang token'.try_into().
 pub const YANG1_THRESHOLD: u128 = 80 * RAY_PERCENT; // 80% (Ray)
 pub const YANG1_START_PRICE: u128 = 2000 * WAD_ONE; // 2_000 (Wad)
 pub const YANG1_BASE_RATE: u128 = 2 * RAY_PERCENT; // 2% (Ray)
+
+pub const YANG2_THRESHOLD: u128 = 75 * RAY_PERCENT; // 75% (Ray)
+pub const YANG2_START_PRICE: u128 = 500 * WAD_ONE; // 500 (Wad)
+pub const YANG2_BASE_RATE: u128 = 3 * RAY_PERCENT; // 3% (Ray)
+
+pub const YANG3_THRESHOLD: u128 = 85 * RAY_PERCENT; // 85% (Ray)
+pub const YANG3_START_PRICE: u128 = 1000 * WAD_ONE; // 1_000 (Wad)
+pub const YANG3_BASE_RATE: u128 = (2 * RAY_PERCENT) + (RAY_PERCENT / 2); // 2.5% (Ray)
 
 //
 // Standard Asset Amounts

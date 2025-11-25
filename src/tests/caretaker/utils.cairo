@@ -9,10 +9,7 @@ pub mod caretaker_utils {
     use opus::tests::common;
     use opus::tests::equalizer::utils::equalizer_utils;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{
-        ContractClassTrait, DeclareResultTrait, declare,
-        start_cheat_block_timestamp_global,
-    };
+    use snforge_std::{ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global};
     use starknet::ContractAddress;
 
     #[derive(Copy, Drop)]

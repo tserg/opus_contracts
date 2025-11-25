@@ -148,9 +148,9 @@ pub mod sentinel_utils {
                 wbtc_vault,
                 // Re-use WBTC parameters
                 WBTC_ASSET_MAX,
-                shrine_utils::YANG2_THRESHOLD.into(),
-                shrine_utils::YANG2_START_PRICE.into(),
-                shrine_utils::YANG2_BASE_RATE.into(),
+                common::YANG2_THRESHOLD.into(),
+                common::YANG2_START_PRICE.into(),
+                common::YANG2_BASE_RATE.into(),
                 wbtc_vault_gate,
             );
 
@@ -256,9 +256,9 @@ pub mod sentinel_utils {
             .add_yang(
                 wbtc,
                 WBTC_ASSET_MAX,
-                shrine_utils::YANG2_THRESHOLD.into(),
-                shrine_utils::YANG2_START_PRICE.into(),
-                shrine_utils::YANG2_BASE_RATE.into(),
+                common::YANG2_THRESHOLD.into(),
+                common::YANG2_START_PRICE.into(),
+                common::YANG2_BASE_RATE.into(),
                 wbtc_gate,
             );
 

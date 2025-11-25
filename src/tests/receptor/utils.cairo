@@ -6,8 +6,7 @@ pub mod receptor_utils {
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare,
-        start_cheat_block_timestamp_global,
+        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global,
     };
     use starknet::ContractAddress;
     use wadray::{WAD_DECIMALS, WAD_ONE};

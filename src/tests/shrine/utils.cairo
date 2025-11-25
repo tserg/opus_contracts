@@ -36,15 +36,6 @@ pub mod shrine_utils {
     pub const MINIMUM_TROVE_VALUE: u128 = 50 * WAD_ONE; // 50 (Wad)
     pub const DEBT_CEILING: u128 = 20000 * WAD_ONE; // 20_000 (Wad)
 
-    // Yang constants
-    pub const YANG2_THRESHOLD: u128 = 75 * RAY_PERCENT; // 75% (Ray)
-    pub const YANG2_START_PRICE: u128 = 500 * WAD_ONE; // 500 (Wad)
-    pub const YANG2_BASE_RATE: u128 = 3 * RAY_PERCENT; // 3% (Ray)
-
-    pub const YANG3_THRESHOLD: u128 = 85 * RAY_PERCENT; // 85% (Ray)
-    pub const YANG3_START_PRICE: u128 = 1000 * WAD_ONE; // 1_000 (Wad)
-    pub const YANG3_BASE_RATE: u128 = (2 * RAY_PERCENT) + (RAY_PERCENT / 2); // 2.5% (Ray)
-
     pub const INITIAL_YANG_AMT: u128 = 0;
 
     pub const TROVE1_YANG1_DEPOSIT: u128 = 5 * WAD_ONE; // 5 (Wad)
@@ -113,7 +104,8 @@ pub mod shrine_utils {
     }
 
     pub fn three_yang_start_prices() -> Span<Wad> {
-        array![common::YANG1_START_PRICE.into(), YANG2_START_PRICE.into(), YANG3_START_PRICE.into()].span()
+        array![common::YANG1_START_PRICE.into(), common::YANG2_START_PRICE.into(), common::YANG3_START_PRICE.into()]
+            .span()
     }
 
     pub fn declare_shrine() -> ContractClass {
@@ -163,17 +155,17 @@ pub mod shrine_utils {
         shrine
             .add_yang(
                 common::YANG2_ADDR,
-                YANG2_THRESHOLD.into(),
-                YANG2_START_PRICE.into(),
-                YANG2_BASE_RATE.into(),
+                common::YANG2_THRESHOLD.into(),
+                common::YANG2_START_PRICE.into(),
+                common::YANG2_BASE_RATE.into(),
                 INITIAL_YANG_AMT.into(),
             );
         shrine
             .add_yang(
                 common::YANG3_ADDR,
-                YANG3_THRESHOLD.into(),
-                YANG3_START_PRICE.into(),
-                YANG3_BASE_RATE.into(),
+                common::YANG3_THRESHOLD.into(),
+                common::YANG3_START_PRICE.into(),
+                common::YANG3_BASE_RATE.into(),
                 INITIAL_YANG_AMT.into(),
             );
 

@@ -65,9 +65,9 @@ pub mod gate_utils {
         shrine
             .add_yang(
                 wbtc,
-                shrine_utils::YANG2_THRESHOLD.into(),
-                shrine_utils::YANG2_START_PRICE.into(),
-                shrine_utils::YANG2_BASE_RATE.into(),
+                common::YANG2_THRESHOLD.into(),
+                common::YANG2_START_PRICE.into(),
+                common::YANG2_BASE_RATE.into(),
                 Zero::zero() // initial amount
             );
     }

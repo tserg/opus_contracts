@@ -73,17 +73,17 @@ mod test_sentinel {
         let (wbtc_price, _, _) = shrine.get_current_yang_price(wbtc);
 
         assert(eth_price == common::YANG1_START_PRICE.into(), 'Wrong yang price #1');
-        assert(wbtc_price == shrine_utils::YANG2_START_PRICE.into(), 'Wrong yang price #2');
+        assert(wbtc_price == common::YANG2_START_PRICE.into(), 'Wrong yang price #2');
 
         let eth_threshold = shrine.get_yang_threshold(eth);
         assert(eth_threshold == common::YANG1_THRESHOLD.into(), 'Wrong yang threshold #1');
 
         let wbtc_threshold = shrine.get_yang_threshold(wbtc);
-        assert(wbtc_threshold == shrine_utils::YANG2_THRESHOLD.into(), 'Wrong yang threshold #2');
+        assert(wbtc_threshold == common::YANG2_THRESHOLD.into(), 'Wrong yang threshold #2');
 
         let expected_era: u64 = 1;
         assert(shrine.get_yang_rate(eth, expected_era) == common::YANG1_BASE_RATE.into(), 'Wrong yang rate #1');
-        assert(shrine.get_yang_rate(wbtc, expected_era) == shrine_utils::YANG2_BASE_RATE.into(), 'Wrong yang rate #2');
+        assert(shrine.get_yang_rate(wbtc, expected_era) == common::YANG2_BASE_RATE.into(), 'Wrong yang rate #2');
 
         let expected_initial_eth_yang: Wad = sentinel_utils::get_initial_asset_amt(eth).into();
         assert_eq!(shrine.get_yang_total(eth), expected_initial_eth_yang, "Wrong yang total #1");
@@ -211,9 +211,9 @@ mod test_sentinel {
             .add_yang(
                 wbtc,
                 sentinel_utils::WBTC_ASSET_MAX,
-                shrine_utils::YANG2_THRESHOLD.into(),
-                shrine_utils::YANG2_START_PRICE.into(),
-                shrine_utils::YANG2_BASE_RATE.into(),
+                common::YANG2_THRESHOLD.into(),
+                common::YANG2_START_PRICE.into(),
+                common::YANG2_BASE_RATE.into(),
                 eth_gate.contract_address,
             );
     }

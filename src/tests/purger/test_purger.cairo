@@ -2282,7 +2282,7 @@ mod test_purger {
         assert(target_trove_start_health.is_healthy(), 'should still be healthy');
 
         let eth_threshold: Ray = common::YANG1_THRESHOLD.into();
-        let btc_threshold: Ray = shrine_utils::YANG2_THRESHOLD.into();
+        let btc_threshold: Ray = common::YANG2_THRESHOLD.into();
 
         let (eth_price, _, _) = shrine.get_current_yang_price(*yangs[0]);
         let (btc_price, _, _) = shrine.get_current_yang_price(*yangs[1]);
