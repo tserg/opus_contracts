@@ -78,12 +78,6 @@ pub mod shrine_utils {
     // Test setup helpers
     //
 
-    // Helper function to advance timestamp by one interval
-    #[inline(always)]
-    pub fn advance_interval() {
-        common::advance_intervals(1);
-    }
-
     pub fn two_yang_addrs() -> Span<ContractAddress> {
         array![common::YANG1_ADDR, common::YANG2_ADDR].span()
     }

@@ -25,7 +25,7 @@ mod test_shrine_compound {
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
 
         let start_debt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
@@ -103,7 +103,7 @@ mod test_shrine_compound {
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
 
         let start_debt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
@@ -126,8 +126,8 @@ mod test_shrine_compound {
 
         // Skip to the next interval after the last price update, and then skip this interval
         // to mock no price update
-        shrine_utils::advance_interval();
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
+        common::advance_intervals(1);
 
         let num_intervals_after_skip: u64 = 4;
 
@@ -198,7 +198,7 @@ mod test_shrine_compound {
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
 
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         let start_debt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
@@ -304,7 +304,7 @@ mod test_shrine_compound {
         let mut spy = spy_events();
 
         // Advance one interval to avoid overwriting the last price
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
 
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         let start_debt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
@@ -418,7 +418,7 @@ mod test_shrine_compound {
         let start_interval: u64 = shrine_utils::current_interval();
 
         // Advance one interval to avoid overwriting the last price
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
 
         // Advance timestamp by given intervals and set last updated price - `T+LAST_UPDATED`
         let intervals_to_skip: u64 = 5;
@@ -492,7 +492,7 @@ mod test_shrine_compound {
         let trove_id: u64 = common::TROVE_1;
 
         // Advance one interval to avoid overwriting the last price
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
 
         let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
         let yang1_addr = *yangs.at(0);
@@ -858,7 +858,7 @@ mod test_shrine_compound {
 
             // First, we advance an interval so the last price is not overwritten.
             // Next, Advance the prices by the number of intervals between each base rate update
-            shrine_utils::advance_interval();
+            common::advance_intervals(1);
             shrine_utils::advance_prices_and_set_multiplier(shrine, BASE_RATE_UPDATE_SPACING, yangs, yang_prices);
 
             let era_end_interval: u64 = era_start_interval + BASE_RATE_UPDATE_SPACING;
@@ -976,7 +976,7 @@ mod test_shrine_compound {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         // Advance one interval to avoid overwriting the last price
-        shrine_utils::advance_interval();
+        common::advance_intervals(1);
 
         let yangs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
         let yang_to_delist: ContractAddress = *yangs[0];
