@@ -52,12 +52,6 @@ pub mod shrine_utils {
     // Convenience helpers
     //
 
-    // Wrapper function for Shrine
-    #[inline(always)]
-    pub fn shrine(shrine_addr: ContractAddress) -> IShrineDispatcher {
-        IShrineDispatcher { contract_address: shrine_addr }
-    }
-
     #[inline(always)]
     pub fn yin(shrine_addr: ContractAddress) -> IERC20Dispatcher {
         IERC20Dispatcher { contract_address: shrine_addr }

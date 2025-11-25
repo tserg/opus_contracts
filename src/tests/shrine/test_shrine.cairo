@@ -33,7 +33,7 @@ mod test_shrine {
         assert(yin.decimals() == WAD_DECIMALS, 'wrong decimals');
 
         // Check Shrine getters
-        let shrine = shrine_utils::shrine(shrine_addr);
+        let shrine = IShrineDispatcher { contract_address: shrine_addr };
 
         assert(shrine.get_live(), 'not live');
         let (multiplier, _, _) = shrine.get_current_multiplier();
@@ -1592,7 +1592,7 @@ mod test_shrine {
     #[test]
     fn test_auth() {
         let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-        let shrine = shrine_utils::shrine(shrine_addr);
+        let shrine = IShrineDispatcher { contract_address: shrine_addr };
         let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine_addr };
 
         let admin: ContractAddress = common::SHRINE_ADMIN;
@@ -1623,7 +1623,7 @@ mod test_shrine {
     fn test_revoke_role() {
         let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
 
-        let shrine = shrine_utils::shrine(shrine_addr);
+        let shrine = IShrineDispatcher { contract_address: shrine_addr };
         let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine_addr };
 
         let admin: ContractAddress = common::SHRINE_ADMIN;
@@ -2047,7 +2047,7 @@ mod test_shrine {
     #[test]
     #[should_panic(expected: 'SH: Yang does not exist')]
     fn test_get_yang_suspension_status_nonexisting_yang() {
-        let shrine = shrine_utils::shrine(shrine_utils::shrine_deploy(Option::None));
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
         shrine.get_yang_suspension_status(common::DUMMY_YANG_ADDR);
     }
 
