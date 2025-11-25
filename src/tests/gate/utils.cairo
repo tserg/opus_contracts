@@ -52,9 +52,9 @@ pub mod gate_utils {
         shrine
             .add_yang(
                 eth,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 Zero::zero() // initial amount
             );
     }

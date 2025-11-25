@@ -111,9 +111,9 @@ pub mod sentinel_utils {
                 eth_vault,
                 // Re-use ETH parameters
                 ETH_ASSET_MAX,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 eth_vault_gate,
             );
 
@@ -221,9 +221,9 @@ pub mod sentinel_utils {
             .add_yang(
                 eth,
                 ETH_ASSET_MAX,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 eth_gate,
             );
 

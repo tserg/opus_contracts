@@ -2281,7 +2281,7 @@ mod test_purger {
         let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
         assert(target_trove_start_health.is_healthy(), 'should still be healthy');
 
-        let eth_threshold: Ray = shrine_utils::YANG1_THRESHOLD.into();
+        let eth_threshold: Ray = common::YANG1_THRESHOLD.into();
         let btc_threshold: Ray = shrine_utils::YANG2_THRESHOLD.into();
 
         let (eth_price, _, _) = shrine.get_current_yang_price(*yangs[0]);
@@ -2427,7 +2427,7 @@ mod test_purger {
         let eth: ContractAddress = *yangs[0];
         let eth_gate: IGateDispatcher = *gates[0];
         let eth_amt: u128 = WAD_ONE;
-        let eth_threshold: Ray = shrine_utils::YANG1_THRESHOLD.into();
+        let eth_threshold: Ray = common::YANG1_THRESHOLD.into();
 
         let target_user: ContractAddress = purger_utils::TARGET_TROVE_OWNER;
         common::fund_user(target_user, array![eth].span(), array![10 * eth_amt].span());

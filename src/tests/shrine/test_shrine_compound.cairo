@@ -50,7 +50,7 @@ mod test_shrine_compound {
         let expected_avg_multiplier: Ray = RAY_SCALE.into();
 
         let expected_debt: Wad = shrine_utils::compound_for_single_yang(
-            shrine_utils::YANG1_BASE_RATE.into(),
+            common::YANG1_BASE_RATE.into(),
             expected_avg_multiplier,
             start_interval,
             end_interval,
@@ -153,7 +153,7 @@ mod test_shrine_compound {
         let expected_avg_multiplier: Ray = RAY_SCALE.into();
 
         let expected_debt: Wad = shrine_utils::compound_for_single_yang(
-            shrine_utils::YANG1_BASE_RATE.into(),
+            common::YANG1_BASE_RATE.into(),
             expected_avg_multiplier,
             start_interval,
             end_interval,
@@ -260,7 +260,7 @@ mod test_shrine_compound {
         // As the price and multiplier have not been updated since `T+LAST_UPDATED`, we expect the
         // average values to be that at `T+LAST_UPDATED`.
         let expected_debt: Wad = shrine_utils::compound_for_single_yang(
-            shrine_utils::YANG1_BASE_RATE.into(), start_multiplier, start_interval, end_interval, trove_health.debt,
+            common::YANG1_BASE_RATE.into(), start_multiplier, start_interval, end_interval, trove_health.debt,
         );
 
         let estimated_trove_health: Health = shrine.get_trove_health(trove_id);
@@ -359,7 +359,7 @@ mod test_shrine_compound {
         // As the price and multiplier have not been updated since `T+START/LAST_UPDATED`, we expect the
         // average values to be that at `T+START/LAST_UPDATED`.
         let expected_debt: Wad = shrine_utils::compound_for_single_yang(
-            shrine_utils::YANG1_BASE_RATE.into(), start_multiplier, start_interval, end_interval, trove_health.debt,
+            common::YANG1_BASE_RATE.into(), start_multiplier, start_interval, end_interval, trove_health.debt,
         );
 
         let estimated_trove_health: Health = shrine.get_trove_health(trove_id);
@@ -449,7 +449,7 @@ mod test_shrine_compound {
 
         let expected_avg_multiplier: Ray = RAY_SCALE.into();
         let expected_debt: Wad = shrine_utils::compound_for_single_yang(
-            shrine_utils::YANG1_BASE_RATE.into(),
+            common::YANG1_BASE_RATE.into(),
             expected_avg_multiplier,
             start_interval,
             end_interval,
@@ -579,7 +579,7 @@ mod test_shrine_compound {
         let expected_avg_multiplier: Ray = RAY_SCALE.into();
 
         let expected_debt: Wad = shrine_utils::compound_for_single_yang(
-            shrine_utils::YANG1_BASE_RATE.into(),
+            common::YANG1_BASE_RATE.into(),
             expected_avg_multiplier,
             start_interval,
             end_interval,
@@ -692,7 +692,7 @@ mod test_shrine_compound {
         let expected_avg_multiplier: Ray = RAY_SCALE.into();
 
         let expected_debt: Wad = shrine_utils::compound_for_single_yang(
-            shrine_utils::YANG1_BASE_RATE.into(),
+            common::YANG1_BASE_RATE.into(),
             expected_avg_multiplier,
             start_interval,
             end_interval,
@@ -773,7 +773,7 @@ mod test_shrine_compound {
 
         // Add initial base rates for rates history to calculate compound interest
         let first_rate_history_to_compound: Span<Ray> = array![
-            shrine_utils::YANG1_BASE_RATE.into(),
+            common::YANG1_BASE_RATE.into(),
             shrine_utils::YANG2_BASE_RATE.into(),
             shrine_utils::YANG3_BASE_RATE.into(),
         ]

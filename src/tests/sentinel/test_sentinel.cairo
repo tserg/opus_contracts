@@ -72,17 +72,17 @@ mod test_sentinel {
         let (eth_price, _, _) = shrine.get_current_yang_price(eth);
         let (wbtc_price, _, _) = shrine.get_current_yang_price(wbtc);
 
-        assert(eth_price == shrine_utils::YANG1_START_PRICE.into(), 'Wrong yang price #1');
+        assert(eth_price == common::YANG1_START_PRICE.into(), 'Wrong yang price #1');
         assert(wbtc_price == shrine_utils::YANG2_START_PRICE.into(), 'Wrong yang price #2');
 
         let eth_threshold = shrine.get_yang_threshold(eth);
-        assert(eth_threshold == shrine_utils::YANG1_THRESHOLD.into(), 'Wrong yang threshold #1');
+        assert(eth_threshold == common::YANG1_THRESHOLD.into(), 'Wrong yang threshold #1');
 
         let wbtc_threshold = shrine.get_yang_threshold(wbtc);
         assert(wbtc_threshold == shrine_utils::YANG2_THRESHOLD.into(), 'Wrong yang threshold #2');
 
         let expected_era: u64 = 1;
-        assert(shrine.get_yang_rate(eth, expected_era) == shrine_utils::YANG1_BASE_RATE.into(), 'Wrong yang rate #1');
+        assert(shrine.get_yang_rate(eth, expected_era) == common::YANG1_BASE_RATE.into(), 'Wrong yang rate #1');
         assert(shrine.get_yang_rate(wbtc, expected_era) == shrine_utils::YANG2_BASE_RATE.into(), 'Wrong yang rate #2');
 
         let expected_initial_eth_yang: Wad = sentinel_utils::get_initial_asset_amt(eth).into();
@@ -120,9 +120,9 @@ mod test_sentinel {
             .add_yang(
                 common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 common::DUMMY_YANG_GATE_ADDR,
             );
     }
@@ -136,9 +136,9 @@ mod test_sentinel {
             .add_yang(
                 Zero::zero(),
                 sentinel_utils::ETH_ASSET_MAX,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 common::DUMMY_YANG_GATE_ADDR,
             );
     }
@@ -152,9 +152,9 @@ mod test_sentinel {
             .add_yang(
                 common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 Zero::zero(),
             );
     }
@@ -168,9 +168,9 @@ mod test_sentinel {
             .add_yang(
                 common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
-                shrine_utils::YANG1_THRESHOLD.into(),
+                common::YANG1_THRESHOLD.into(),
                 Zero::zero(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_BASE_RATE.into(),
                 common::DUMMY_YANG_GATE_ADDR,
             );
     }
@@ -189,9 +189,9 @@ mod test_sentinel {
             .add_yang(
                 eth,
                 sentinel_utils::ETH_ASSET_MAX,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 eth_gate.contract_address,
             );
     }

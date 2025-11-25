@@ -102,13 +102,13 @@ mod test_shrine {
         let mut yang_addrs: Span<ContractAddress> = shrine_utils::three_yang_addrs();
         let mut start_prices: Span<Wad> = shrine_utils::three_yang_start_prices();
         let mut thresholds: Span<Ray> = array![
-            shrine_utils::YANG1_THRESHOLD.into(),
+            common::YANG1_THRESHOLD.into(),
             shrine_utils::YANG2_THRESHOLD.into(),
             shrine_utils::YANG3_THRESHOLD.into(),
         ]
             .span();
         let mut base_rates: Span<Ray> = array![
-            shrine_utils::YANG1_BASE_RATE.into(),
+            common::YANG1_BASE_RATE.into(),
             shrine_utils::YANG2_BASE_RATE.into(),
             shrine_utils::YANG3_BASE_RATE.into(),
         ]
@@ -373,9 +373,9 @@ mod test_shrine {
         shrine
             .add_yang(
                 common::YANG1_ADDR,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 Zero::zero(),
             );
     }
@@ -388,9 +388,9 @@ mod test_shrine {
         shrine
             .add_yang(
                 common::YANG1_ADDR,
-                shrine_utils::YANG1_THRESHOLD.into(),
-                shrine_utils::YANG1_START_PRICE.into(),
-                shrine_utils::YANG1_BASE_RATE.into(),
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 Zero::zero(),
             );
     }
@@ -445,7 +445,7 @@ mod test_shrine {
     fn test_set_threshold_invalid_yang() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine.set_threshold(common::DUMMY_YANG_ADDR, shrine_utils::YANG1_THRESHOLD.into());
+        shrine.set_threshold(common::DUMMY_YANG_ADDR, common::YANG1_THRESHOLD.into());
     }
 
     #[test]
@@ -469,7 +469,7 @@ mod test_shrine {
         assert(shrine.get_current_rate_era() == expected_rate_era, 'wrong rate era');
 
         let mut expected_rates: Span<Ray> = array![
-            shrine_utils::YANG1_BASE_RATE.into(), shrine_utils::YANG2_BASE_RATE.into(), RAY_ONE.into(),
+            common::YANG1_BASE_RATE.into(), shrine_utils::YANG2_BASE_RATE.into(), RAY_ONE.into(),
         ]
             .span();
 
@@ -821,7 +821,7 @@ mod test_shrine {
 
         let mut yang_prices: Array<Wad> = array![yang1_price];
         let mut yang_amts: Array<Wad> = array![shrine_utils::TROVE1_YANG1_DEPOSIT.into()];
-        let mut yang_thresholds: Array<Ray> = array![shrine_utils::YANG1_THRESHOLD.into()];
+        let mut yang_thresholds: Array<Ray> = array![common::YANG1_THRESHOLD.into()];
 
         let expected_max_forge: Wad = shrine_utils::calculate_max_forge(
             yang_prices.span(), yang_amts.span(), yang_thresholds.span(),
@@ -879,7 +879,7 @@ mod test_shrine {
 
         let mut yang_prices: Array<Wad> = array![yang1_price];
         let mut yang_amts: Array<Wad> = array![remaining_amt];
-        let mut yang_thresholds: Array<Ray> = array![shrine_utils::YANG1_THRESHOLD.into()];
+        let mut yang_thresholds: Array<Ray> = array![common::YANG1_THRESHOLD.into()];
 
         let expected_max_forge: Wad = shrine_utils::calculate_max_forge(
             yang_prices.span(), yang_amts.span(), yang_thresholds.span(),
@@ -1700,7 +1700,7 @@ mod test_shrine {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         cheat_caller_address(shrine.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        shrine.advance(common::YANG1_ADDR, shrine_utils::YANG1_START_PRICE.into());
+        shrine.advance(common::YANG1_ADDR, common::YANG1_START_PRICE.into());
     }
 
     #[test]
@@ -1709,7 +1709,7 @@ mod test_shrine {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine.advance(common::DUMMY_YANG_ADDR, shrine_utils::YANG1_START_PRICE.into());
+        shrine.advance(common::DUMMY_YANG_ADDR, common::YANG1_START_PRICE.into());
     }
 
     #[test]
@@ -1849,7 +1849,7 @@ mod test_shrine {
 
         let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
 
-        let unsafe_price: Wad = wadray::rdiv_wr(trove_health.debt, shrine_utils::YANG1_THRESHOLD.into()) / deposit_amt;
+        let unsafe_price: Wad = wadray::rdiv_wr(trove_health.debt, common::YANG1_THRESHOLD.into()) / deposit_amt;
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.advance(common::YANG1_ADDR, unsafe_price);
@@ -1884,7 +1884,7 @@ mod test_shrine {
         stop_cheat_caller_address(shrine.contract_address);
 
         let yang_thresholds: Span<Ray> = array![
-            shrine_utils::YANG1_THRESHOLD.into(), shrine_utils::YANG2_THRESHOLD.into(),
+            common::YANG1_THRESHOLD.into(), shrine_utils::YANG2_THRESHOLD.into(),
         ]
             .span();
 
@@ -1951,7 +1951,7 @@ mod test_shrine {
         ];
 
         let mut yang_thresholds: Array<Ray> = array![
-            shrine_utils::YANG1_THRESHOLD.into(), shrine_utils::YANG2_THRESHOLD.into(),
+            common::YANG1_THRESHOLD.into(), shrine_utils::YANG2_THRESHOLD.into(),
         ];
 
         let (expected_threshold, expected_value) = shrine_utils::calculate_trove_threshold_and_value(
@@ -2182,7 +2182,7 @@ mod test_shrine {
 
         // check threshold (should be the same at the beginning)
         let threshold = shrine.get_yang_threshold(yang);
-        assert(threshold == shrine_utils::YANG1_THRESHOLD.into(), 'threshold 1');
+        assert(threshold == common::YANG1_THRESHOLD.into(), 'threshold 1');
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
         assert(trove_health.value.is_non_zero(), 'trove has no value');
@@ -2203,7 +2203,7 @@ mod test_shrine {
             // check threshold
             let threshold = shrine.get_yang_threshold(yang);
             assert(
-                threshold == (shrine_utils::YANG1_THRESHOLD / 100 * (100_u64 - *time_pct).into()).into(), 'threshold 2',
+                threshold == (common::YANG1_THRESHOLD / 100 * (100_u64 - *time_pct).into()).into(), 'threshold 2',
             );
 
             // intermediate price update to avoid iteration timeout

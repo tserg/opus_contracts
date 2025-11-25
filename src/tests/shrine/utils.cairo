@@ -37,10 +37,6 @@ pub mod shrine_utils {
     pub const DEBT_CEILING: u128 = 20000 * WAD_ONE; // 20_000 (Wad)
 
     // Yang constants
-    pub const YANG1_THRESHOLD: u128 = 80 * RAY_PERCENT; // 80% (Ray)
-    pub const YANG1_START_PRICE: u128 = 2000 * WAD_ONE; // 2_000 (Wad)
-    pub const YANG1_BASE_RATE: u128 = 2 * RAY_PERCENT; // 2% (Ray)
-
     pub const YANG2_THRESHOLD: u128 = 75 * RAY_PERCENT; // 75% (Ray)
     pub const YANG2_START_PRICE: u128 = 500 * WAD_ONE; // 500 (Wad)
     pub const YANG2_BASE_RATE: u128 = 3 * RAY_PERCENT; // 3% (Ray)
@@ -60,14 +56,6 @@ pub mod shrine_utils {
     pub const WHALE_TROVE_FORGE_AMT: u128 = 10000 * WAD_ONE; // 10,000 (wad)
 
     pub const RECOVERY_TESTS_TROVE1_FORGE_AMT: u128 = 7500 * WAD_ONE; // 7500 (wad)
-
-    //
-    // Address constants
-    //
-
-    pub const YANG1_ADDR: ContractAddress = 'yang 1'.try_into().unwrap();
-    pub const YANG2_ADDR: ContractAddress = 'yang 2'.try_into().unwrap();
-    pub const YANG3_ADDR: ContractAddress = 'yang 3'.try_into().unwrap();
 
     //
     // Convenience helpers
@@ -106,26 +94,26 @@ pub mod shrine_utils {
     }
 
     pub fn two_yang_addrs() -> Span<ContractAddress> {
-        array![YANG1_ADDR, YANG2_ADDR].span()
+        array![common::YANG1_ADDR, common::YANG2_ADDR].span()
     }
 
     pub fn three_yang_addrs() -> Span<ContractAddress> {
-        array![YANG1_ADDR, YANG2_ADDR, YANG3_ADDR].span()
+        array![common::YANG1_ADDR, common::YANG2_ADDR, common::YANG3_ADDR].span()
     }
 
     // Note that iteration of yangs (e.g. in redistribution) start from the latest yang ID
     // and terminates at yang ID 0. This affects which yang receives any rounding of
     // debt that falls below the rounding threshold.
     pub fn two_yang_addrs_reversed() -> Span<ContractAddress> {
-        array![YANG2_ADDR, YANG1_ADDR].span()
+        array![common::YANG2_ADDR, common::YANG1_ADDR].span()
     }
 
     pub fn three_yang_addrs_reversed() -> Span<ContractAddress> {
-        array![YANG3_ADDR, YANG2_ADDR, YANG1_ADDR].span()
+        array![common::YANG3_ADDR, common::YANG2_ADDR, common::YANG1_ADDR].span()
     }
 
     pub fn three_yang_start_prices() -> Span<Wad> {
-        array![YANG1_START_PRICE.into(), YANG2_START_PRICE.into(), YANG3_START_PRICE.into()].span()
+        array![common::YANG1_START_PRICE.into(), YANG2_START_PRICE.into(), YANG3_START_PRICE.into()].span()
     }
 
     pub fn declare_shrine() -> ContractClass {
@@ -166,15 +154,15 @@ pub mod shrine_utils {
         cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(3));
         shrine
             .add_yang(
-                YANG1_ADDR,
-                YANG1_THRESHOLD.into(),
-                YANG1_START_PRICE.into(),
-                YANG1_BASE_RATE.into(),
+                common::YANG1_ADDR,
+                common::YANG1_THRESHOLD.into(),
+                common::YANG1_START_PRICE.into(),
+                common::YANG1_BASE_RATE.into(),
                 INITIAL_YANG_AMT.into(),
             );
         shrine
             .add_yang(
-                YANG2_ADDR,
+                common::YANG2_ADDR,
                 YANG2_THRESHOLD.into(),
                 YANG2_START_PRICE.into(),
                 YANG2_BASE_RATE.into(),
@@ -182,7 +170,7 @@ pub mod shrine_utils {
             );
         shrine
             .add_yang(
-                YANG3_ADDR,
+                common::YANG3_ADDR,
                 YANG3_THRESHOLD.into(),
                 YANG3_START_PRICE.into(),
                 YANG3_BASE_RATE.into(),
@@ -267,13 +255,13 @@ pub mod shrine_utils {
     #[inline(always)]
     pub fn trove1_deposit(shrine: IShrineDispatcher, amt: Wad) {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine.deposit(YANG1_ADDR, common::TROVE_1, amt);
+        shrine.deposit(common::YANG1_ADDR, common::TROVE_1, amt);
     }
 
     #[inline(always)]
     pub fn trove1_withdraw(shrine: IShrineDispatcher, amt: Wad) {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine.withdraw(YANG1_ADDR, common::TROVE_1, amt);
+        shrine.withdraw(common::YANG1_ADDR, common::TROVE_1, amt);
     }
 
     #[inline(always)]
@@ -508,7 +496,7 @@ pub mod shrine_utils {
     pub fn create_whale_trove(shrine: IShrineDispatcher) {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         // Deposit 100 of yang1
-        shrine.deposit(YANG1_ADDR, common::WHALE_TROVE, WHALE_TROVE_YANG1_DEPOSIT.into());
+        shrine.deposit(common::YANG1_ADDR, common::WHALE_TROVE, WHALE_TROVE_YANG1_DEPOSIT.into());
         // Mint 10,000 yin (5% LTV at yang1's start price)
         shrine.forge(common::TROVE1_OWNER_ADDR, common::WHALE_TROVE, WHALE_TROVE_FORGE_AMT.into(), Zero::zero());
     }
