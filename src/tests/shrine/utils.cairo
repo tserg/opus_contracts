@@ -77,7 +77,7 @@ pub mod shrine_utils {
     }
 
     pub fn shrine_deploy_and_setup(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
-        let shrine: IShrineDispatcher= shrine_deploy(shrine_class);
+        let shrine: IShrineDispatcher = shrine_deploy(shrine_class);
 
         common::grant_role_for_address(shrine.contract_address, shrine_roles::ALL_ROLES, common::SHRINE_ADMIN);
 
@@ -92,7 +92,11 @@ pub mod shrine_utils {
     pub fn shrine_deploy_with_dummy_yangs(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
         let shrine: IShrineDispatcher = shrine_deploy_and_setup(shrine_class);
         let yang_params: Span<common::YangParams> = common::THREE_YANG_PARAMS.span();
-        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(yang_params.len().try_into().unwrap()));
+        cheat_caller_address(
+            shrine.contract_address,
+            common::SHRINE_ADMIN,
+            CheatSpan::TargetCalls(yang_params.len().try_into().unwrap()),
+        );
         for yang_param in yang_params {
             shrine
                 .add_yang(
@@ -100,7 +104,7 @@ pub mod shrine_utils {
                     (*yang_param.threshold).into(),
                     (*yang_param.start_price).into(),
                     (*yang_param.base_rate).into(),
-                    Zero::zero()
+                    Zero::zero(),
                 );
         }
 
@@ -117,7 +121,7 @@ pub mod shrine_utils {
     // Advance the prices for two yangs, starting from the current interval and up to current interval + `num_intervals`
     // - 1
     pub fn advance_prices_and_set_multiplier(
-        shrine: IShrineDispatcher, yangs: Span<ContractAddress>, num_intervals: u64 
+        shrine: IShrineDispatcher, yangs: Span<ContractAddress>, num_intervals: u64,
     ) -> Span<Span<Wad>> {
         let mut yang_feeds: Array<Span<Wad>> = ArrayTrait::new();
 

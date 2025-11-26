@@ -48,7 +48,9 @@ mod test_shrine {
             "wrong buffer factor",
         );
 
-        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine.contract_address };
+        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher {
+            contract_address: shrine.contract_address,
+        };
         assert(shrine_accesscontrol.get_admin() == common::SHRINE_ADMIN, 'wrong admin');
 
         let expected_events = array![
@@ -1569,7 +1571,9 @@ mod test_shrine {
     #[test]
     fn test_auth() {
         let shrine = shrine_utils::shrine_deploy(Option::None);
-        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine.contract_address };
+        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher {
+            contract_address: shrine.contract_address,
+        };
 
         let admin: ContractAddress = common::SHRINE_ADMIN;
         let new_admin: ContractAddress = 'new shrine admin'.try_into().unwrap();
@@ -1598,7 +1602,9 @@ mod test_shrine {
     #[should_panic(expected: 'Caller missing role')]
     fn test_revoke_role() {
         let shrine = shrine_utils::shrine_deploy(Option::None);
-        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine.contract_address };
+        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher {
+            contract_address: shrine.contract_address,
+        };
 
         let admin: ContractAddress = common::SHRINE_ADMIN;
         let new_admin: ContractAddress = 'new shrine admin'.try_into().unwrap();
