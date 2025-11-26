@@ -205,6 +205,7 @@ pub impl RewardPartialEq of PartialEq<Reward> {
 // Convenience wrappers
 //
 
+#[inline(always)]
 pub fn erc20(token: ContractAddress) -> IERC20Dispatcher {
     IERC20Dispatcher { contract_address: token }
 }
@@ -260,6 +261,7 @@ pub fn advance_intervals_and_refresh_prices_and_multiplier(
     stop_cheat_caller_address(shrine.contract_address);
 }
 
+#[inline(always)]
 pub fn advance_intervals(intervals: u64) {
     start_cheat_block_timestamp_global(get_block_timestamp() + (intervals * shrine::TIME_INTERVAL));
 }
@@ -368,6 +370,7 @@ pub fn deploy_vault(
     vault_addr
 }
 
+#[inline(always)]
 pub fn approve_gate_for_token(gate: IGateDispatcher, token: IERC20Dispatcher, user: ContractAddress) {
     // user no-limit approves gate to handle their share of token
     cheat_caller_address(token.contract_address, user, CheatSpan::TargetCalls(1));
@@ -515,6 +518,7 @@ pub fn combine_spans(lhs: Span<u128>, mut rhs: Span<u128>) -> Span<u128> {
 }
 
 // Helper function to grant a role to an address (automatically gets admin)
+#[inline(always)]
 pub fn grant_role_for_address(contract: ContractAddress, role: u128, address: ContractAddress) {
     let ac = IAccessControlDispatcher { contract_address: contract };
     let admin: ContractAddress = ac.get_admin();
