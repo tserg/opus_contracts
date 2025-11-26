@@ -229,12 +229,6 @@ pub mod shrine_utils {
     // Test helpers
     //
 
-    pub fn consume_first_bit(ref hash: u256) -> bool {
-        let (reduced_hash, remainder) = DivRem::div_rem(hash, 2_u256.try_into().unwrap());
-        hash = reduced_hash;
-        remainder != 0_u256
-    }
-
     // Helper function to generate a price feed for a yang given a starting price
     // Currently increases the price at a fixed percentage per step
     pub fn generate_yang_feed(mut price: Wad) -> Span<Wad> {
@@ -256,16 +250,6 @@ pub mod shrine_utils {
         }
 
         prices.span()
-    }
-
-    // Helper function to get the prices for an array of yangs
-    pub fn get_yang_prices(shrine: IShrineDispatcher, mut yangs: Span<ContractAddress>) -> Span<Wad> {
-        let mut yang_prices: Array<Wad> = ArrayTrait::new();
-        for yang in yangs {
-            let (yang_price, _, _) = shrine.get_current_yang_price(*yang);
-            yang_prices.append(yang_price);
-        }
-        yang_prices.span()
     }
 
     // Helper function to calculate the maximum forge amount given a tuple of three ordered arrays of
@@ -429,17 +413,6 @@ pub mod shrine_utils {
         let (_, end_cumulative_price) = shrine.get_yang_price(yang_addr, end_interval);
 
         ((end_cumulative_price - start_cumulative_price).into() / feed_len).into()
-    }
-
-    // Helper function to calculate the average multiplier over a period of intervals
-    // TODO: Do we need this? Maybe for when the controller is up
-    pub fn get_avg_multiplier(shrine: IShrineDispatcher, start_interval: u64, end_interval: u64) -> Ray {
-        let feed_len: u128 = (end_interval - start_interval).into();
-
-        let (_, start_cumulative_multiplier) = shrine.get_multiplier(start_interval);
-        let (_, end_cumulative_multiplier) = shrine.get_multiplier(end_interval);
-
-        ((end_cumulative_multiplier - start_cumulative_multiplier).into() / feed_len).into()
     }
 
     pub fn create_whale_trove(shrine: IShrineDispatcher) {
