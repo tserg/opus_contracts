@@ -148,13 +148,19 @@ mod test_equalizer {
         let percentages = equalizer_utils::initial_percentages();
 
         let tokens: Span<ContractAddress> = array![shrine.contract_address].span();
-        let mut before_balances = common::get_token_balances(tokens, recipients);
-        let mut before_yin_balances = *before_balances.pop_front().unwrap();
+        let mut before_recipients_balances: Array<Span<u128>> = ArrayTrait::new();
+        for recipient in recipients {
+            before_recipients_balances.append(common::get_token_balances(tokens, *recipient));
+        }
+        let mut before_recipients_balances: Span<Span<u128>> = before_recipients_balances.span();
 
         equalizer.allocate();
 
-        let mut after_balances = common::get_token_balances(tokens, recipients);
-        let mut after_yin_balances = *after_balances.pop_front().unwrap();
+        let mut after_recipients_balances: Array<Span<u128>> = ArrayTrait::new();
+        for recipient in recipients {
+            after_recipients_balances.append(common::get_token_balances(tokens, *recipient));
+        }
+        let mut after_recipients_balances: Span<Span<u128>> = after_recipients_balances.span();
 
         let mut allocated = Zero::zero();
         for percentage in percentages {
@@ -162,8 +168,10 @@ mod test_equalizer {
             // sanity check
             assert(expected_increment.is_non_zero(), 'increment is zero');
 
-            let before_yin_bal = *before_yin_balances.pop_front().unwrap();
-            let after_yin_bal = *after_yin_balances.pop_front().unwrap();
+            let mut before_recipient_balances: Span<u128> = *before_recipients_balances.pop_front().unwrap();
+            let before_yin_bal = *before_recipient_balances.pop_front().unwrap();
+            let mut after_recipient_balances: Span<u128> = *after_recipients_balances.pop_front().unwrap();
+            let after_yin_bal = *after_recipient_balances.pop_front().unwrap();
             assert(after_yin_bal == before_yin_bal + expected_increment.into(), 'wrong recipient balance');
 
             allocated += expected_increment;

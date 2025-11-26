@@ -246,16 +246,9 @@ mod test_caretaker {
         caretaker.shut();
 
         let (reclaimed_yin, reclaimable_assets) = caretaker.preview_reclaim(trove1_forge_amt + WAD_ONE.into());
-        let caretaker_balances: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![caretaker.contract_address].span(),
-        );
-        // Transform caretaker balance to a single array
-        let caretaker_balances_flattened: Span<u128> = array![
-            *caretaker_balances.at(0)[0], *caretaker_balances.at(1)[0],
-        ]
-            .span();
+        let caretaker_balances: Span<u128> = common::get_token_balances(yangs, caretaker.contract_address);
         let expected_reclaimable_assets: Span<AssetBalance> = common::combine_assets_and_amts(
-            yangs, caretaker_balances_flattened,
+            yangs, caretaker_balances,
         );
         assert(reclaimable_assets == expected_reclaimable_assets, 'wrong reclaimable assets');
         assert(reclaimed_yin == trove1_forge_amt, 'wrong reclaimed yin');
@@ -385,12 +378,9 @@ mod test_caretaker {
         spy.assert_emitted(@expected_events);
 
         // assert that caretaker has no assets remaining
-        let caretaker_assets: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![caretaker.contract_address].span(),
-        );
-        for caretaker_asset_arr in caretaker_assets {
-            let caretaker_asset: u128 = *caretaker_asset_arr[0];
-            assert(caretaker_asset.is_zero(), 'caretaker asset should be 0');
+        let caretaker_assets: Span<u128> = common::get_token_balances(yangs, caretaker.contract_address);
+        for caretaker_asset in caretaker_assets {
+            assert((*caretaker_asset).is_zero(), 'caretaker asset should be 0');
         };
     }
 

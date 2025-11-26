@@ -70,10 +70,7 @@ pub mod purger_utils {
     // Constant helpers
     //
 
-    pub const TARGET_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
-        common::SMALL_ETH_DEPOSIT,
-        common::MEDIUM_WBTC_DEPOSIT,
-    ];
+    pub const TARGET_TROVE_YANG_ASSET_AMTS: [u128; 2] = [common::SMALL_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT];
 
     pub const RECIPIENT_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
         30 * WAD_ONE, // 30 (Wad) - ETH
@@ -256,12 +253,9 @@ pub mod purger_utils {
     }
 
     pub fn interesting_yang_amts_for_redistributed_trove() -> Span<Span<u128>> {
-        array![
-            TARGET_TROVE_YANG_ASSET_AMTS.span(),
-            // Dust yang case
-            // 20 (Wad) ETH, 100E-8 (WBTC decimals) WBTC
-            array![20 * WAD_ONE, 100_u128].span()
-        ].span()
+        array![TARGET_TROVE_YANG_ASSET_AMTS.span(), // Dust yang case
+        // 20 (Wad) ETH, 100E-8 (WBTC decimals) WBTC
+        array![20 * WAD_ONE, 100_u128].span()].span()
     }
 
     pub fn inoperational_absorber_yin_cases() -> Span<Wad> {
@@ -444,7 +438,14 @@ pub mod purger_utils {
         amt: Wad,
     ) -> u64 {
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, absorber_utils::PROVIDER_1, yangs, RECIPIENT_TROVE_YANG_ASSET_AMTS.span(), gates, amt,
+            shrine,
+            abbot,
+            absorber,
+            absorber_utils::PROVIDER_1,
+            yangs,
+            RECIPIENT_TROVE_YANG_ASSET_AMTS.span(),
+            gates,
+            amt,
         )
     }
 
@@ -631,22 +632,18 @@ pub mod purger_utils {
     // on the before and after balances.
     // `before_asset_bals` and `after_asset_bals` should be retrieved using `get_token_balances`.
     pub fn assert_received_assets(
-        mut before_asset_bals: Span<Span<u128>>,
-        mut after_asset_bals: Span<Span<u128>>,
+        mut before_asset_bals: Span<u128>,
+        mut after_asset_bals: Span<u128>,
         mut expected_freed_assets: Span<AssetBalance>,
         error_margin: u128,
         message: felt252,
     ) {
         assert_eq!(before_asset_bals.len(), after_asset_bals.len(), "balances array sanity check #1");
         for expected_freed_asset in expected_freed_assets {
-            let mut before_asset_bal_arr: Span<u128> = *before_asset_bals.pop_front().unwrap();
-            let mut after_asset_bal_arr: Span<u128> = *after_asset_bals.pop_front().unwrap();
-            assert_eq!(before_asset_bal_arr.len(), after_asset_bal_arr.len(), "balances array sanity check #2");
-
-            let before_asset_bal: u128 = *before_asset_bal_arr.pop_front().unwrap();
+            let before_asset_bal: u128 = *before_asset_bals.pop_front().unwrap();
             let expected_after_asset_bal: u128 = before_asset_bal + *expected_freed_asset.amount;
 
-            let after_asset_bal: u128 = *after_asset_bal_arr.pop_front().unwrap();
+            let after_asset_bal: u128 = *after_asset_bals.pop_front().unwrap();
 
             common::assert_equalish(after_asset_bal, expected_after_asset_bal, error_margin, message);
         };

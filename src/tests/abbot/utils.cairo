@@ -46,17 +46,11 @@ pub mod abbot_utils {
     pub const SUBSEQUENT_ETH_DEPOSIT_AMT: u128 = 2345000000000000000; // 2.345 (Wad);
     pub const SUBSEQUENT_WBTC_DEPOSIT_AMT: u128 = 44300000; // 0.443 (WBTC decimals);
 
-    pub const INITIAL_ASSET_AMTS: [u128; 2] = [
-        common::LARGE_ETH_DEPOSIT, common::LARGE_WBTC_DEPOSIT
-    ];
+    pub const INITIAL_ASSET_AMTS: [u128; 2] = [common::LARGE_ETH_DEPOSIT, common::LARGE_WBTC_DEPOSIT];
 
-    pub const OPEN_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
-        common::MEDIUM_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT
-    ];
+    pub const OPEN_TROVE_YANG_ASSET_AMTS: [u128; 2] = [common::MEDIUM_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT];
 
-    pub const SUBSEQUENT_DEPOSIT_AMTS: [u128; 2] = [
-        SUBSEQUENT_ETH_DEPOSIT_AMT, SUBSEQUENT_WBTC_DEPOSIT_AMT
-    ];
+    pub const SUBSEQUENT_DEPOSIT_AMTS: [u128; 2] = [SUBSEQUENT_ETH_DEPOSIT_AMT, SUBSEQUENT_WBTC_DEPOSIT_AMT];
 
     //
     // Test setup helpers

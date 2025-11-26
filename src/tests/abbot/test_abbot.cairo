@@ -207,26 +207,19 @@ mod test_abbot {
         let mut spy = spy_events();
         let mut expected_events = ArrayTrait::new();
 
-        let mut before_trove_owner_asset_bals: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![trove_owner].span(),
-        );
+        let mut before_trove_owner_asset_bals: Span<u128> = common::get_token_balances(yangs, trove_owner);
         let mut trove_yang_deposits: Span<YangBalance> = shrine.get_trove_deposits(trove_id);
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
         abbot.close_trove(trove_id);
 
-        let mut after_trove_owner_asset_bals: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![trove_owner].span(),
-        );
+        let mut after_trove_owner_asset_bals: Span<u128> = common::get_token_balances(yangs, trove_owner);
 
         for yang in yangs {
             assert(shrine.get_deposit(*yang, trove_id).is_zero(), 'wrong yang amount');
 
-            let mut after_trove_owner_asset_bal_arr: Span<u128> = *after_trove_owner_asset_bals.pop_front().unwrap();
-            let after_trove_owner_asset_bal: u128 = *after_trove_owner_asset_bal_arr.pop_front().unwrap();
-
-            let mut before_trove_owner_asset_bal_arr: Span<u128> = *before_trove_owner_asset_bals.pop_front().unwrap();
-            let before_trove_owner_asset_bal: u128 = *before_trove_owner_asset_bal_arr.pop_front().unwrap();
+            let after_trove_owner_asset_bal: u128 = *after_trove_owner_asset_bals.pop_front().unwrap();
+            let before_trove_owner_asset_bal: u128 = *before_trove_owner_asset_bals.pop_front().unwrap();
 
             expected_events
                 .append(
@@ -585,7 +578,12 @@ mod test_abbot {
 
         // deploy another trove to prevent recovery mode
         common::open_trove_helper(
-            abbot, common::TROVE1_OWNER_ADDR, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, 1_u128.into(),
+            abbot,
+            common::TROVE1_OWNER_ADDR,
+            yangs,
+            abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(),
+            gates,
+            1_u128.into(),
         );
 
         assert(!shrine.is_recovery_mode(), 'recovery mode');

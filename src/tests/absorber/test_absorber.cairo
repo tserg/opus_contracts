@@ -263,7 +263,7 @@ mod test_absorber {
         spy.assert_emitted(@expected_events);
 
         // Step 4
-        let provider_before_absorbed_bals = common::get_token_balances(yangs, provider.into());
+        let provider_before_absorbed_bals = common::get_token_balances(yangs, provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(provider);
 
@@ -465,8 +465,8 @@ mod test_absorber {
         assert(absorber.get_total_shares_for_current_epoch() == expected_total_shares, 'wrong total shares');
         assert(absorber.get_current_epoch() == expected_epoch, 'wrong epoch');
 
-        let before_absorbed_bals = common::get_token_balances(yangs, provider.into());
-        let before_reward_bals = common::get_token_balances(reward_tokens, provider.into());
+        let before_absorbed_bals = common::get_token_balances(yangs, provider);
+        let before_reward_bals = common::get_token_balances(reward_tokens, provider);
         let before_provider_yin_bal: Wad = shrine.get_yin(provider);
         let before_absorber_yin_bal: Wad = shrine.get_yin(absorber.contract_address);
 
@@ -616,7 +616,7 @@ mod test_absorber {
         let before_total_shares: Wad = absorber.get_total_shares_for_current_epoch();
         let before_absorber_yin_bal: u256 = yin.balance_of(absorber.contract_address);
 
-        let before_reward_bals: Span<Span<u128>> = common::get_token_balances(reward_tokens, provider.into());
+        let before_reward_bals: Span<u128> = common::get_token_balances(reward_tokens, provider);
 
         assert(
             before_provider_info.shares + absorber_contract::INITIAL_SHARES.into() == before_total_shares,
@@ -631,7 +631,14 @@ mod test_absorber {
         // Test subsequent deposit
         let second_provided_amt: Wad = (400 * WAD_ONE).into();
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, provider, yangs, absorber_utils::PROVIDER_ASSET_AMTS.span(), gates, second_provided_amt,
+            shrine,
+            abbot,
+            absorber,
+            provider,
+            yangs,
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
+            gates,
+            second_provided_amt,
         );
 
         let after_last_absorption_id: u32 = absorber.get_provider_last_absorption(provider);
@@ -856,8 +863,8 @@ mod test_absorber {
         // Reset the event spy so all previous unchecked events are dropped
         let mut second_spy = spy_events();
 
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -925,8 +932,8 @@ mod test_absorber {
         // Reset the event spy so all previous unchecked events are dropped
         let mut third_spy = spy_events();
 
-        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider.into());
-        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider.into());
+        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider);
+        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(second_provider);
 
@@ -1128,8 +1135,8 @@ mod test_absorber {
 
         // Step 4
         let first_provider_before_yin_bal: Wad = shrine.get_yin(first_provider);
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let updated_second_epoch_recipient_shares: Wad = absorber.get_total_shares_for_current_epoch()
             - absorber_contract::INITIAL_SHARES.into();
@@ -1377,8 +1384,8 @@ mod test_absorber {
 
         // Step 4
         let first_provider_before_yin_bal: Wad = shrine.get_yin(first_provider);
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -1490,7 +1497,7 @@ mod test_absorber {
         spy.assert_emitted(@expected_events);
 
         // Step 3
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
 
         let (_, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -1601,8 +1608,8 @@ mod test_absorber {
         absorber_utils::simulate_update_with_pct_to_drain(shrine, absorber, yangs, second_update_assets, burn_pct);
 
         // Step 5
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -1658,8 +1665,8 @@ mod test_absorber {
         );
 
         // Step 6
-        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider.into());
-        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider.into());
+        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider);
+        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(second_provider);
 

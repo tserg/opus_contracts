@@ -409,20 +409,14 @@ pub fn open_trove_helper(
 
 // Helpers - Convenience getters
 
-// Helper function to return a nested array of token balances given a list of
-// token addresses and user addresses.
-// The return value is in the form of:
-// [[address1_token1_balance, address2_token1_balance, ...], [address1_token2_balance, ...], ...]
-pub fn get_token_balances(tokens: Span<ContractAddress>, addresses: Span<ContractAddress>) -> Span<Span<u128>> {
-    let mut balances: Array<Span<u128>> = ArrayTrait::new();
+// Helper function to return an array of token balances for an address given a list of
+// token addresses
+pub fn get_token_balances(tokens: Span<ContractAddress>, address: ContractAddress) -> Span<u128> {
+    let mut balances: Array<u128> = ArrayTrait::new();
 
     for token in tokens {
-        let mut yang_balances: Array<u128> = ArrayTrait::new();
-        for address in addresses {
-            let bal: u128 = erc20(*token).balance_of(*address).try_into().unwrap();
-            yang_balances.append(bal);
-        }
-        balances.append(yang_balances.span());
+        let bal: u128 = erc20(*token).balance_of(address).try_into().unwrap();
+        balances.append(bal);
     }
 
     balances.span()

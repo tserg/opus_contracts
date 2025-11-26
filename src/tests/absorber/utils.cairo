@@ -54,14 +54,10 @@ pub mod absorber_utils {
 
     pub const OPUS_BLESS_AMT: u128 = 1000 * WAD_ONE; // 1_000 (Wad)
     pub const veOPUS_BLESS_AMT: u128 = 990 * WAD_ONE; // 990 (Wad)
-    pub const REWARD_AMTS_PER_BLESSING: [u128; 2] = [
-        OPUS_BLESS_AMT, 
-        veOPUS_BLESS_AMT
-    ];
+    pub const REWARD_AMTS_PER_BLESSING: [u128; 2] = [OPUS_BLESS_AMT, veOPUS_BLESS_AMT];
 
-    pub const PROVIDER_ASSET_AMTS: [u128; 2] = [
-        20 * WAD_ONE, // 20 (Wad) - ETH
-        100000000 // 1 (10 ** 8) - BTC
+    pub const PROVIDER_ASSET_AMTS: [u128; 2] = [20 * WAD_ONE, // 20 (Wad) - ETH
+    100000000 // 1 (10 ** 8) - BTC
     ];
 
     pub const FIRST_UPDATE_ASSET_AMTS: [u128; 2] = [
@@ -363,7 +359,6 @@ pub mod absorber_utils {
     // - `absorbed_amts` - Ordered list of the amount of assets absorbed.
     //
     // - `before_balances` - Ordered list of the provider's absorbed asset token balances before
-    //    in the format returned by `get_token_balances` [[token1_balance], [token2_balance], ...]
     //
     // - `preview_absorbed_assets` - Ordered list of `AssetBalance` struct representing the expected
     //    amount of absorbed assets the provider is entitled to withdraw based on `preview_reap`,
@@ -375,7 +370,7 @@ pub mod absorber_utils {
         absorber: IAbsorberDispatcher,
         provider: ContractAddress,
         mut absorbed_amts: Span<u128>,
-        mut before_balances: Span<Span<u128>>,
+        mut before_balances: Span<u128>,
         preview_absorbed_assets: Span<AssetBalance>,
         error_margin: u128,
     ) {
@@ -384,8 +379,7 @@ pub mod absorber_utils {
             // Convert to Wad for fixed point operations
             let absorbed_amt: u128 = *absorbed_amts.pop_front().unwrap();
             let after_provider_bal: u128 = common::erc20(*asset.address).balance_of(provider).try_into().unwrap();
-            let mut before_bal_arr: Span<u128> = *before_balances.pop_front().unwrap();
-            let before_bal: u128 = *before_bal_arr.pop_front().unwrap();
+            let before_bal: u128 = *before_balances.pop_front().unwrap();
             let expected_bal: u128 = before_bal + absorbed_amt;
 
             common::assert_equalish(after_provider_bal, expected_bal, error_margin, 'wrong absorbed balance');
@@ -408,7 +402,6 @@ pub mod absorber_utils {
     // - `reward_amts_per_blessing` - Ordered list of the reward token amount transferred to the absorber per blessing
     //
     // - `before_balances` - Ordered list of the provider's reward token balances before receiving the rewards
-    //    in the format returned by `get_token_balances` [[token1_balance], [token2_balance], ...]
     //
     // - `preview_rewarded_assets` - Ordered list of `AssetBalance` struct representing the expected amount of reward
     //    tokens the provider is entitled to withdraw based on `preview_reap`, in the token's decimal precision.
@@ -422,7 +415,7 @@ pub mod absorber_utils {
         absorber: IAbsorberDispatcher,
         provider: ContractAddress,
         mut reward_amts_per_blessing: Span<u128>,
-        mut before_balances: Span<Span<u128>>,
+        mut before_balances: Span<u128>,
         preview_rewarded_assets: Span<AssetBalance>,
         blessings_multiplier: Ray,
         error_margin: u128,
@@ -433,8 +426,7 @@ pub mod absorber_utils {
             let reward_amt: Wad = (*reward_amts_per_blessing.pop_front().unwrap()).into();
             let blessed_amt: Wad = wadray::rmul_wr(reward_amt, blessings_multiplier);
             let after_provider_bal: u128 = common::erc20(*asset.address).balance_of(provider).try_into().unwrap();
-            let mut before_bal_arr: Span<u128> = *before_balances.pop_front().unwrap();
-            let expected_bal: u128 = *before_bal_arr.pop_front().unwrap() + blessed_amt.into();
+            let expected_bal: u128 = *before_balances.pop_front().unwrap() + blessed_amt.into();
 
             common::assert_equalish(after_provider_bal, expected_bal, error_margin, 'wrong reward balance');
 

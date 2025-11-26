@@ -339,7 +339,7 @@ mod test_purger {
         let (penalty, max_close_amt) = purger.preview_liquidate(target_trove).expect('Should be liquidatable');
         let searcher: ContractAddress = purger_utils::SEARCHER;
 
-        let before_searcher_asset_bals: Span<Span<u128>> = common::get_token_balances(yangs, array![searcher].span());
+        let before_searcher_asset_bals: Span<u128> = common::get_token_balances(yangs, searcher);
 
         cheat_caller_address(purger.contract_address, searcher, CheatSpan::TargetCalls(1));
         let freed_assets: Span<AssetBalance> = purger.liquidate(target_trove, Bounded::MAX, searcher);
@@ -375,7 +375,7 @@ mod test_purger {
         // Check that searcher has received collateral
         purger_utils::assert_received_assets(
             before_searcher_asset_bals,
-            common::get_token_balances(yangs, array![searcher].span()),
+            common::get_token_balances(yangs, searcher),
             expected_freed_assets,
             10_u128, // error margin
             'wrong searcher asset balance',
@@ -850,10 +850,8 @@ mod test_purger {
             .expect('Should be absorbable');
         let caller: ContractAddress = common::NON_ZERO_ADDR;
 
-        let before_caller_asset_bals: Span<Span<u128>> = common::get_token_balances(yangs, array![caller].span());
-        let before_absorber_asset_bals: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![absorber.contract_address].span(),
-        );
+        let before_caller_asset_bals: Span<u128> = common::get_token_balances(yangs, caller);
+        let before_absorber_asset_bals: Span<u128> = common::get_token_balances(yangs, absorber.contract_address);
 
         cheat_caller_address(purger.contract_address, caller, CheatSpan::TargetCalls(1));
         let compensation: Span<AssetBalance> = purger.absorb(target_trove);
@@ -885,7 +883,7 @@ mod test_purger {
         );
         purger_utils::assert_received_assets(
             before_caller_asset_bals,
-            common::get_token_balances(yangs, array![caller].span()),
+            common::get_token_balances(yangs, caller),
             expected_compensation,
             10_u128, // error margin
             'wrong caller asset balance',
@@ -916,7 +914,7 @@ mod test_purger {
         );
         purger_utils::assert_received_assets(
             before_absorber_asset_bals,
-            common::get_token_balances(yangs, array![absorber.contract_address].span()),
+            common::get_token_balances(yangs, absorber.contract_address),
             expected_freed_assets,
             10000_u128, // error margin
             'wrong absorber asset balance',
@@ -1063,10 +1061,8 @@ mod test_purger {
 
             let caller: ContractAddress = common::NON_ZERO_ADDR;
 
-            let before_caller_asset_bals: Span<Span<u128>> = common::get_token_balances(yangs, array![caller].span());
-            let before_absorber_asset_bals: Span<Span<u128>> = common::get_token_balances(
-                yangs, array![absorber.contract_address].span(),
-            );
+            let before_caller_asset_bals: Span<u128> = common::get_token_balances(yangs, caller);
+            let before_absorber_asset_bals: Span<u128> = common::get_token_balances(yangs, absorber.contract_address);
 
             if kill_absorber {
                 absorber_utils::kill_absorber(absorber);
@@ -1099,7 +1095,7 @@ mod test_purger {
             );
             purger_utils::assert_received_assets(
                 before_caller_asset_bals,
-                common::get_token_balances(yangs, array![caller].span()),
+                common::get_token_balances(yangs, caller),
                 expected_compensation,
                 10_u128, // error margin
                 'wrong caller asset balance',
@@ -1128,7 +1124,7 @@ mod test_purger {
             );
             purger_utils::assert_received_assets(
                 before_absorber_asset_bals,
-                common::get_token_balances(yangs, array![absorber.contract_address].span()),
+                common::get_token_balances(yangs, absorber.contract_address),
                 expected_freed_assets,
                 2000_u128, // error margin
                 'wrong absorber asset balance',
@@ -1400,10 +1396,8 @@ mod test_purger {
 
             let caller: ContractAddress = common::NON_ZERO_ADDR;
 
-            let before_caller_asset_bals: Span<Span<u128>> = common::get_token_balances(yangs, array![caller].span());
-            let before_absorber_asset_bals: Span<Span<u128>> = common::get_token_balances(
-                yangs, array![absorber.contract_address].span(),
-            );
+            let before_caller_asset_bals: Span<u128> = common::get_token_balances(yangs, caller);
+            let before_absorber_asset_bals: Span<u128> = common::get_token_balances(yangs, absorber.contract_address);
 
             let recipient_trove_owner: ContractAddress = absorber_utils::PROVIDER_1;
 
@@ -1521,7 +1515,7 @@ mod test_purger {
             );
             purger_utils::assert_received_assets(
                 before_caller_asset_bals,
-                common::get_token_balances(yangs, array![caller].span()),
+                common::get_token_balances(yangs, caller),
                 expected_compensation,
                 10_u128, // error margin
                 'wrong caller asset balance',
@@ -1546,7 +1540,7 @@ mod test_purger {
             let expected_freed_assets: Span<AssetBalance> = common::combine_assets_and_amts(yangs, expected_freed_amts);
             purger_utils::assert_received_assets(
                 before_absorber_asset_bals,
-                common::get_token_balances(yangs, array![absorber.contract_address].span()),
+                common::get_token_balances(yangs, absorber.contract_address),
                 expected_freed_assets,
                 1000_u128, // error margin
                 'wrong absorber asset balance',
@@ -1747,9 +1741,7 @@ mod test_purger {
                 );
 
                 let caller: ContractAddress = common::NON_ZERO_ADDR;
-                let before_caller_asset_bals: Span<Span<u128>> = common::get_token_balances(
-                    yangs, array![caller].span(),
-                );
+                let before_caller_asset_bals: Span<u128> = common::get_token_balances(yangs, caller);
 
                 if kill_absorber {
                     absorber_utils::kill_absorber(absorber);
@@ -1777,7 +1769,7 @@ mod test_purger {
                 );
                 purger_utils::assert_received_assets(
                     before_caller_asset_bals,
-                    common::get_token_balances(yangs, array![caller].span()),
+                    common::get_token_balances(yangs, caller),
                     expected_compensation,
                     10_u128, // error margin
                     'wrong caller asset balance',

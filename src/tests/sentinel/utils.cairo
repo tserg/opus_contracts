@@ -220,7 +220,7 @@ pub mod sentinel_utils {
                 eth_gate.contract_address,
             );
 
-        (eth, eth_gate) 
+        (eth, eth_gate)
     }
 
     pub fn add_wbtc_yang(
