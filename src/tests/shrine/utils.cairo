@@ -138,7 +138,7 @@ pub mod shrine_utils {
     // Advance the prices for two yangs, starting from the current interval and up to current interval + `num_intervals`
     // - 1
     pub fn advance_prices_and_set_multiplier(
-        shrine: IShrineDispatcher, num_intervals: u64, yangs: Span<ContractAddress>,
+        shrine: IShrineDispatcher, yangs: Span<ContractAddress>, num_intervals: u64 
     ) -> Span<Span<Wad>> {
         let mut yang_feeds: Array<Span<Wad>> = ArrayTrait::new();
 
@@ -202,7 +202,7 @@ pub mod shrine_utils {
     #[inline(always)]
     pub fn shrine_deploy_with_dummy_yangs_and_feed(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
         let shrine: IShrineDispatcher = shrine_deploy_with_dummy_yangs(shrine_class);
-        advance_prices_and_set_multiplier(shrine, FEED_LEN, common::THREE_YANG_ADDRS.span());
+        advance_prices_and_set_multiplier(shrine, common::THREE_YANG_ADDRS.span(), FEED_LEN);
         shrine
     }
 

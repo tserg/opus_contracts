@@ -162,7 +162,7 @@ mod test_shrine {
 
         let yang_params = common::THREE_YANG_PARAMS.span();
         let yang_feeds = shrine_utils::advance_prices_and_set_multiplier(
-            shrine, shrine_utils::FEED_LEN, common::THREE_YANG_ADDRS.span(),
+            shrine, common::THREE_YANG_ADDRS.span(), shrine_utils::FEED_LEN,
         );
 
         let mut expected_events: Array<(ContractAddress, shrine_contract::Event)> = ArrayTrait::new();

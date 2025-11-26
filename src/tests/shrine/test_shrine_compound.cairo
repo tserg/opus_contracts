@@ -40,7 +40,7 @@ mod test_shrine_compound {
         // after the last price update
         let trove_health: Health = shrine.get_trove_health(trove_id);
 
-        shrine_utils::advance_prices_and_set_multiplier(shrine, shrine_utils::FEED_LEN, yangs);
+        shrine_utils::advance_prices_and_set_multiplier(shrine, yangs, shrine_utils::FEED_LEN);
 
         // Offset by 1 because `advance_prices_and_set_multiplier` updates `start_interval`.
         let end_interval: u64 = start_interval + shrine_utils::FEED_LEN - 1;
@@ -118,7 +118,7 @@ mod test_shrine_compound {
         let trove_health: Health = shrine.get_trove_health(trove_id);
 
         let num_intervals_before_skip: u64 = 5;
-        shrine_utils::advance_prices_and_set_multiplier(shrine, num_intervals_before_skip, yangs);
+        shrine_utils::advance_prices_and_set_multiplier(shrine, yangs, num_intervals_before_skip);
 
         let skipped_interval: u64 = start_interval + num_intervals_before_skip;
 
@@ -129,7 +129,7 @@ mod test_shrine_compound {
 
         let num_intervals_after_skip: u64 = 4;
 
-        shrine_utils::advance_prices_and_set_multiplier(shrine, num_intervals_after_skip, yangs);
+        shrine_utils::advance_prices_and_set_multiplier(shrine, yangs, num_intervals_after_skip);
 
         // sanity check that skipped interval has no price values
         let (skipped_interval_price, _) = shrine.get_yang_price(yang1_addr, skipped_interval);
@@ -418,7 +418,7 @@ mod test_shrine_compound {
 
         // Advance timestamp by given intervals and set last updated price - `T+LAST_UPDATED`
         let intervals_to_skip: u64 = 5;
-        shrine_utils::advance_prices_and_set_multiplier(shrine, intervals_to_skip, yangs);
+        shrine_utils::advance_prices_and_set_multiplier(shrine, yangs, intervals_to_skip);
 
         // Advance timestamp to `T+END`, to mock lack of price updates since `T+LAST_UPDATED`.
         // Trigger charge to update the trove's debt to `T+END`.
@@ -493,7 +493,7 @@ mod test_shrine_compound {
 
         // Advance timestamp by given intervals and set last updated price - `T+LAST_UPDATED_BEFORE_START`'
         let intervals_to_skip: u64 = 5;
-        shrine_utils::advance_prices_and_set_multiplier(shrine, intervals_to_skip, yangs);
+        shrine_utils::advance_prices_and_set_multiplier(shrine, yangs, intervals_to_skip);
         let last_updated_interval_before_start: u64 = shrine_utils::current_interval();
 
         // Advance timestamp to `T+START`.
@@ -713,7 +713,7 @@ mod test_shrine_compound {
         let mut spy = spy_events();
 
         let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
-        shrine_utils::advance_prices_and_set_multiplier(shrine, shrine_utils::FEED_LEN, yangs);
+        shrine_utils::advance_prices_and_set_multiplier(shrine, yangs, shrine_utils::FEED_LEN);
 
         let trove_id: u64 = common::TROVE_1;
         let trove1_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
@@ -847,7 +847,7 @@ mod test_shrine_compound {
             // First, we advance an interval so the last price is not overwritten.
             // Next, Advance the prices by the number of intervals between each base rate update
             common::advance_intervals(1);
-            shrine_utils::advance_prices_and_set_multiplier(shrine, BASE_RATE_UPDATE_SPACING, yangs);
+            shrine_utils::advance_prices_and_set_multiplier(shrine, yangs, BASE_RATE_UPDATE_SPACING);
 
             let era_end_interval: u64 = era_start_interval + BASE_RATE_UPDATE_SPACING;
 

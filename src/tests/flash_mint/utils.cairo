@@ -33,7 +33,7 @@ pub mod flash_mint_utils {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
         let flashmint: IFlashMintDispatcher = flashmint_deploy(shrine.contract_address);
 
-        shrine_utils::advance_prices_and_set_multiplier(shrine, 3, common::THREE_YANG_ADDRS.span());
+        shrine_utils::advance_prices_and_set_multiplier(shrine, common::THREE_YANG_ADDRS.span(), 3);
 
         // Mint some yin in shrine
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
