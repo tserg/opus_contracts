@@ -130,6 +130,13 @@ pub mod shrine_utils {
         shrine
     }
 
+    #[inline(always)]
+    pub fn shrine_deploy_with_dummy_yangs_and_feed(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
+        let shrine: IShrineDispatcher = shrine_deploy_with_dummy_yangs(shrine_class);
+        advance_prices_and_set_multiplier(shrine, common::THREE_YANG_ADDRS.span(), FEED_LEN);
+        shrine
+    }
+
     // Advance the prices for two yangs, starting from the current interval and up to current interval + `num_intervals`
     // - 1
     pub fn advance_prices_and_set_multiplier(
@@ -192,13 +199,6 @@ pub mod shrine_utils {
         next_ts += rem_time;
         start_cheat_block_timestamp_global(next_ts);
         stop_cheat_caller_address(shrine.contract_address);
-    }
-
-    #[inline(always)]
-    pub fn shrine_deploy_with_dummy_yangs_and_feed(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
-        let shrine: IShrineDispatcher = shrine_deploy_with_dummy_yangs(shrine_class);
-        advance_prices_and_set_multiplier(shrine, common::THREE_YANG_ADDRS.span(), FEED_LEN);
-        shrine
     }
 
     #[inline(always)]
