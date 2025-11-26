@@ -91,7 +91,7 @@ pub mod sentinel_utils {
     ) -> (ContractAddress, IGateDispatcher) {
         let eth_vault: ContractAddress = common::eth_vault_deploy(vault_class, eth);
 
-        let eth_vault_gate: ContractAddress = gate_utils::gate_deploy(
+        let eth_vault_gate: IGateDispatcher = gate_utils::gate_deploy(
             eth_vault, shrine.contract_address, sentinel.contract_address, Option::Some(gate_class),
         );
 
@@ -115,10 +115,10 @@ pub mod sentinel_utils {
                 eth_params.threshold.into(),
                 eth_params.start_price.into(),
                 eth_params.base_rate.into(),
-                eth_vault_gate,
+                eth_vault_gate.contract_address,
             );
 
-        (eth_vault, IGateDispatcher { contract_address: eth_vault_gate })
+        (eth_vault, eth_vault_gate)
     }
 
     pub fn add_wbtc_vault_yang(
@@ -129,7 +129,7 @@ pub mod sentinel_utils {
         wbtc: ContractAddress,
     ) -> (ContractAddress, IGateDispatcher) {
         let wbtc_vault: ContractAddress = common::wbtc_vault_deploy(vault_class, wbtc);
-        let wbtc_vault_gate: ContractAddress = gate_utils::gate_deploy(
+        let wbtc_vault_gate: IGateDispatcher = gate_utils::gate_deploy(
             wbtc_vault, shrine.contract_address, sentinel.contract_address, Option::Some(gate_class),
         );
 
@@ -152,10 +152,10 @@ pub mod sentinel_utils {
                 common::YANG2_THRESHOLD.into(),
                 common::YANG2_START_PRICE.into(),
                 common::YANG2_BASE_RATE.into(),
-                wbtc_vault_gate,
+                wbtc_vault_gate.contract_address,
             );
 
-        (wbtc_vault, IGateDispatcher { contract_address: wbtc_vault_gate })
+        (wbtc_vault, wbtc_vault_gate)
     }
 
     pub fn add_vaults_to_sentinel(
@@ -194,7 +194,7 @@ pub mod sentinel_utils {
     ) -> (ContractAddress, IGateDispatcher) {
         let eth: ContractAddress = common::eth_token_deploy(token_class);
 
-        let eth_gate: ContractAddress = gate_utils::gate_deploy(
+        let eth_gate: IGateDispatcher = gate_utils::gate_deploy(
             eth, shrine.contract_address, sentinel.contract_address, gate_class,
         );
 
@@ -217,10 +217,10 @@ pub mod sentinel_utils {
                 eth_params.threshold.into(),
                 eth_params.start_price.into(),
                 eth_params.base_rate.into(),
-                eth_gate,
+                eth_gate.contract_address,
             );
 
-        (eth, IGateDispatcher { contract_address: eth_gate })
+        (eth, eth_gate) 
     }
 
     pub fn add_wbtc_yang(
@@ -230,7 +230,7 @@ pub mod sentinel_utils {
         gate_class: Option<ContractClass>,
     ) -> (ContractAddress, IGateDispatcher) {
         let wbtc: ContractAddress = common::wbtc_token_deploy(token_class);
-        let wbtc_gate: ContractAddress = gate_utils::gate_deploy(
+        let wbtc_gate: IGateDispatcher = gate_utils::gate_deploy(
             wbtc, shrine.contract_address, sentinel.contract_address, gate_class,
         );
 
@@ -252,10 +252,10 @@ pub mod sentinel_utils {
                 common::YANG2_THRESHOLD.into(),
                 common::YANG2_START_PRICE.into(),
                 common::YANG2_BASE_RATE.into(),
-                wbtc_gate,
+                wbtc_gate.contract_address,
             );
 
-        (wbtc, IGateDispatcher { contract_address: wbtc_gate })
+        (wbtc, wbtc_gate)
     }
 
     pub fn get_initial_asset_amt(asset_addr: ContractAddress) -> u128 {

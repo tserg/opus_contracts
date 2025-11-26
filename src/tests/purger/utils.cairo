@@ -70,22 +70,20 @@ pub mod purger_utils {
     // Constant helpers
     //
 
-    pub fn target_trove_yang_asset_amts() -> Span<u128> {
-        array![common::SMALL_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT].span()
-    }
+    pub const TARGET_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
+        common::SMALL_ETH_DEPOSIT,
+        common::MEDIUM_WBTC_DEPOSIT,
+    ];
 
-    #[inline(always)]
-    pub fn recipient_trove_yang_asset_amts() -> Span<u128> {
-        array![30 * WAD_ONE, // 30 (Wad) - ETH
+    pub const RECIPIENT_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
+        30 * WAD_ONE, // 30 (Wad) - ETH
         500000000 // 5 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
-    pub fn whale_trove_yang_asset_amts() -> Span<u128> {
-        array![700 * WAD_ONE, // 700 (Wad) - ETH
+    pub const WHALE_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
+        700 * WAD_ONE, // 700 (Wad) - ETH
         70000000000 // 700 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
     pub fn interesting_thresholds_for_liquidation() -> Span<Ray> {
         array![
@@ -242,7 +240,7 @@ pub mod purger_utils {
     pub fn interesting_yang_amts_for_recipient_trove() -> Span<Span<u128>> {
         array![
             // base case for ordinary redistributions
-            recipient_trove_yang_asset_amts(),
+            RECIPIENT_TROVE_YANG_ASSET_AMTS.span(),
             // recipient trove has dust amount of the first yang
             // 100 wei (Wad) ETH, 20 (10 ** 8) WBTC
             array![100_u128, 2000000000_u128].span(),
@@ -258,9 +256,12 @@ pub mod purger_utils {
     }
 
     pub fn interesting_yang_amts_for_redistributed_trove() -> Span<Span<u128>> {
-        array![target_trove_yang_asset_amts(), // Dust yang case
-        // 20 (Wad) ETH, 100E-8 (WBTC decimals) WBTC
-        array![20 * WAD_ONE, 100_u128].span()].span()
+        array![
+            TARGET_TROVE_YANG_ASSET_AMTS.span(),
+            // Dust yang case
+            // 20 (Wad) ETH, 100E-8 (WBTC decimals) WBTC
+            array![20 * WAD_ONE, 100_u128].span()
+        ].span()
     }
 
     pub fn inoperational_absorber_yin_cases() -> Span<Wad> {
@@ -430,8 +431,8 @@ pub mod purger_utils {
         abbot: IAbbotDispatcher, yangs: Span<ContractAddress>, gates: Span<IGateDispatcher>, yin_amt: Wad,
     ) {
         let user: ContractAddress = SEARCHER;
-        common::fund_user(user, yangs, recipient_trove_yang_asset_amts());
-        common::open_trove_helper(abbot, user, yangs, recipient_trove_yang_asset_amts(), gates, yin_amt);
+        common::fund_user(user, yangs, RECIPIENT_TROVE_YANG_ASSET_AMTS.span());
+        common::open_trove_helper(abbot, user, yangs, RECIPIENT_TROVE_YANG_ASSET_AMTS.span(), gates, yin_amt);
     }
 
     pub fn funded_absorber(
@@ -443,7 +444,7 @@ pub mod purger_utils {
         amt: Wad,
     ) -> u64 {
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, absorber_utils::PROVIDER_1, yangs, recipient_trove_yang_asset_amts(), gates, amt,
+            shrine, abbot, absorber, absorber_utils::PROVIDER_1, yangs, RECIPIENT_TROVE_YANG_ASSET_AMTS.span(), gates, amt,
         )
     }
 
@@ -452,7 +453,7 @@ pub mod purger_utils {
         abbot: IAbbotDispatcher, yangs: Span<ContractAddress>, gates: Span<IGateDispatcher>, yin_amt: Wad,
     ) -> u64 {
         let user: ContractAddress = TARGET_TROVE_OWNER;
-        let deposit_amts: Span<u128> = target_trove_yang_asset_amts();
+        let deposit_amts: Span<u128> = TARGET_TROVE_YANG_ASSET_AMTS.span();
         common::fund_user(user, yangs, deposit_amts);
         common::open_trove_helper(abbot, user, yangs, deposit_amts, gates, yin_amt)
     }
@@ -463,7 +464,7 @@ pub mod purger_utils {
         abbot: IAbbotDispatcher, yangs: Span<ContractAddress>, gates: Span<IGateDispatcher>,
     ) -> u64 {
         let user: ContractAddress = TARGET_TROVE_OWNER;
-        let deposit_amts: Span<u128> = whale_trove_yang_asset_amts();
+        let deposit_amts: Span<u128> = WHALE_TROVE_YANG_ASSET_AMTS.span();
         let yin_amt: Wad = WAD_ONE.into();
         common::fund_user(user, yangs, deposit_amts);
         common::open_trove_helper(abbot, user, yangs, deposit_amts, gates, yin_amt)

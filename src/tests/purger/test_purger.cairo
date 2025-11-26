@@ -364,7 +364,7 @@ mod test_purger {
         assert(shrine.get_yin(searcher) == searcher_start_yin - max_close_amt, 'wrong searcher yin balance');
 
         let (expected_freed_pct, expected_freed_amts) = purger_utils::get_expected_liquidation_assets(
-            purger_utils::target_trove_yang_asset_amts(),
+            purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span(),
             target_trove_updated_start_health,
             max_close_amt,
             penalty,
@@ -595,7 +595,7 @@ mod test_purger {
             }
 
             let (expected_freed_pct, _) = purger_utils::get_expected_liquidation_assets(
-                purger_utils::target_trove_yang_asset_amts(),
+                purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span(),
                 target_trove_updated_start_health,
                 max_close_amt,
                 penalty,
@@ -876,7 +876,7 @@ mod test_purger {
         assert(target_trove_after_health.debt.is_zero(), 'not fully absorbed');
 
         // Check that caller has received compensation
-        let target_trove_yang_asset_amts: Span<u128> = purger_utils::target_trove_yang_asset_amts();
+        let target_trove_yang_asset_amts: Span<u128> = purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span();
         let expected_compensation_amts: Span<u128> = purger_utils::get_expected_compensation_assets(
             target_trove_yang_asset_amts, target_trove_updated_start_health.value, expected_compensation_value,
         );
@@ -1973,7 +1973,7 @@ mod test_purger {
             }
 
             let (expected_freed_pct, expected_freed_amts) = purger_utils::get_expected_liquidation_assets(
-                purger_utils::target_trove_yang_asset_amts(),
+                purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span(),
                 target_trove_updated_start_health,
                 max_close_amt,
                 penalty,
@@ -2126,7 +2126,7 @@ mod test_purger {
             assert(target_trove_after_health.value.is_zero(), 'wrong value after liquidation');
             assert(target_trove_after_health.debt.is_zero(), 'wrong debt after liquidation');
 
-            let target_trove_yang_asset_amts: Span<u128> = purger_utils::target_trove_yang_asset_amts();
+            let target_trove_yang_asset_amts: Span<u128> = purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span();
             let (_, expected_freed_asset_amts) = purger_utils::get_expected_liquidation_assets(
                 target_trove_yang_asset_amts,
                 target_trove_updated_start_health,
