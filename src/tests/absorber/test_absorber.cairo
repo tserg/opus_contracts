@@ -225,7 +225,7 @@ mod test_absorber {
         absorber.kill();
 
         // Step 3
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, first_update_assets, RAY_SCALE.into(),
         );
@@ -378,7 +378,7 @@ mod test_absorber {
         let expected_absorption_id = 1;
 
         // Simulate absorption
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, first_update_assets, percentage_to_drain,
         );
@@ -583,7 +583,7 @@ mod test_absorber {
         );
 
         let first_update_assets: Span<AssetBalance> = common::combine_assets_and_amts(
-            yangs, absorber_utils::first_update_assets(),
+            yangs, absorber_utils::FIRST_UPDATE_ASSET_AMTS.span(),
         );
         cheat_caller_address(absorber.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         absorber.update(first_update_assets);
@@ -631,7 +631,7 @@ mod test_absorber {
         // Test subsequent deposit
         let second_provided_amt: Wad = (400 * WAD_ONE).into();
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, provider, yangs, absorber_utils::provider_asset_amts(), gates, second_provided_amt,
+            shrine, abbot, absorber, provider, yangs, absorber_utils::PROVIDER_ASSET_AMTS.span(), gates, second_provided_amt,
         );
 
         let after_last_absorption_id: u32 = absorber.get_provider_last_absorption(provider);
@@ -710,7 +710,7 @@ mod test_absorber {
         let provided_amt: Wad = (10000 * WAD_ONE).into();
         let provider_amt: Wad = (5000 * WAD_ONE).into();
 
-        let yang_asset_amts: Span<u128> = absorber_utils::provider_asset_amts();
+        let yang_asset_amts: Span<u128> = absorber_utils::PROVIDER_ASSET_AMTS.span();
         common::fund_user(donor, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, donor, yangs, yang_asset_amts, gates, provided_amt);
 
@@ -775,7 +775,7 @@ mod test_absorber {
             - absorber_contract::INITIAL_SHARES.into();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, first_update_assets, RAY_SCALE.into(),
         );
@@ -790,7 +790,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -811,7 +811,7 @@ mod test_absorber {
 
         // Step 4
 
-        let second_update_assets: Span<u128> = absorber_utils::second_update_assets();
+        let second_update_assets: Span<u128> = absorber_utils::SECOND_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, second_update_assets, RAY_SCALE.into(),
         );
@@ -1018,7 +1018,7 @@ mod test_absorber {
         let first_epoch_total_shares: Wad = absorber.get_total_shares_for_current_epoch();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         // Amount of yin remaining needs to be sufficiently significant to account for loss of precision
         // from conversion of shares across epochs, after discounting initial shares.
         let above_min_shares: Wad = (absorber_contract::INITIAL_SHARES + absorber_contract::MINIMUM_RECIPIENT_SHARES)
@@ -1088,7 +1088,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -1250,7 +1250,7 @@ mod test_absorber {
         let mut spy = spy_events();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         // Amount of yin remaining needs to be sufficiently significant to account for loss of precision
         // from conversion of shares across epochs, after discounting initial shares.
         let excess_above_minimum: Wad = 1_u128.into();
@@ -1318,7 +1318,7 @@ mod test_absorber {
             - absorber_contract::INITIAL_SHARES.into();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         let burn_amt: Wad = first_provided_amt - absorber_contract::INITIAL_SHARES.into();
         absorber_utils::simulate_update_with_amt_to_drain(shrine, absorber, yangs, first_update_assets, burn_amt);
 
@@ -1355,7 +1355,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -1463,7 +1463,7 @@ mod test_absorber {
         let mut spy = spy_events();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         let burn_amt: Wad = first_provided_amt - remaining_yin_amt;
         absorber_utils::simulate_update_with_amt_to_drain(shrine, absorber, yangs, first_update_assets, burn_amt);
 
@@ -1549,7 +1549,7 @@ mod test_absorber {
         let first_provided_amt = provided_amt;
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         let burn_pct: Ray = 266700000000000000000000000_u128.into(); // 26.67% (Ray)
         absorber_utils::simulate_update_with_pct_to_drain(shrine, absorber, yangs, first_update_assets, burn_pct);
 
@@ -1565,7 +1565,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -1596,7 +1596,7 @@ mod test_absorber {
         let expected_second_provider_pct: Ray = wadray::rdiv_ww(second_provider_info.shares, total_recipient_shares);
 
         // Step 4
-        let second_update_assets: Span<u128> = absorber_utils::second_update_assets();
+        let second_update_assets: Span<u128> = absorber_utils::SECOND_UPDATE_ASSET_AMTS.span();
         let burn_pct: Ray = 512390000000000000000000000_u128.into(); // 51.239% (Ray)
         absorber_utils::simulate_update_with_pct_to_drain(shrine, absorber, yangs, second_update_assets, burn_pct);
 
@@ -1930,7 +1930,7 @@ mod test_absorber {
             absorber,
             provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             less_than_initial_shares_amt,
         );
@@ -1946,7 +1946,7 @@ mod test_absorber {
         let provider = absorber_utils::PROVIDER_1;
         let provided_amt: Wad = (10000 * WAD_ONE).into();
 
-        let yang_asset_amts: Span<u128> = absorber_utils::provider_asset_amts();
+        let yang_asset_amts: Span<u128> = absorber_utils::PROVIDER_ASSET_AMTS.span();
         common::fund_user(provider, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, provider, yangs, yang_asset_amts, gates, provided_amt);
 
@@ -1967,7 +1967,7 @@ mod test_absorber {
         let provider = absorber_utils::PROVIDER_1;
         let provided_amt: Wad = (10000 * WAD_ONE).into();
 
-        let yang_asset_amts: Span<u128> = absorber_utils::provider_asset_amts();
+        let yang_asset_amts: Span<u128> = absorber_utils::PROVIDER_ASSET_AMTS.span();
         common::fund_user(provider, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, provider, yangs, yang_asset_amts, gates, provided_amt);
 
@@ -2091,7 +2091,7 @@ mod test_absorber {
         let provider = absorber_utils::PROVIDER_1;
         let provided_amt: Wad = (10000 * WAD_ONE).into();
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, provider, yangs, absorber_utils::provider_asset_amts(), gates, provided_amt,
+            shrine, abbot, absorber, provider, yangs, absorber_utils::PROVIDER_ASSET_AMTS.span(), gates, provided_amt,
         );
 
         let expected_epoch: u32 = absorber_contract::FIRST_EPOCH;

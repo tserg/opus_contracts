@@ -428,7 +428,7 @@ mod test_purger {
 
         // Fund flash liquidator contract with some collateral to open a trove
         // but not draw any debt
-        common::fund_user(flash_liquidator.contract_address, yangs, absorber_utils::provider_asset_amts());
+        common::fund_user(flash_liquidator.contract_address, yangs, absorber_utils::PROVIDER_ASSET_AMTS.span());
 
         // Accrue some interest
         common::advance_intervals_and_refresh_prices_and_multiplier(shrine, yangs, 500);

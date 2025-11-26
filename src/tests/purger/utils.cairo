@@ -350,7 +350,7 @@ pub mod purger_utils {
 
         let reward_tokens: Span<ContractAddress> = absorber_utils::reward_tokens_deploy(classes.token);
 
-        let reward_amts_per_blessing: Span<u128> = absorber_utils::reward_amts_per_blessing();
+        let reward_amts_per_blessing: Span<u128> = absorber_utils::REWARD_AMTS_PER_BLESSING.span();
         absorber_utils::deploy_blesser_for_rewards(
             absorber, reward_tokens, reward_amts_per_blessing, Option::Some(classes.blesser),
         );

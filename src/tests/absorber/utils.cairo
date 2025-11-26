@@ -54,27 +54,25 @@ pub mod absorber_utils {
 
     pub const OPUS_BLESS_AMT: u128 = 1000 * WAD_ONE; // 1_000 (Wad)
     pub const veOPUS_BLESS_AMT: u128 = 990 * WAD_ONE; // 990 (Wad)
+    pub const REWARD_AMTS_PER_BLESSING: [u128; 2] = [
+        OPUS_BLESS_AMT, 
+        veOPUS_BLESS_AMT
+    ];
 
-    #[inline(always)]
-    pub fn provider_asset_amts() -> Span<u128> {
-        array![20 * WAD_ONE, // 20 (Wad) - ETH
+    pub const PROVIDER_ASSET_AMTS: [u128; 2] = [
+        20 * WAD_ONE, // 20 (Wad) - ETH
         100000000 // 1 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
-    #[inline(always)]
-    pub fn first_update_assets() -> Span<u128> {
-        array![1230000000000000000, // 1.23 (Wad) - ETH
+    pub const FIRST_UPDATE_ASSET_AMTS: [u128; 2] = [
+        1230000000000000000, // 1.23 (Wad) - ETH
         23700000 // 0.237 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
-    #[inline(always)]
-    pub fn second_update_assets() -> Span<u128> {
-        array![572000000000000000, // 0.572 (Wad) - ETH
+    pub const SECOND_UPDATE_ASSET_AMTS: [u128; 2] = [
+        572000000000000000, // 0.572 (Wad) - ETH
         65400000 // 0.654 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
     //
     // Address constants
@@ -143,10 +141,6 @@ pub mod absorber_utils {
         array![opus_token_deploy(token_class), veopus_token_deploy(token_class)].span()
     }
 
-    // Convenience fixture for reward amounts
-    pub fn reward_amts_per_blessing() -> Span<u128> {
-        array![OPUS_BLESS_AMT, veOPUS_BLESS_AMT].span()
-    }
 
     // Helper function to deploy a blesser for a token.
     // Mints tokens to the deployed blesser if `mint_to_blesser` is `true`.
@@ -213,7 +207,7 @@ pub mod absorber_utils {
 
         let provider = PROVIDER_1;
         let provided_amt: Wad = 10000000000000000000000_u128.into(); // 10_000 (Wad)
-        provide_to_absorber(shrine, abbot, absorber, provider, yangs, provider_asset_amts(), gates, provided_amt);
+        provide_to_absorber(shrine, abbot, absorber, provider, yangs, PROVIDER_ASSET_AMTS.span(), gates, provided_amt);
 
         (AbsorberTestConfig { shrine, sentinel, abbot, absorber, yangs, gates }, provider, provided_amt)
     }
@@ -226,7 +220,7 @@ pub mod absorber_utils {
         let (absorber_test_config, provider, provided_amt) = absorber_with_first_provider(Option::Some(classes));
 
         let reward_tokens: Span<ContractAddress> = reward_tokens_deploy(classes.token);
-        let reward_amts_per_blessing: Span<u128> = reward_amts_per_blessing();
+        let reward_amts_per_blessing: Span<u128> = REWARD_AMTS_PER_BLESSING.span();
         let blessers: Span<ContractAddress> = deploy_blesser_for_rewards(
             absorber_test_config.absorber, reward_tokens, reward_amts_per_blessing, classes.blesser,
         );
