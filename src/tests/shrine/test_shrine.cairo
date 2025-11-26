@@ -24,17 +24,15 @@ mod test_shrine {
     #[test]
     fn test_shrine_deploy() {
         let mut spy = spy_events();
-        let shrine_addr = shrine_utils::shrine_deploy(Option::None);
+        let shrine = shrine_utils::shrine_deploy(Option::None);
 
         // Check ERC-20 getters
-        let yin = common::erc20(shrine_addr);
+        let yin = common::erc20(shrine.contract_address);
         assert(yin.name() == shrine_utils::YIN_NAME, 'wrong name');
         assert(yin.symbol() == shrine_utils::YIN_SYMBOL, 'wrong symbol');
         assert(yin.decimals() == WAD_DECIMALS, 'wrong decimals');
 
         // Check Shrine getters
-        let shrine = IShrineDispatcher { contract_address: shrine_addr };
-
         assert(shrine.get_live(), 'not live');
         let (multiplier, _, _) = shrine.get_current_multiplier();
         assert(multiplier == RAY_ONE.into(), 'wrong multiplier');
@@ -50,12 +48,12 @@ mod test_shrine {
             "wrong buffer factor",
         );
 
-        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine_addr };
+        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine.contract_address };
         assert(shrine_accesscontrol.get_admin() == common::SHRINE_ADMIN, 'wrong admin');
 
         let expected_events = array![
             (
-                shrine_addr,
+                shrine.contract_address,
                 shrine_contract::Event::MultiplierUpdated(
                     shrine_contract::MultiplierUpdated {
                         multiplier: shrine_contract::INITIAL_MULTIPLIER.into(),
@@ -1570,9 +1568,8 @@ mod test_shrine {
 
     #[test]
     fn test_auth() {
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-        let shrine = IShrineDispatcher { contract_address: shrine_addr };
-        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine_addr };
+        let shrine = shrine_utils::shrine_deploy(Option::None);
+        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine.contract_address };
 
         let admin: ContractAddress = common::SHRINE_ADMIN;
         let new_admin: ContractAddress = 'new shrine admin'.try_into().unwrap();
@@ -1600,10 +1597,8 @@ mod test_shrine {
     #[test]
     #[should_panic(expected: 'Caller missing role')]
     fn test_revoke_role() {
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-
-        let shrine = IShrineDispatcher { contract_address: shrine_addr };
-        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine_addr };
+        let shrine = shrine_utils::shrine_deploy(Option::None);
+        let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine.contract_address };
 
         let admin: ContractAddress = common::SHRINE_ADMIN;
         let new_admin: ContractAddress = 'new shrine admin'.try_into().unwrap();
@@ -2848,8 +2843,8 @@ mod test_shrine {
 
     #[test]
     fn test_src5_for_erc20_support() {
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-        let src5 = ISRC5Dispatcher { contract_address: shrine_addr };
+        let shrine = shrine_utils::shrine_deploy(Option::None);
+        let src5 = ISRC5Dispatcher { contract_address: shrine.contract_address };
         assert(src5.supports_interface(shrine_contract::ISRC5_ID), 'should support SRC5');
         assert(src5.supports_interface(shrine_contract::IERC20_ID), 'should support ERC20');
         assert(src5.supports_interface(shrine_contract::IERC20_CAMEL_ID), 'should support ERC20 Camel');

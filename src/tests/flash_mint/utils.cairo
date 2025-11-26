@@ -29,7 +29,7 @@ pub mod flash_mint_utils {
         flashmint
     }
 
-    pub fn flashmint_setup() -> (ContractAddress, IFlashMintDispatcher) {
+    pub fn flashmint_setup() -> (IShrineDispatcher, IFlashMintDispatcher) {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
         let flashmint: IFlashMintDispatcher = flashmint_deploy(shrine.contract_address);
 
@@ -38,7 +38,7 @@ pub mod flash_mint_utils {
         // Mint some yin in shrine
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(Zero::zero(), YIN_TOTAL_SUPPLY.into());
-        (shrine.contract_address, flashmint)
+        (shrine, flashmint)
     }
 
     pub fn flash_borrower_deploy(flashmint: ContractAddress) -> ContractAddress {
@@ -49,7 +49,7 @@ pub mod flash_mint_utils {
         flash_borrower_addr
     }
 
-    pub fn flash_borrower_setup() -> (ContractAddress, IFlashMintDispatcher, ContractAddress) {
+    pub fn flash_borrower_setup() -> (IShrineDispatcher, IFlashMintDispatcher, ContractAddress) {
         let (shrine, flashmint) = flashmint_setup();
         (shrine, flashmint, flash_borrower_deploy(flashmint.contract_address))
     }

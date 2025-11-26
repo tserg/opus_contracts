@@ -310,7 +310,7 @@ mod test_sentinel {
         let user: ContractAddress = common::ETH_HOARDER;
         let trove_id: u64 = common::TROVE_1;
 
-        sentinel_utils::approve_max(eth_gate, eth, user);
+        common::approve_gate_for_token(eth_gate, eth_erc20, user);
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
         let preview_yang_amt: Wad = sentinel.convert_to_yang(eth, deposit_amt.into());
@@ -358,7 +358,7 @@ mod test_sentinel {
         let user: ContractAddress = common::WBTC_HOARDER;
         let trove_id: u64 = common::TROVE_1;
 
-        sentinel_utils::approve_max(wbtc_gate, wbtc, user);
+        common::approve_gate_for_token(wbtc_gate, wbtc_erc20, user);
 
         let initial_wbtc_amt: u128 = sentinel_utils::get_initial_asset_amt(wbtc);
         // Deposit a very small amount of WBTC
@@ -518,7 +518,7 @@ mod test_sentinel {
         let user: ContractAddress = common::ETH_HOARDER;
         let trove_id: u64 = common::TROVE_1;
 
-        sentinel_utils::approve_max(eth_gate, eth, user);
+        common::approve_gate_for_token(eth_gate, common::erc20(eth), user);
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 

@@ -1,6 +1,7 @@
 pub mod gate_utils {
-    use core::num::traits::{Bounded, Zero};
-    use opus::interfaces::IERC20::{IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait};
+    use core::num::traits::Zero;
+    use opus::interfaces::IERC20::{IERC20Dispatcher, IMintableDispatcher, IMintableDispatcherTrait};
+    use opus::interfaces::IGate::IGateDispatcher;
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
@@ -30,27 +31,30 @@ pub mod gate_utils {
         gate_addr
     }
 
-    pub fn eth_gate_deploy(token_class: Option<ContractClass>) -> (ContractAddress, ContractAddress, ContractAddress) {
+    pub fn eth_gate_deploy(
+        token_class: Option<ContractClass>,
+    ) -> (IShrineDispatcher, IERC20Dispatcher, IGateDispatcher) {
         let shrine = shrine_utils::shrine_deploy_and_setup(Option::None);
         let eth: ContractAddress = common::eth_token_deploy(token_class);
-        let gate: ContractAddress = gate_deploy(eth, shrine, common::MOCK_SENTINEL, Option::None);
-        (shrine, eth, gate)
+        let gate: ContractAddress = gate_deploy(eth, shrine.contract_address, common::MOCK_SENTINEL, Option::None);
+        (shrine, common::erc20(eth), IGateDispatcher { contract_address: gate })
     }
 
-    pub fn wbtc_gate_deploy(token_class: Option<ContractClass>) -> (ContractAddress, ContractAddress, ContractAddress) {
+    pub fn wbtc_gate_deploy(
+        token_class: Option<ContractClass>,
+    ) -> (IShrineDispatcher, IERC20Dispatcher, IGateDispatcher) {
         let shrine = shrine_utils::shrine_deploy_and_setup(Option::None);
         let wbtc: ContractAddress = common::wbtc_token_deploy(token_class);
-        let gate: ContractAddress = gate_deploy(wbtc, shrine, common::MOCK_SENTINEL, Option::None);
-        (shrine, wbtc, gate)
+        let gate: ContractAddress = gate_deploy(wbtc, shrine.contract_address, common::MOCK_SENTINEL, Option::None);
+        (shrine, common::erc20(wbtc), IGateDispatcher { contract_address: gate })
     }
 
-    pub fn add_eth_as_yang(shrine: ContractAddress, eth: ContractAddress) {
-        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
-        let shrine = IShrineDispatcher { contract_address: shrine };
+    pub fn add_eth_as_yang(shrine: IShrineDispatcher, eth: IERC20Dispatcher) {
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         let eth_params = common::YANG1_PARAMS;
         shrine
             .add_yang(
-                eth,
+                eth.contract_address,
                 eth_params.threshold.into(),
                 eth_params.start_price.into(),
                 eth_params.base_rate.into(),
@@ -58,12 +62,11 @@ pub mod gate_utils {
             );
     }
 
-    pub fn add_wbtc_as_yang(shrine: ContractAddress, wbtc: ContractAddress) {
-        cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
-        let shrine = IShrineDispatcher { contract_address: shrine };
+    pub fn add_wbtc_as_yang(shrine: IShrineDispatcher, wbtc: IERC20Dispatcher) {
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine
             .add_yang(
-                wbtc,
+                wbtc.contract_address,
                 common::YANG2_THRESHOLD.into(),
                 common::YANG2_START_PRICE.into(),
                 common::YANG2_BASE_RATE.into(),
@@ -71,13 +74,7 @@ pub mod gate_utils {
             );
     }
 
-    pub fn approve_gate_for_token(gate: ContractAddress, token: ContractAddress, user: ContractAddress) {
-        // user no-limit approves gate to handle their share of token
-        cheat_caller_address(token, user, CheatSpan::TargetCalls(1));
-        common::erc20(token).approve(gate, Bounded::MAX);
-    }
-
-    pub fn rebase(gate: ContractAddress, token: ContractAddress, amount: u128) {
-        IMintableDispatcher { contract_address: token }.mint(gate, amount.into());
+    pub fn rebase(gate: IGateDispatcher, token: IERC20Dispatcher, amount: u128) {
+        IMintableDispatcher { contract_address: token.contract_address }.mint(gate.contract_address, amount.into());
     }
 }

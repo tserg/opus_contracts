@@ -1,5 +1,5 @@
 use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
-use core::num::traits::{Pow, Zero};
+use core::num::traits::{Bounded, Pow, Zero};
 use opus::constants::{DAI_DECIMALS, LUSD_DECIMALS, USDC_DECIMALS, USDT_DECIMALS};
 use opus::core::shrine::shrine;
 use opus::interfaces::IAbbot::{IAbbotDispatcher, IAbbotDispatcherTrait};
@@ -8,7 +8,6 @@ use opus::interfaces::IGate::{IGateDispatcher, IGateDispatcherTrait};
 use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
 use opus::mock::erc4626_mintable::{IMockERC4626Dispatcher, IMockERC4626DispatcherTrait};
 use opus::mock::mock_ekubo_oracle_extension::IMockEkuboOracleExtensionDispatcher;
-use opus::tests::sentinel::utils::sentinel_utils;
 use opus::types::{AssetBalance, Reward};
 use snforge_std::{
     CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, Event, cheat_caller_address, declare,
@@ -214,6 +213,27 @@ pub fn erc20(token: ContractAddress) -> IERC20Dispatcher {
 // Helpers - Test setup
 //
 
+// Mock Ekubo deployment helper
+
+pub fn declare_mock_ekubo_oracle_extension() -> ContractClass {
+    *declare("mock_ekubo_oracle_extension").unwrap().contract_class()
+}
+
+pub fn mock_ekubo_oracle_extension_deploy(
+    mock_ekubo_oracle_extension_class: Option<ContractClass>,
+) -> IMockEkuboOracleExtensionDispatcher {
+    let mut calldata: Array<felt252> = ArrayTrait::new();
+
+    let mock_ekubo_oracle_extension_class = mock_ekubo_oracle_extension_class
+        .unwrap_or(declare_mock_ekubo_oracle_extension());
+
+    let (mock_ekubo_oracle_extension_addr, _) = mock_ekubo_oracle_extension_class
+        .deploy(@calldata)
+        .expect('mock ekubo deploy failed');
+
+    IMockEkuboOracleExtensionDispatcher { contract_address: mock_ekubo_oracle_extension_addr }
+}
+
 // Helper function to advance timestamp by the given intervals
 pub fn advance_intervals_and_refresh_prices_and_multiplier(
     shrine: IShrineDispatcher, yangs: Span<ContractAddress>, intervals: u64,
@@ -348,6 +368,12 @@ pub fn deploy_vault(
     vault_addr
 }
 
+pub fn approve_gate_for_token(gate: IGateDispatcher, token: IERC20Dispatcher, user: ContractAddress) {
+    // user no-limit approves gate to handle their share of token
+    cheat_caller_address(token.contract_address, user, CheatSpan::TargetCalls(1));
+    token.approve(gate.contract_address, Bounded::MAX);
+}
+
 // Helper function to fund a user account with yang assets
 pub fn fund_user(user: ContractAddress, yangs: Span<ContractAddress>, mut asset_amts: Span<u128>) {
     for yang in yangs {
@@ -357,27 +383,6 @@ pub fn fund_user(user: ContractAddress, yangs: Span<ContractAddress>, mut asset_
         }
         IMintableDispatcher { contract_address: *yang }.mint(user, amt.into());
     };
-}
-
-// Mock Ekubo deployment helper
-
-pub fn declare_mock_ekubo_oracle_extension() -> ContractClass {
-    *declare("mock_ekubo_oracle_extension").unwrap().contract_class()
-}
-
-pub fn mock_ekubo_oracle_extension_deploy(
-    mock_ekubo_oracle_extension_class: Option<ContractClass>,
-) -> IMockEkuboOracleExtensionDispatcher {
-    let mut calldata: Array<felt252> = ArrayTrait::new();
-
-    let mock_ekubo_oracle_extension_class = mock_ekubo_oracle_extension_class
-        .unwrap_or(declare_mock_ekubo_oracle_extension());
-
-    let (mock_ekubo_oracle_extension_addr, _) = mock_ekubo_oracle_extension_class
-        .deploy(@calldata)
-        .expect('mock ekubo deploy failed');
-
-    IMockEkuboOracleExtensionDispatcher { contract_address: mock_ekubo_oracle_extension_addr }
 }
 
 // Helper function to approve Gates to transfer tokens from user, and to open a trove
@@ -392,7 +397,7 @@ pub fn open_trove_helper(
     for yang in yangs {
         // Approve Gate to transfer from user
         let gate: IGateDispatcher = *gates.pop_front().unwrap();
-        sentinel_utils::approve_max(gate, *yang, user);
+        approve_gate_for_token(gate, erc20(*yang), user);
     }
 
     cheat_caller_address(abbot.contract_address, user, CheatSpan::TargetCalls(1));

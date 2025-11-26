@@ -8,7 +8,7 @@ pub mod controller_utils {
         CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
         start_cheat_block_timestamp_global,
     };
-    use starknet::{ContractAddress, get_block_timestamp};
+    use starknet::get_block_timestamp;
     use wadray::{RAY_ONE, Wad};
 
     #[derive(Copy, Drop)]
@@ -31,10 +31,10 @@ pub mod controller_utils {
     // Addresses
 
     pub fn deploy_controller() -> ControllerTestConfig {
-        let shrine_addr: ContractAddress = shrine_utils::shrine_deploy_and_setup(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_and_setup(Option::None);
         let calldata: Array<felt252> = array![
             common::CONTROLLER_ADMIN.into(),
-            shrine_addr.into(),
+            shrine.contract_address.into(),
             P_GAIN.into(),
             I_GAIN.into(),
             ALPHA_P.into(),
@@ -46,12 +46,10 @@ pub mod controller_utils {
         let controller_class = *declare("controller").unwrap().contract_class();
         let (controller_addr, _) = controller_class.deploy(@calldata).expect('controller deploy failed');
 
-        common::grant_role_for_address(shrine_addr, shrine_roles::CONTROLLER, controller_addr);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::CONTROLLER, controller_addr);
 
-        ControllerTestConfig {
-            controller: IControllerDispatcher { contract_address: controller_addr },
-            shrine: IShrineDispatcher { contract_address: shrine_addr },
-        }
+        let controller = IControllerDispatcher { contract_address: controller_addr };
+        ControllerTestConfig { controller, shrine }
     }
 
     #[inline(always)]

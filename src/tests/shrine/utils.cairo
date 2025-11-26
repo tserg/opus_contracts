@@ -64,7 +64,7 @@ pub mod shrine_utils {
         *declare("shrine").unwrap().contract_class()
     }
 
-    pub fn shrine_deploy(shrine_class: Option<ContractClass>) -> ContractAddress {
+    pub fn shrine_deploy(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
         let shrine_class = shrine_class.unwrap_or(declare_shrine());
 
         let calldata: Array<felt252> = array![common::SHRINE_ADMIN.into(), YIN_NAME, YIN_SYMBOL];
@@ -73,53 +73,36 @@ pub mod shrine_utils {
 
         let (shrine_addr, _) = shrine_class.deploy(@calldata).expect('shrine deploy failed');
 
-        shrine_addr
+        IShrineDispatcher { contract_address: shrine_addr }
     }
 
-    pub fn shrine_deploy_and_setup(shrine_class: Option<ContractClass>) -> ContractAddress {
-        let shrine_addr = shrine_deploy(shrine_class);
+    pub fn shrine_deploy_and_setup(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
+        let shrine: IShrineDispatcher= shrine_deploy(shrine_class);
 
-        common::grant_role_for_address(shrine_addr, shrine_roles::ALL_ROLES, common::SHRINE_ADMIN);
-        // Set debt ceiling
-        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
-        let shrine = IShrineDispatcher { contract_address: shrine_addr };
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::ALL_ROLES, common::SHRINE_ADMIN);
+
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine.set_debt_ceiling(DEBT_CEILING.into());
-
-        // Set minimum trove value
         shrine.set_minimum_trove_value(MINIMUM_TROVE_VALUE.into());
 
-        shrine_addr
+        shrine
     }
 
     #[inline(always)]
     pub fn shrine_deploy_with_dummy_yangs(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
-        let shrine_addr: ContractAddress = shrine_deploy_and_setup(shrine_class);
-        let shrine = IShrineDispatcher { contract_address: shrine_addr };
-        cheat_caller_address(shrine_addr, common::SHRINE_ADMIN, CheatSpan::TargetCalls(3));
-        shrine
-            .add_yang(
-                common::YANG1_ADDR,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
-                Zero::zero()
-            );
-        shrine
-            .add_yang(
-                common::YANG2_ADDR,
-                common::YANG2_THRESHOLD.into(),
-                common::YANG2_START_PRICE.into(),
-                common::YANG2_BASE_RATE.into(),
-                Zero::zero()
-            );
-        shrine
-            .add_yang(
-                common::YANG3_ADDR,
-                common::YANG3_THRESHOLD.into(),
-                common::YANG3_START_PRICE.into(),
-                common::YANG3_BASE_RATE.into(),
-                Zero::zero()
-            );
+        let shrine: IShrineDispatcher = shrine_deploy_and_setup(shrine_class);
+        let yang_params: Span<common::YangParams> = common::THREE_YANG_PARAMS.span();
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(yang_params.len().try_into().unwrap()));
+        for yang_param in yang_params {
+            shrine
+                .add_yang(
+                    *yang_param.address,
+                    (*yang_param.threshold).into(),
+                    (*yang_param.start_price).into(),
+                    (*yang_param.base_rate).into(),
+                    Zero::zero()
+                );
+        }
 
         shrine
     }

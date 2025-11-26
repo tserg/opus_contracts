@@ -53,11 +53,11 @@ pub mod seer_utils {
     pub fn deploy_seer(
         seer_class: Option<ContractClass>, sentinel_classes: Option<sentinel_utils::SentinelTestClasses>,
     ) -> SeerTestConfig {
-        let (sentinel_dispatcher, shrine) = sentinel_utils::deploy_sentinel(sentinel_classes);
+        let (sentinel, shrine) = sentinel_utils::deploy_sentinel(sentinel_classes);
         let calldata: Array<felt252> = array![
             common::SEER_ADMIN.into(),
-            shrine.into(),
-            sentinel_dispatcher.contract_address.into(),
+            shrine.contract_address.into(),
+            sentinel.contract_address.into(),
             UPDATE_FREQUENCY.into(),
         ];
 
@@ -66,13 +66,10 @@ pub mod seer_utils {
         let (seer_addr, _) = seer_class.deploy(@calldata).expect('failed seer deploy');
 
         // Allow Seer to advance Shrine
-        common::grant_role_for_address(shrine, shrine_roles::SEER, seer_addr);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::SEER, seer_addr);
 
-        SeerTestConfig {
-            seer: ISeerDispatcher { contract_address: seer_addr },
-            sentinel: sentinel_dispatcher,
-            shrine: IShrineDispatcher { contract_address: shrine },
-        }
+        let seer = ISeerDispatcher { contract_address: seer_addr };
+        SeerTestConfig { seer, sentinel, shrine }
     }
 
     pub fn deploy_seer_using(
