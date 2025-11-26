@@ -190,13 +190,12 @@ mod test_shrine_redistribution {
         let mut spy = spy_events();
         let before_trove2_health: Health = shrine.get_trove_health(common::TROVE_2);
 
-        // Note order is reversed to match `yangs`
-        let mut trove2_yang_deposits: Array<Wad> = array![TROVE2_YANG2_DEPOSIT.into(), TROVE2_YANG1_DEPOSIT.into()];
+        let mut trove2_yang_deposits: Array<Wad> = array![TROVE2_YANG1_DEPOSIT.into(), TROVE2_YANG2_DEPOSIT.into()];
         let mut trove2_yang_deposits = trove2_yang_deposits.span();
 
         let redistributed_trove: u64 = common::TROVE_1;
         let recipient_trove: u64 = common::TROVE_2;
-        let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS_REVERSED.span();
+        let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS.span();
         let (trove1_yang_values, _, expected_remaining_yangs, expected_error) = preview_trove_redistribution(
             shrine, yangs, redistributed_trove,
         );
@@ -286,7 +285,7 @@ mod test_shrine_redistribution {
         let redistributed_trove2: u64 = common::TROVE_2;
         let recipient_trove: u64 = common::TROVE_3;
 
-        let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS_REVERSED.span();
+        let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS.span();
         let (_, _, _, expected_redistributed_trove1_errors) = preview_trove_redistribution(
             shrine, yangs, redistributed_trove1,
         );
@@ -403,7 +402,7 @@ mod test_shrine_redistribution {
             let shrine: IShrineDispatcher = redistribution_setup(Option::Some(shrine_class));
             let mut spy = spy_events();
 
-            let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS_REVERSED.span();
+            let yangs: Span<ContractAddress> = common::TWO_YANG_ADDRS.span();
             let redistributed_trove = common::TROVE_1;
             let recipient_trove1 = common::TROVE_2;
             let recipient_trove2 = common::TROVE_3;
@@ -596,7 +595,7 @@ mod test_shrine_redistribution {
 
             // Manually set up troves so that the redistributed trove (trove 1) uses all three yangs
             // while the recipient troves (trove 2 and 3) uses only yang 2.
-            let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS_REVERSED.span();
+            let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
             let yang1_addr = *yangs.at(2);
             let yang2_addr = *yangs.at(1);
             let yang3_addr = *yangs.at(0);

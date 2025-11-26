@@ -508,7 +508,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine
             .update_rates(
-                common::TWO_YANG_ADDRS_REVERSED.span(),
+                common::TWO_YANG_ADDRS.span(),
                 array![shrine_contract::USE_PREV_ERA_BASE_RATE.into(), shrine_contract::USE_PREV_ERA_BASE_RATE.into()]
                     .span(),
             );
