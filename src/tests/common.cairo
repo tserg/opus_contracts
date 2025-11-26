@@ -147,18 +147,14 @@ pub const THREE_YANG_PARAMS: [YangParams; 3] = [YANG1_PARAMS, YANG2_PARAMS, YANG
 pub const SMALL_ETH_DEPOSIT: u128 = 2 * WAD_ONE;
 pub const MEDIUM_ETH_DEPOSIT: u128 = 10 * WAD_ONE;
 pub const LARGE_ETH_DEPOSIT: u128 = 50 * WAD_ONE;
-pub const WHALE_ETH_DEPOSIT: u128 = 100 * WAD_ONE;
 
 // WBTC-specific amounts (accounting for 8 decimals)
-pub const SMALL_WBTC_DEPOSIT: u128 = 10000000; // 0.1 WBTC
 pub const MEDIUM_WBTC_DEPOSIT: u128 = 50000000; // 0.5 WBTC
 pub const LARGE_WBTC_DEPOSIT: u128 = 500000000; // 5 WBTC
 
 // Common forge amounts
-pub const SMALL_FORGE: u128 = 1000 * WAD_ONE;
 pub const MEDIUM_FORGE: u128 = 3000 * WAD_ONE;
 pub const LARGE_FORGE: u128 = 10000 * WAD_ONE;
-pub const WHALE_FORGE: u128 = 50000 * WAD_ONE;
 
 //
 // Trait implementations
