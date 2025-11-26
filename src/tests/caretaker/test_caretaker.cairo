@@ -58,15 +58,15 @@ mod test_caretaker {
         // user 1 with 950 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (950 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         // user 2 with 50 yin and 1 yang
         let user2 = common::TROVE2_OWNER_ADDR;
         let trove2_forge_amt: Wad = (50 * WAD_ONE).into();
-        common::fund_user(user2, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user2, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let (eth_yang, eth_gate, eth_yang_amt) = caretaker_utils::only_eth(yangs, gates);
         common::open_trove_helper(abbot, user2, eth_yang, eth_yang_amt, eth_gate, trove2_forge_amt);
 
@@ -142,15 +142,15 @@ mod test_caretaker {
 
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
-        let trove1_deposit_amts = abbot_utils::open_trove_yang_asset_amts();
+        let trove1_deposit_amts = abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span();
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let trove1_id = common::open_trove_helper(abbot, user1, yangs, trove1_deposit_amts, gates, trove1_forge_amt);
 
         // user 2 with 100 yin and 1 yang
         let user2 = common::TROVE2_OWNER_ADDR;
         let trove2_forge_amt: Wad = (1000 * WAD_ONE).into();
-        common::fund_user(user2, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user2, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let (eth_yang, eth_gate, eth_yang_amt) = caretaker_utils::only_eth(yangs, gates);
         let trove2_id = common::open_trove_helper(abbot, user2, eth_yang, eth_yang_amt, eth_gate, trove2_forge_amt);
 
@@ -237,9 +237,9 @@ mod test_caretaker {
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
@@ -269,9 +269,9 @@ mod test_caretaker {
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         // transfer some yin from user1 elsewhere
@@ -402,9 +402,9 @@ mod test_caretaker {
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let trove1_id = common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         let y0 = common::erc20(*yangs[0]);
@@ -500,9 +500,9 @@ mod test_caretaker {
         // opening a trove
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         // Transferring some of user1's yin to someone else

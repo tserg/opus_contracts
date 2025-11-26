@@ -46,21 +46,17 @@ pub mod abbot_utils {
     pub const SUBSEQUENT_ETH_DEPOSIT_AMT: u128 = 2345000000000000000; // 2.345 (Wad);
     pub const SUBSEQUENT_WBTC_DEPOSIT_AMT: u128 = 44300000; // 0.443 (WBTC decimals);
 
-    //
-    // Constant helpers
-    //
+    pub const INITIAL_ASSET_AMTS: [u128; 2] = [
+        common::LARGE_ETH_DEPOSIT, common::LARGE_WBTC_DEPOSIT
+    ];
 
-    pub fn initial_asset_amts() -> Span<u128> {
-        array![common::LARGE_ETH_DEPOSIT, common::LARGE_WBTC_DEPOSIT].span()
-    }
+    pub const OPEN_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
+        common::MEDIUM_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT
+    ];
 
-    pub fn open_trove_yang_asset_amts() -> Span<u128> {
-        array![common::MEDIUM_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT].span()
-    }
-
-    pub fn subsequent_deposit_amts() -> Span<u128> {
-        array![SUBSEQUENT_ETH_DEPOSIT_AMT, SUBSEQUENT_WBTC_DEPOSIT_AMT].span()
-    }
+    pub const SUBSEQUENT_DEPOSIT_AMTS: [u128; 2] = [
+        SUBSEQUENT_ETH_DEPOSIT_AMT, SUBSEQUENT_WBTC_DEPOSIT_AMT
+    ];
 
     //
     // Test setup helpers
@@ -113,8 +109,8 @@ pub mod abbot_utils {
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
 
         let forge_amt: Wad = common::MEDIUM_FORGE.into();
-        common::fund_user(trove_owner, abbot_test_config.yangs, initial_asset_amts());
-        let yang_asset_amts: Span<u128> = open_trove_yang_asset_amts();
+        common::fund_user(trove_owner, abbot_test_config.yangs, INITIAL_ASSET_AMTS.span());
+        let yang_asset_amts: Span<u128> = OPEN_TROVE_YANG_ASSET_AMTS.span();
         let trove_id: u64 = common::open_trove_helper(
             abbot_test_config.abbot,
             trove_owner,

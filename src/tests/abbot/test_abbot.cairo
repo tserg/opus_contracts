@@ -30,8 +30,8 @@ mod test_abbot {
 
         // Deploying the first trove
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
-        common::fund_user(trove_owner, yangs, abbot_utils::initial_asset_amts());
-        let deposited_amts: Span<u128> = abbot_utils::open_trove_yang_asset_amts();
+        common::fund_user(trove_owner, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
+        let deposited_amts: Span<u128> = abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span();
         let forge_amt: Wad = common::MEDIUM_FORGE.into();
         let trove_id: u64 = common::open_trove_helper(abbot, trove_owner, yangs, deposited_amts, gates, forge_amt);
 
@@ -82,7 +82,7 @@ mod test_abbot {
 
         // User opens another trove
         let second_forge_amt: Wad = 1666000000000000000000_u128.into();
-        let mut second_deposit_amts = abbot_utils::subsequent_deposit_amts();
+        let mut second_deposit_amts = abbot_utils::SUBSEQUENT_DEPOSIT_AMTS.span();
         let second_trove_id: u64 = common::open_trove_helper(
             abbot, trove_owner, yangs, second_deposit_amts, gates, second_forge_amt,
         );
@@ -160,8 +160,8 @@ mod test_abbot {
         let AbbotTestConfig { abbot, yangs, gates, .. } = abbot_utils::abbot_deploy(Option::None);
 
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
-        common::fund_user(trove_owner, yangs, abbot_utils::initial_asset_amts());
-        let deposited_amts: Span<u128> = abbot_utils::open_trove_yang_asset_amts();
+        common::fund_user(trove_owner, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
+        let deposited_amts: Span<u128> = abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span();
         let forge_amt = Zero::zero();
         common::open_trove_helper(abbot, trove_owner, yangs, deposited_amts, gates, forge_amt);
     }
@@ -487,7 +487,7 @@ mod test_abbot {
         let AbbotTestConfig { shrine, sentinel, abbot, yangs, gates } = abbot_utils::abbot_deploy(Option::None);
 
         let eth: ContractAddress = *yangs[0];
-        let eth_deposit_amt: u128 = *abbot_utils::open_trove_yang_asset_amts()[0];
+        let eth_deposit_amt: u128 = *abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span()[0];
 
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
 
@@ -585,7 +585,7 @@ mod test_abbot {
 
         // deploy another trove to prevent recovery mode
         common::open_trove_helper(
-            abbot, common::TROVE1_OWNER_ADDR, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, 1_u128.into(),
+            abbot, common::TROVE1_OWNER_ADDR, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, 1_u128.into(),
         );
 
         assert(!shrine.is_recovery_mode(), 'recovery mode');
@@ -633,10 +633,10 @@ mod test_abbot {
 
         // Test non-owner melting
         let non_owner: ContractAddress = common::TROVE2_OWNER_ADDR;
-        common::fund_user(non_owner, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(non_owner, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let non_owner_forge_amt = forge_amt;
         common::open_trove_helper(
-            abbot, non_owner, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, non_owner_forge_amt,
+            abbot, non_owner, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, non_owner_forge_amt,
         );
 
         cheat_caller_address(abbot.contract_address, non_owner, CheatSpan::TargetCalls(1));
@@ -654,21 +654,21 @@ mod test_abbot {
         let trove_owner1: ContractAddress = common::TROVE1_OWNER_ADDR;
         let trove_owner2: ContractAddress = common::TROVE2_OWNER_ADDR;
 
-        common::fund_user(trove_owner1, yangs, abbot_utils::initial_asset_amts());
-        common::fund_user(trove_owner2, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(trove_owner1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
+        common::fund_user(trove_owner2, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
 
         let forge_amt: Wad = common::MEDIUM_FORGE.into();
         let first_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
         let second_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner2, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner2, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
         let third_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
         let fourth_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner2, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner2, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
 
         let mut expected_owner1_trove_ids: Array<u64> = array![first_trove_id, third_trove_id];
