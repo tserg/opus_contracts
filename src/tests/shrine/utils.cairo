@@ -66,11 +66,6 @@ pub mod shrine_utils {
     // Test setup helpers
     //
 
-    pub fn three_yang_start_prices() -> Span<Wad> {
-        array![common::YANG1_START_PRICE.into(), common::YANG2_START_PRICE.into(), common::YANG3_START_PRICE.into()]
-            .span()
-    }
-
     pub fn declare_shrine() -> ContractClass {
         *declare("shrine").unwrap().contract_class()
     }
