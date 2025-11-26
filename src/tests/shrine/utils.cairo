@@ -22,8 +22,6 @@ pub mod shrine_utils {
     // Arbitrary timestamp set to approximately 18 May 2023, 7:55:28am UTC
     pub const DEPLOYMENT_TIMESTAMP: u64 = 1684390000;
 
-    // Number of seconds in an interval
-
     pub const FEED_LEN: u64 = 10;
     pub const PRICE_CHANGE: u128 = (2 * RAY_PERCENT) + (RAY_PERCENT / 2); // 2.5%
 
@@ -35,8 +33,6 @@ pub mod shrine_utils {
     pub const MINIMUM_TROVE_VALUE: u128 = 50 * WAD_ONE; // 50 (Wad)
     pub const DEBT_CEILING: u128 = 20000 * WAD_ONE; // 20_000 (Wad)
 
-    pub const INITIAL_YANG_AMT: u128 = 0;
-
     pub const TROVE1_YANG1_DEPOSIT: u128 = 5 * WAD_ONE; // 5 (Wad)
     pub const TROVE1_YANG2_DEPOSIT: u128 = 8 * WAD_ONE; // 8 (Wad)
     pub const TROVE1_YANG3_DEPOSIT: u128 = 6 * WAD_ONE; // 6 (Wad)
@@ -44,8 +40,6 @@ pub mod shrine_utils {
 
     pub const WHALE_TROVE_YANG1_DEPOSIT: u128 = 100 * WAD_ONE; // 100 (wad)
     pub const WHALE_TROVE_FORGE_AMT: u128 = 10000 * WAD_ONE; // 10,000 (wad)
-
-    pub const RECOVERY_TESTS_TROVE1_FORGE_AMT: u128 = 7500 * WAD_ONE; // 7500 (wad)
 
     //
     // Convenience helpers
@@ -108,7 +102,7 @@ pub mod shrine_utils {
                 common::YANG1_THRESHOLD.into(),
                 common::YANG1_START_PRICE.into(),
                 common::YANG1_BASE_RATE.into(),
-                INITIAL_YANG_AMT.into(),
+                Zero::zero()
             );
         shrine
             .add_yang(
@@ -116,7 +110,7 @@ pub mod shrine_utils {
                 common::YANG2_THRESHOLD.into(),
                 common::YANG2_START_PRICE.into(),
                 common::YANG2_BASE_RATE.into(),
-                INITIAL_YANG_AMT.into(),
+                Zero::zero()
             );
         shrine
             .add_yang(
@@ -124,7 +118,7 @@ pub mod shrine_utils {
                 common::YANG3_THRESHOLD.into(),
                 common::YANG3_START_PRICE.into(),
                 common::YANG3_BASE_RATE.into(),
-                INITIAL_YANG_AMT.into(),
+                Zero::zero()
             );
 
         shrine
