@@ -559,7 +559,7 @@ mod test_abbot {
 
     #[test]
     fn test_forge_pass() {
-        let (AbbotTestConfig { shrine, abbot, yangs, .. }, AbbotTestTrove { trove_owner, trove_id, forge_amt, .. }) =
+        let (AbbotTestConfig { shrine, abbot, .. }, AbbotTestTrove { trove_owner, trove_id, forge_amt, .. }) =
             abbot_utils::deploy_abbot_and_open_trove(
             Option::None,
         );
