@@ -47,12 +47,13 @@ pub mod gate_utils {
     pub fn add_eth_as_yang(shrine: ContractAddress, eth: ContractAddress) {
         cheat_caller_address(shrine, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         let shrine = IShrineDispatcher { contract_address: shrine };
+        let eth_params = common::YANG1_PARAMS;
         shrine
             .add_yang(
                 eth,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                eth_params.threshold.into(),
+                eth_params.start_price.into(),
+                eth_params.base_rate.into(),
                 Zero::zero() // initial amount
             );
     }

@@ -98,33 +98,15 @@ mod test_shrine {
         assert(shrine.get_yangs_count() == 3, 'wrong yangs count');
 
         let expected_era: u64 = 1;
+        for yang_param in common::THREE_YANG_PARAMS.span() {
+            let (yang_price, _, _) = shrine.get_current_yang_price(*yang_param.address);
+            assert(yang_price == (*yang_param.start_price).into(), 'wrong yang start price');
 
-        let mut yang_addrs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
-        let mut start_prices: Span<Wad> = shrine_utils::three_yang_start_prices();
-        let mut thresholds: Span<Ray> = array![
-            common::YANG1_THRESHOLD.into(), common::YANG2_THRESHOLD.into(), common::YANG3_THRESHOLD.into(),
-        ]
-            .span();
-        let mut base_rates: Span<Ray> = array![
-            common::YANG1_BASE_RATE.into(), common::YANG2_BASE_RATE.into(), common::YANG3_BASE_RATE.into(),
-        ]
-            .span();
+            let threshold = shrine.get_yang_threshold(*yang_param.address);
+            assert(threshold == (*yang_param.threshold).into(), 'wrong yang threshold');
 
-        let mut yang_id = 1;
-
-        for yang_addr in yang_addrs {
-            let (yang_price, _, _) = shrine.get_current_yang_price(*yang_addr);
-            let expected_yang_price = *start_prices.pop_front().unwrap();
-            assert(yang_price == expected_yang_price, 'wrong yang start price');
-
-            let threshold = shrine.get_yang_threshold(*yang_addr);
-            let expected_threshold = *thresholds.pop_front().unwrap();
-            assert(threshold == expected_threshold, 'wrong yang threshold');
-
-            let expected_rate = *base_rates.pop_front().unwrap();
-            assert(shrine.get_yang_rate(*yang_addr, expected_era) == expected_rate, 'wrong yang base rate');
-
-            yang_id += 1;
+            let base_rate = shrine.get_yang_rate(*yang_param.address, expected_era);
+            assert(base_rate == (*yang_param.base_rate).into(), 'wrong yang base rate');
         }
 
         // Check shrine threshold and value
@@ -178,27 +160,18 @@ mod test_shrine {
 
         let mut spy = spy_events();
 
-        let yang_addrs = common::THREE_YANG_ADDRS.span();
-        let yang_start_prices = shrine_utils::three_yang_start_prices();
+        let yang_params = common::THREE_YANG_PARAMS.span();
         let yang_feeds = shrine_utils::advance_prices_and_set_multiplier(
-            shrine, shrine_utils::FEED_LEN, yang_addrs, yang_start_prices,
+            shrine, shrine_utils::FEED_LEN, common::THREE_YANG_ADDRS.span(),
         );
-
-        let mut exp_start_cumulative_prices: Array<Wad> = array![
-            *yang_start_prices.at(0), *yang_start_prices.at(1), *yang_start_prices.at(2),
-        ];
 
         let mut expected_events: Array<(ContractAddress, shrine_contract::Event)> = ArrayTrait::new();
 
         let start_interval: u64 = shrine_utils::get_interval(shrine_utils::DEPLOYMENT_TIMESTAMP);
-        let mut exp_start_cumulative_prices_copy = exp_start_cumulative_prices.span();
-        for yang_addr in yang_addrs {
+        for yang_param in yang_params {
             // `Shrine.add_yang` sets the initial price for `current_interval - 1`
-            let (_, start_cumulative_price) = shrine.get_yang_price(*yang_addr, start_interval - 1);
-            assert(
-                start_cumulative_price == *exp_start_cumulative_prices_copy.pop_front().unwrap(),
-                'wrong start cumulative price',
-            );
+            let (_, start_cumulative_price) = shrine.get_yang_price(*yang_param.address, start_interval - 1);
+            assert_eq!(start_cumulative_price, (*yang_param.start_price).into(), "wrong start cumulative price");
         }
 
         let (_, start_cumulative_multiplier) = shrine.get_multiplier(start_interval - 1);
@@ -207,7 +180,11 @@ mod test_shrine {
 
         let yang_feed_len = (*yang_feeds.at(0)).len();
         let mut idx = 0;
-        let mut expected_yang_cumulative_prices = exp_start_cumulative_prices;
+        let mut expected_yang_cumulative_prices: Array<Wad> = array![
+            (*yang_params[0].start_price).into(),
+            (*yang_params[1].start_price).into(),
+            (*yang_params[2].start_price).into(),
+        ];
         while idx != yang_feed_len {
             let interval = start_interval + idx.into();
 
@@ -217,8 +194,8 @@ mod test_shrine {
             let mut expected_yang_cumulative_prices_copy = expected_yang_cumulative_prices.span();
             // Reset array to track the latest cumulative prices
             expected_yang_cumulative_prices = ArrayTrait::new();
-            for yang_addr in yang_addrs {
-                let (price, cumulative_price) = shrine.get_yang_price(*yang_addr, interval);
+            for yang_param in yang_params {
+                let (price, cumulative_price) = shrine.get_yang_price(*yang_param.address, interval);
                 let expected_price = *yang_feeds.at(yang_idx)[idx];
                 assert(price == expected_price, 'wrong price in feed');
 
@@ -234,7 +211,7 @@ mod test_shrine {
                             shrine.contract_address,
                             shrine_contract::Event::YangPriceUpdated(
                                 shrine_contract::YangPriceUpdated {
-                                    yang: *yang_addr,
+                                    yang: *yang_param.address,
                                     price: expected_price,
                                     cumulative_price: expected_cumulative_price,
                                     interval,
@@ -366,12 +343,13 @@ mod test_shrine {
     fn test_add_yang_duplicate_fail() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
+        let yang_params = common::YANG1_PARAMS;
         shrine
             .add_yang(
-                common::YANG1_ADDR,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                yang_params.address,
+                yang_params.threshold.into(),
+                yang_params.start_price.into(),
+                yang_params.base_rate.into(),
                 Zero::zero(),
             );
     }
@@ -381,12 +359,13 @@ mod test_shrine {
     fn test_add_yang_unauthorized() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         cheat_caller_address(shrine.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
+        let yang_params = common::YANG1_PARAMS;
         shrine
             .add_yang(
-                common::YANG1_ADDR,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                yang_params.address,
+                yang_params.threshold.into(),
+                yang_params.start_price.into(),
+                yang_params.base_rate.into(),
                 Zero::zero(),
             );
     }
@@ -1694,25 +1673,22 @@ mod test_shrine {
     #[should_panic(expected: 'Caller missing role')]
     fn test_advance_unauthorized() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-
         cheat_caller_address(shrine.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        shrine.advance(common::YANG1_ADDR, common::YANG1_START_PRICE.into());
+        shrine.advance(common::DUMMY_YANG_ADDR, WAD_ONE.into());
     }
 
     #[test]
     #[should_panic(expected: 'SH: Yang does not exist')]
     fn test_advance_invalid_yang() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
-        shrine.advance(common::DUMMY_YANG_ADDR, common::YANG1_START_PRICE.into());
+        shrine.advance(common::DUMMY_YANG_ADDR, WAD_ONE.into());
     }
 
     #[test]
     #[should_panic(expected: 'Caller missing role')]
     fn test_set_multiplier_unauthorized() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-
         cheat_caller_address(shrine.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         shrine.set_multiplier(RAY_SCALE.into());
     }

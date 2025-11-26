@@ -35,6 +35,9 @@ mod test_sentinel {
         let eth = *yangs.at(0);
         let wbtc = *yangs.at(1);
 
+        let eth_params = common::YANG1_PARAMS;
+        let wbtc_params = common::YANG2_PARAMS;
+
         let wbtc_erc20 = common::erc20(wbtc);
 
         assert(sentinel.get_gate_address(*yangs.at(0)) == eth_gate.contract_address, 'Wrong gate address #1');
@@ -72,18 +75,18 @@ mod test_sentinel {
         let (eth_price, _, _) = shrine.get_current_yang_price(eth);
         let (wbtc_price, _, _) = shrine.get_current_yang_price(wbtc);
 
-        assert(eth_price == common::YANG1_START_PRICE.into(), 'Wrong yang price #1');
-        assert(wbtc_price == common::YANG2_START_PRICE.into(), 'Wrong yang price #2');
+        assert(eth_price == eth_params.start_price.into(), 'Wrong yang price #1');
+        assert(wbtc_price == wbtc_params.start_price.into(), 'Wrong yang price #2');
 
         let eth_threshold = shrine.get_yang_threshold(eth);
-        assert(eth_threshold == common::YANG1_THRESHOLD.into(), 'Wrong yang threshold #1');
+        assert(eth_threshold == eth_params.threshold.into(), 'Wrong yang threshold #1');
 
         let wbtc_threshold = shrine.get_yang_threshold(wbtc);
-        assert(wbtc_threshold == common::YANG2_THRESHOLD.into(), 'Wrong yang threshold #2');
+        assert(wbtc_threshold == wbtc_params.threshold.into(), 'Wrong yang threshold #2');
 
         let expected_era: u64 = 1;
-        assert(shrine.get_yang_rate(eth, expected_era) == common::YANG1_BASE_RATE.into(), 'Wrong yang rate #1');
-        assert(shrine.get_yang_rate(wbtc, expected_era) == common::YANG2_BASE_RATE.into(), 'Wrong yang rate #2');
+        assert(shrine.get_yang_rate(eth, expected_era) == eth_params.base_rate.into(), 'Wrong yang rate #1');
+        assert(shrine.get_yang_rate(wbtc, expected_era) == wbtc_params.base_rate.into(), 'Wrong yang rate #2');
 
         let expected_initial_eth_yang: Wad = sentinel_utils::get_initial_asset_amt(eth).into();
         assert_eq!(shrine.get_yang_total(eth), expected_initial_eth_yang, "Wrong yang total #1");
@@ -115,14 +118,14 @@ mod test_sentinel {
     #[should_panic(expected: 'Caller missing role')]
     fn test_add_yang_unauthorized() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
-
+        let valid_params = common::YANG1_PARAMS;
         sentinel
             .add_yang(
                 common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                valid_params.threshold.into(),
+                valid_params.start_price.into(),
+                valid_params.base_rate.into(),
                 common::DUMMY_YANG_GATE_ADDR,
             );
     }
@@ -132,13 +135,14 @@ mod test_sentinel {
     fn test_add_yang_yang_zero_addr() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        let valid_params = common::YANG1_PARAMS;
         sentinel
             .add_yang(
                 Zero::zero(),
                 sentinel_utils::ETH_ASSET_MAX,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                valid_params.threshold.into(),
+                valid_params.start_price.into(),
+                valid_params.base_rate.into(),
                 common::DUMMY_YANG_GATE_ADDR,
             );
     }
@@ -148,13 +152,14 @@ mod test_sentinel {
     fn test_add_yang_gate_zero_addr() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        let valid_params = common::YANG1_PARAMS;
         sentinel
             .add_yang(
                 common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                valid_params.threshold.into(),
+                valid_params.start_price.into(),
+                valid_params.base_rate.into(),
                 Zero::zero(),
             );
     }
@@ -164,13 +169,14 @@ mod test_sentinel {
     fn test_add_yang_zero_price() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        let valid_params = common::YANG1_PARAMS;
         sentinel
             .add_yang(
                 common::DUMMY_YANG_ADDR,
                 sentinel_utils::ETH_ASSET_MAX,
-                common::YANG1_THRESHOLD.into(),
+                valid_params.threshold.into(),
                 Zero::zero(),
-                common::YANG1_BASE_RATE.into(),
+                valid_params.base_rate.into(),
                 common::DUMMY_YANG_GATE_ADDR,
             );
     }
@@ -185,13 +191,14 @@ mod test_sentinel {
         let eth_gate = *gates[0];
 
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        let eth_params = common::YANG1_PARAMS;
         sentinel
             .add_yang(
                 eth,
                 sentinel_utils::ETH_ASSET_MAX,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                eth_params.threshold.into(),
+                eth_params.start_price.into(),
+                eth_params.base_rate.into(),
                 eth_gate.contract_address,
             );
     }
@@ -207,13 +214,14 @@ mod test_sentinel {
         let wbtc: ContractAddress = common::wbtc_token_deploy(classes.token);
 
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        let wbtc_params = common::YANG2_PARAMS;
         sentinel
             .add_yang(
                 wbtc,
                 sentinel_utils::WBTC_ASSET_MAX,
-                common::YANG2_THRESHOLD.into(),
-                common::YANG2_START_PRICE.into(),
-                common::YANG2_BASE_RATE.into(),
+                wbtc_params.threshold.into(),
+                wbtc_params.start_price.into(),
+                wbtc_params.base_rate.into(),
                 eth_gate.contract_address,
             );
     }

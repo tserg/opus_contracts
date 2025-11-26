@@ -106,14 +106,15 @@ pub mod sentinel_utils {
         eth_vault_erc20.approve(sentinel.contract_address, initial_deposit_amt.into());
 
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        let eth_params = common::YANG1_PARAMS;
         sentinel
             .add_yang(
                 eth_vault,
                 // Re-use ETH parameters
                 ETH_ASSET_MAX,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                eth_params.threshold.into(),
+                eth_params.start_price.into(),
+                eth_params.base_rate.into(),
                 eth_vault_gate,
             );
 
@@ -217,13 +218,14 @@ pub mod sentinel_utils {
         eth_erc20.approve(sentinel.contract_address, initial_deposit_amt.into());
 
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        let eth_params = common::YANG1_PARAMS;
         sentinel
             .add_yang(
                 eth,
                 ETH_ASSET_MAX,
-                common::YANG1_THRESHOLD.into(),
-                common::YANG1_START_PRICE.into(),
-                common::YANG1_BASE_RATE.into(),
+                eth_params.threshold.into(),
+                eth_params.start_price.into(),
+                eth_params.base_rate.into(),
                 eth_gate,
             );
 

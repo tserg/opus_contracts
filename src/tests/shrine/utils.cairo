@@ -138,14 +138,13 @@ pub mod shrine_utils {
     // Advance the prices for two yangs, starting from the current interval and up to current interval + `num_intervals`
     // - 1
     pub fn advance_prices_and_set_multiplier(
-        shrine: IShrineDispatcher, num_intervals: u64, yangs: Span<ContractAddress>, yang_prices: Span<Wad>,
+        shrine: IShrineDispatcher, num_intervals: u64, yangs: Span<ContractAddress>,
     ) -> Span<Span<Wad>> {
-        assert(yangs.len() == yang_prices.len(), 'Array lengths mismatch');
-
         let mut yang_feeds: Array<Span<Wad>> = ArrayTrait::new();
 
-        for yang_price in yang_prices {
-            yang_feeds.append(generate_yang_feed(*yang_price));
+        for yang in yangs {
+            let (yang_price, _, _) = shrine.get_current_yang_price(*yang);
+            yang_feeds.append(generate_yang_feed(yang_price));
         }
         let yang_feeds = yang_feeds.span();
 
@@ -203,7 +202,7 @@ pub mod shrine_utils {
     #[inline(always)]
     pub fn shrine_deploy_with_dummy_yangs_and_feed(shrine_class: Option<ContractClass>) -> IShrineDispatcher {
         let shrine: IShrineDispatcher = shrine_deploy_with_dummy_yangs(shrine_class);
-        advance_prices_and_set_multiplier(shrine, FEED_LEN, common::THREE_YANG_ADDRS.span(), three_yang_start_prices());
+        advance_prices_and_set_multiplier(shrine, FEED_LEN, common::THREE_YANG_ADDRS.span());
         shrine
     }
 
@@ -571,9 +570,7 @@ pub mod shrine_utils {
 
     // Asserts that the total troves debt is less than the sum of all troves' debt,
     // including all unpulled redistributions.
-    pub fn assert_total_troves_debt_invariant(
-        shrine: IShrineDispatcher, troves_count: u64,
-    ) {
+    pub fn assert_total_troves_debt_invariant(shrine: IShrineDispatcher, troves_count: u64) {
         let troves_loop_end: u64 = troves_count + 1;
 
         let mut cumulative_troves_debt: Wad = Zero::zero();

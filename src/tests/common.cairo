@@ -29,6 +29,14 @@ pub enum RecoveryModeSetupType {
     ExceedsBuffer,
 }
 
+#[derive(Copy, Drop)]
+pub struct YangParams {
+    pub address: ContractAddress,
+    pub threshold: u128,
+    pub base_rate: u128,
+    pub start_price: u128,
+}
+
 //
 // Constants
 //
@@ -114,6 +122,25 @@ pub const YANG2_BASE_RATE: u128 = 3 * RAY_PERCENT; // 3% (Ray)
 pub const YANG3_THRESHOLD: u128 = 85 * RAY_PERCENT; // 85% (Ray)
 pub const YANG3_START_PRICE: u128 = 1000 * WAD_ONE; // 1_000 (Wad)
 pub const YANG3_BASE_RATE: u128 = (2 * RAY_PERCENT) + (RAY_PERCENT / 2); // 2.5% (Ray)
+
+//
+// Yang Parameters Structs
+//
+
+pub const YANG1_PARAMS: YangParams = YangParams {
+    address: YANG1_ADDR, threshold: YANG1_THRESHOLD, base_rate: YANG1_BASE_RATE, start_price: YANG1_START_PRICE,
+};
+
+pub const YANG2_PARAMS: YangParams = YangParams {
+    address: YANG2_ADDR, threshold: YANG2_THRESHOLD, base_rate: YANG2_BASE_RATE, start_price: YANG2_START_PRICE,
+};
+
+pub const YANG3_PARAMS: YangParams = YangParams {
+    address: YANG3_ADDR, threshold: YANG3_THRESHOLD, base_rate: YANG3_BASE_RATE, start_price: YANG3_START_PRICE,
+};
+
+pub const TWO_YANG_PARAMS: [YangParams; 2] = [YANG1_PARAMS, YANG2_PARAMS];
+pub const THREE_YANG_PARAMS: [YangParams; 3] = [YANG1_PARAMS, YANG2_PARAMS, YANG3_PARAMS];
 
 //
 // Standard Asset Amounts
