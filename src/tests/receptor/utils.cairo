@@ -32,25 +32,9 @@ pub mod receptor_utils {
         )
     }
 
-
     //
     // Test setup helpers
     //
-
-    pub fn mock_ekubo_oracle_extension_deploy(
-        mock_ekubo_oracle_extension_class: Option<ContractClass>,
-    ) -> ContractAddress {
-        let mut calldata: Array<felt252> = ArrayTrait::new();
-
-        let mock_ekubo_oracle_extension_class = mock_ekubo_oracle_extension_class
-            .unwrap_or(common::declare_mock_ekubo_oracle_extension());
-
-        let (mock_ekubo_oracle_extension_addr, _) = mock_ekubo_oracle_extension_class
-            .deploy(@calldata)
-            .expect('mock ekubo oracle ext failed');
-
-        mock_ekubo_oracle_extension_addr
-    }
 
     pub fn receptor_deploy(
         receptor_class: Option<ContractClass>, token_class: Option<ContractClass>,
@@ -60,19 +44,19 @@ pub mod receptor_utils {
         let quote_tokens = common::quote_tokens(token_class);
 
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
-        let mock_ekubo_oracle_extension_addr: ContractAddress = mock_ekubo_oracle_extension_deploy(Option::None);
+        let mock_ekubo_oracle_extension: IMockEkuboOracleExtensionDispatcher =
+            common::mock_ekubo_oracle_extension_deploy(
+            Option::None,
+        );
 
         let mut calldata: Array<felt252> = array![
             common::SHRINE_ADMIN.into(),
             shrine.contract_address.into(),
-            mock_ekubo_oracle_extension_addr.into(),
+            mock_ekubo_oracle_extension.contract_address.into(),
             INITIAL_UPDATE_FREQUENCY.into(),
             INITIAL_TWAP_DURATION.into(),
-            quote_tokens.len().into(),
-            (*quote_tokens[0]).into(),
-            (*quote_tokens[1]).into(),
-            (*quote_tokens[2]).into(),
         ];
+        quote_tokens.serialize(ref calldata);
 
         let receptor_class = receptor_class.unwrap_or(*declare("receptor").unwrap().contract_class());
         let (receptor_addr, _) = receptor_class.deploy(@calldata).expect('receptor deploy failed');
@@ -80,13 +64,7 @@ pub mod receptor_utils {
         // Grant UPDATE_YIN_SPOT_PRICE role to receptor contract
         common::grant_role_for_address(shrine.contract_address, shrine_roles::RECEPTOR, receptor_addr);
 
-        ReceptorTestConfig {
-            shrine,
-            receptor: IReceptorDispatcher { contract_address: receptor_addr },
-            mock_ekubo_oracle_extension: IMockEkuboOracleExtensionDispatcher {
-                contract_address: mock_ekubo_oracle_extension_addr,
-            },
-            quote_tokens,
-        }
+        let receptor = IReceptorDispatcher { contract_address: receptor_addr };
+        ReceptorTestConfig { shrine, receptor, mock_ekubo_oracle_extension, quote_tokens }
     }
 }
