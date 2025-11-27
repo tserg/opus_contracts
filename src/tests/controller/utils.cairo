@@ -62,9 +62,4 @@ pub mod controller_utils {
     pub fn fast_forward_1_hour() {
         start_cheat_block_timestamp_global(get_block_timestamp() + ONE_HOUR);
     }
-
-    #[inline(always)]
-    pub fn fast_forward_by_x_minutes(x: u64) {
-        start_cheat_block_timestamp_global(get_block_timestamp() + x * 60);
-    }
 }
