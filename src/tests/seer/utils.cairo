@@ -50,43 +50,27 @@ pub mod seer_utils {
         }
     }
 
-    pub fn deploy_seer(
-        seer_class: Option<ContractClass>, sentinel_classes: Option<sentinel_utils::SentinelTestClasses>,
-    ) -> SeerTestConfig {
-        let (sentinel, shrine) = sentinel_utils::deploy_sentinel(sentinel_classes);
-        let calldata: Array<felt252> = array![
-            common::SEER_ADMIN.into(),
-            shrine.contract_address.into(),
-            sentinel.contract_address.into(),
-            UPDATE_FREQUENCY.into(),
-        ];
-
-        let seer_class = seer_class.unwrap_or(*declare("seer").unwrap().contract_class());
-
-        let (seer_addr, _) = seer_class.deploy(@calldata).expect('failed seer deploy');
-
-        // Allow Seer to advance Shrine
-        common::grant_role_for_address(shrine.contract_address, shrine_roles::SEER, seer_addr);
-
-        let seer = ISeerDispatcher { contract_address: seer_addr };
-        SeerTestConfig { seer, sentinel, shrine }
-    }
-
     pub fn deploy_seer_using(
         seer_class: Option<ContractClass>, shrine: ContractAddress, sentinel: ContractAddress,
     ) -> ISeerDispatcher {
+        let seer_class = seer_class.unwrap_or(*declare("seer").unwrap().contract_class());
         let mut calldata: Array<felt252> = array![
             common::SEER_ADMIN.into(), shrine.into(), sentinel.into(), UPDATE_FREQUENCY.into(),
         ];
-
-        let seer_class = seer_class.unwrap_or(*declare("seer").unwrap().contract_class());
-
         let (seer_addr, _) = seer_class.deploy(@calldata).expect('failed seer deploy');
 
         // Allow Seer to advance Shrine
         common::grant_role_for_address(shrine, shrine_roles::SEER, seer_addr);
 
         ISeerDispatcher { contract_address: seer_addr }
+    }
+
+    pub fn deploy_seer(
+        seer_class: Option<ContractClass>, sentinel_classes: Option<sentinel_utils::SentinelTestClasses>,
+    ) -> SeerTestConfig {
+        let (sentinel, shrine) = sentinel_utils::deploy_sentinel(sentinel_classes);
+        let seer = deploy_seer_using(Option::None, shrine.contract_address, sentinel.contract_address);
+        SeerTestConfig { seer, sentinel, shrine }
     }
 
     pub fn set_price_types_to_vault(seer: ISeerDispatcher, mut vaults: Span<ContractAddress>) {
