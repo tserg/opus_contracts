@@ -10,7 +10,7 @@ mod test_absorber {
     use opus::tests::absorber::utils::absorber_utils;
     use opus::tests::absorber::utils::absorber_utils::{AbsorberRewardsTestConfig, AbsorberTestConfig};
     use opus::tests::common;
-    use opus::tests::common::{AddressIntoSpan, RewardPartialEq};
+    use opus::tests::common::RewardPartialEq;
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, DistributionInfo, Provision, Request, Reward};
     use snforge_std::{

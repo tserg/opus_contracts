@@ -177,14 +177,6 @@ pub impl SpanImpl<T, impl TCopy: Copy<T>, impl TDrop: Drop<T>> of SpanTraitExt<T
     }
 }
 
-pub impl AddressIntoSpan of Into<ContractAddress, Span<ContractAddress>> {
-    fn into(self: ContractAddress) -> Span<ContractAddress> {
-        let mut tmp: Array<ContractAddress> = ArrayTrait::new();
-        tmp.append(self);
-        tmp.span()
-    }
-}
-
 pub impl RewardPartialEq of PartialEq<Reward> {
     fn eq(mut lhs: @Reward, mut rhs: @Reward) -> bool {
         lhs.asset == rhs.asset
