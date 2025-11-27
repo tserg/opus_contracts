@@ -24,12 +24,12 @@ mod test_controller {
         let ControllerTestConfig { controller, .. } = controller_utils::deploy_controller();
 
         let ((p_gain, i_gain), (alpha_p, beta_p, alpha_i, beta_i)) = controller.get_parameters();
-        assert_eq!(p_gain, controller_utils::P_GAIN.into(), "wrong p gain");
-        assert_eq!(i_gain, controller_utils::I_GAIN.into(), "wrong i gain");
-        assert_eq!(alpha_p, controller_utils::ALPHA_P, "wrong alpha_p");
-        assert_eq!(alpha_i, controller_utils::ALPHA_I, "wrong alpha_i");
-        assert_eq!(beta_p, controller_utils::BETA_P, "wrong beta_p");
-        assert_eq!(beta_i, controller_utils::BETA_I, "wrong beta_i");
+        assert(p_gain == controller_utils::P_GAIN.into(), 'wrong p gain');
+        assert(i_gain == controller_utils::I_GAIN.into(), 'wrong i gain');
+        assert(alpha_p == controller_utils::ALPHA_P, 'wrong alpha_p');
+        assert(alpha_i == controller_utils::ALPHA_I, 'wrong alpha_i');
+        assert(beta_p == controller_utils::BETA_P, 'wrong beta_p');
+        assert(beta_i == controller_utils::BETA_I, 'wrong beta_i');
         let expected_events = array![
             (
                 controller.contract_address,
@@ -93,12 +93,12 @@ mod test_controller {
         controller.set_beta_i(new_beta_i);
 
         let ((p_gain, i_gain), (alpha_p, beta_p, alpha_i, beta_i)) = controller.get_parameters();
-        assert_eq!(p_gain, new_p_gain.into(), "wrong p gain");
-        assert_eq!(i_gain, new_i_gain.into(), "wrong i gain");
-        assert_eq!(alpha_p, new_alpha_p, "wrong alpha_p");
-        assert_eq!(alpha_i, new_alpha_i, "wrong alpha_i");
-        assert_eq!(beta_p, new_beta_p, "wrong beta_p");
-        assert_eq!(beta_i, new_beta_i, "wrong beta_i");
+        assert(p_gain == new_p_gain.into(), 'wrong p gain');
+        assert(i_gain == new_i_gain.into(), 'wrong i gain');
+        assert(alpha_p == new_alpha_p, 'wrong alpha_p');
+        assert(alpha_i == new_alpha_i, 'wrong alpha_i');
+        assert(beta_p == new_beta_p, 'wrong beta_p');
+        assert(beta_i == new_beta_i, 'wrong beta_i');
         let expected_events = array![
             (
                 controller.contract_address,
@@ -199,8 +199,8 @@ mod test_controller {
         // Updating `i_gain` to match the ground truth simulation
         controller.set_i_gain(100000000000000000000000_u128.into());
 
-        assert_eq!(controller.get_p_term(), Zero::zero(), "Wrong p term #1");
-        assert_eq!(controller.get_i_term(), Zero::zero(), "Wrong i term #1");
+        assert(controller.get_p_term() == Zero::zero(), 'Wrong p term #1');
+        assert(controller.get_i_term() == Zero::zero(), 'Wrong i term #1');
 
         controller_utils::fast_forward_1_hour();
         controller_utils::set_yin_spot_price(shrine, YIN_PRICE1.into());
@@ -798,7 +798,7 @@ mod test_controller {
         controller_utils::fast_forward_1_hour();
         controller.update_multiplier();
         let current_multiplier: Ray = controller.get_current_multiplier();
-        assert_gt!(current_multiplier, prev_multiplier, "Multiplier should increase");
+        assert(current_multiplier > prev_multiplier, 'Multiplier should increase');
 
         // Suddenly the multiplier is updated multiple times within the same block.
         // The multiplier should not change.
@@ -806,6 +806,6 @@ mod test_controller {
         controller.update_multiplier();
         controller.update_multiplier();
 
-        assert_eq!(current_multiplier, controller.get_current_multiplier(), "Multiplier should not change");
+        assert(current_multiplier == controller.get_current_multiplier(), 'Multiplier should not change');
     }
 }

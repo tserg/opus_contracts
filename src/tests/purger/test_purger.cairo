@@ -40,7 +40,7 @@ mod test_purger {
         let PurgerTestConfig { purger, .. } = purger_utils::purger_deploy(Option::None);
 
         let purger_ac = IAccessControlDispatcher { contract_address: purger.contract_address };
-        assert_eq!(purger_ac.get_roles(common::PURGER_ADMIN), purger_roles::ADMIN, "wrong role for admin");
+        assert(purger_ac.get_roles(common::PURGER_ADMIN) == purger_roles::ADMIN, 'wrong role for admin');
 
         let expected_events = array![
             (
@@ -92,7 +92,7 @@ mod test_purger {
         let penalty_scalar: Ray = RAY_ONE.into();
         purger.set_penalty_scalar(penalty_scalar);
 
-        assert_eq!(purger.get_penalty_scalar(), penalty_scalar, "wrong penalty scalar #1");
+        assert(purger.get_penalty_scalar() == penalty_scalar, 'wrong penalty scalar #1');
 
         let (penalty, _, _) = purger.preview_absorb(target_trove).expect('Should be absorbable');
         let expected_penalty: Ray = 41000000000000000000000000_u128.into(); // 4.1%
@@ -114,7 +114,7 @@ mod test_purger {
         let penalty_scalar: Ray = purger_contract::MIN_PENALTY_SCALAR.into();
         purger.set_penalty_scalar(penalty_scalar);
 
-        assert_eq!(purger.get_penalty_scalar(), penalty_scalar, "wrong penalty scalar #2");
+        assert(purger.get_penalty_scalar() == penalty_scalar, 'wrong penalty scalar #2');
 
         let (penalty, _, _) = purger.preview_absorb(target_trove).expect('Should be absorbable');
         let expected_penalty: Ray = 10700000000000000000000000_u128.into(); // 1.07%
@@ -135,7 +135,7 @@ mod test_purger {
         let penalty_scalar: Ray = purger_contract::MAX_PENALTY_SCALAR.into();
         purger.set_penalty_scalar(penalty_scalar);
 
-        assert_eq!(purger.get_penalty_scalar(), penalty_scalar, "wrong penalty scalar #3");
+        assert(purger.get_penalty_scalar() == penalty_scalar, 'wrong penalty scalar #3');
 
         let (penalty, _, _) = purger.preview_absorb(target_trove).expect('Should be absorbable');
         let expected_penalty: Ray = 54300000000000000000000000_u128.into(); // 5.43%
@@ -182,20 +182,20 @@ mod test_purger {
 
         let target_trove_health: Health = shrine.get_trove_health(target_trove);
         // sanity check that threshold is correct
-        assert_eq!(target_trove_health.threshold, threshold, "threshold sanity check");
+        assert(target_trove_health.threshold == threshold, 'threshold sanity check');
 
         // sanity check that LTV is at the target liquidation LTV
         let error_margin: Ray = 100000000_u128.into();
         common::assert_equalish(target_trove_health.ltv, target_ltv, error_margin, 'LTV sanity check');
 
-        assert!(purger.preview_absorb(target_trove).is_none(), "should not be absorbable #1");
+        assert(purger.preview_absorb(target_trove).is_none(), 'should not be absorbable #1');
 
         // Set scalar to 1.06 and check the trove is still not absorbable.
         cheat_caller_address(purger.contract_address, common::PURGER_ADMIN, CheatSpan::TargetCalls(1));
         let penalty_scalar: Ray = purger_contract::MAX_PENALTY_SCALAR.into();
         purger.set_penalty_scalar(penalty_scalar);
 
-        assert!(purger.preview_absorb(target_trove).is_none(), "should not be absorbable #2");
+        assert(purger.preview_absorb(target_trove).is_none(), 'should not be absorbable #2');
     }
 
     #[test]
@@ -306,7 +306,7 @@ mod test_purger {
 
     #[test]
     fn test_liquidate_pass() {
-        let searcher_start_yin: Wad = purger_utils::SEARCHER_YIN.into();
+        let searcher_start_yin: Wad = common::LARGE_FORGE.into();
         let PurgerTestConfig {
             shrine, abbot, seer, purger, yangs, gates, ..,
         } = purger_utils::purger_deploy_with_searcher(searcher_start_yin, Option::None);
@@ -325,7 +325,7 @@ mod test_purger {
         let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
         let accrued_interest: Wad = target_trove_start_health.debt - initial_trove_debt;
         // Sanity check that some interest has accrued
-        assert!(accrued_interest.is_non_zero(), "no interest accrued");
+        assert(accrued_interest.is_non_zero(), 'no interest accrued');
 
         let target_ltv: Ray = (target_trove_start_health.threshold.into() + 1_u128).into();
         purger_utils::lower_prices_to_raise_trove_ltv(
@@ -347,19 +347,21 @@ mod test_purger {
         // Assert that total debt includes accrued interest on liquidated trove
         let shrine_health: Health = shrine.get_shrine_health();
         let after_total_debt: Wad = shrine_health.debt;
-        let expected_after_total_debt: Wad = before_total_debt + accrued_interest - max_close_amt;
-        assert_eq!(after_total_debt, expected_after_total_debt, "wrong total debt");
+        assert(after_total_debt == before_total_debt + accrued_interest - max_close_amt, 'wrong total debt');
 
+        // Check that LTV is close to safety margin
         let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
-        let expected_target_trove_debt: Wad = target_trove_updated_start_health.debt - max_close_amt;
-        assert_eq!(target_trove_after_health.debt, expected_target_trove_debt, "wrong debt after liquidation");
+        assert(
+            target_trove_after_health.debt == target_trove_updated_start_health.debt - max_close_amt,
+            'wrong debt after liquidation',
+        );
 
         purger_utils::assert_ltv_at_safety_margin(
             target_trove_start_health.threshold, target_trove_after_health.ltv, Option::None,
         );
 
         // Check searcher yin balance
-        assert_eq!(shrine.get_yin(searcher), searcher_start_yin - max_close_amt, "wrong searcher yin balance");
+        assert(shrine.get_yin(searcher) == searcher_start_yin - max_close_amt, 'wrong searcher yin balance');
 
         let (expected_freed_pct, expected_freed_amts) = purger_utils::get_expected_liquidation_assets(
             purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span(),
@@ -408,7 +410,7 @@ mod test_purger {
     fn test_liquidate_with_flash_mint_pass() {
         let PurgerTestConfig {
             shrine, abbot, seer, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         purger_utils::create_whale_trove(abbot, yangs, gates);
 
@@ -451,8 +453,10 @@ mod test_purger {
 
         // Check that LTV is close to safety margin
         let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
-        let expected_target_trove_debt: Wad = target_trove_updated_start_health.debt - max_close_amt;
-        assert_eq!(target_trove_after_health.debt, expected_target_trove_debt, "wrong debt after liquidation");
+        assert(
+            target_trove_after_health.debt == target_trove_updated_start_health.debt - max_close_amt,
+            'wrong debt after liquidation',
+        );
 
         purger_utils::assert_ltv_at_safety_margin(
             target_trove_start_health.threshold, target_trove_after_health.ltv, Option::None,
@@ -499,7 +503,7 @@ mod test_purger {
             .span();
 
         for target_ltv in target_ltvs {
-            let searcher_start_yin: Wad = purger_utils::SEARCHER_YIN.into();
+            let searcher_start_yin: Wad = common::LARGE_FORGE.into();
             let PurgerTestConfig {
                 shrine, abbot, seer, purger, yangs, gates, ..,
             } = purger_utils::purger_deploy_with_searcher(searcher_start_yin, classes);
@@ -582,11 +586,12 @@ mod test_purger {
                     target_trove_updated_start_health.threshold, target_trove_after_health.ltv, Option::None,
                 );
 
-                let expected_target_trove_debt: Wad = target_trove_updated_start_health.debt - max_close_amt;
-
-                assert_eq!(target_trove_after_health.debt, expected_target_trove_debt, "wrong debt after liquidation");
+                assert(
+                    target_trove_after_health.debt == target_trove_updated_start_health.debt - max_close_amt,
+                    'wrong debt after liquidation',
+                );
             } else {
-                assert!(target_trove_after_health.debt.is_zero(), "should be 0 debt");
+                assert(target_trove_after_health.debt.is_zero(), 'should be 0 debt');
             }
 
             let (expected_freed_pct, _) = purger_utils::get_expected_liquidation_assets(
@@ -624,7 +629,7 @@ mod test_purger {
     fn test_liquidate_trove_healthy_fail() {
         let PurgerTestConfig {
             shrine, abbot, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
         let healthy_trove: u64 = purger_utils::funded_healthy_trove(
             abbot, yangs, gates, purger_utils::TARGET_TROVE_YIN.into(),
         );
@@ -641,7 +646,7 @@ mod test_purger {
     fn test_liquidate_trove_healthy_high_threshold_fail() {
         let PurgerTestConfig {
             shrine, abbot, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
         let healthy_trove: u64 = purger_utils::funded_healthy_trove(
             abbot, yangs, gates, purger_utils::TARGET_TROVE_YIN.into(),
         );
@@ -656,7 +661,7 @@ mod test_purger {
 
         // Sanity check that LTV is above absorption threshold and safe
         let health: Health = shrine.get_trove_health(healthy_trove);
-        assert_gt!(health.ltv, purger_contract::ABSORPTION_THRESHOLD.into(), "too low");
+        assert(health.ltv > purger_contract::ABSORPTION_THRESHOLD.into(), 'too low');
         purger_utils::assert_trove_is_healthy(shrine, purger, healthy_trove, health);
 
         let searcher: ContractAddress = purger_utils::SEARCHER;
@@ -778,7 +783,7 @@ mod test_purger {
                 purger_utils::trigger_recovery_mode(shrine, seer, yangs, common::RecoveryModeSetupType::ExceedsBuffer);
             } else {
                 // sanity check
-                assert!(!shrine.is_recovery_mode(), "in recovery mode");
+                assert(!shrine.is_recovery_mode(), 'in recovery mode');
             }
 
             let target_trove_updated_start_health: Health = shrine.get_trove_health(target_trove);
@@ -786,14 +791,14 @@ mod test_purger {
 
             let (penalty, max_close_amt, _) = purger.preview_absorb(target_trove).expect('Should be absorbable');
             if *is_recovery_mode {
-                assert_lt!(
-                    target_trove_updated_start_health.threshold,
-                    expected_rm_threshold_upper_bound - (RAY_PERCENT / 100).into(),
-                    "wrong rm threshold",
+                assert(
+                    target_trove_updated_start_health.threshold < expected_rm_threshold_upper_bound
+                        - (RAY_PERCENT / 100).into(),
+                    'wrong rm threshold',
                 );
 
-                assert_lt!(penalty, expected_penalty, "rm penalty not lower");
-                assert_gt!(max_close_amt, expected_rm_max_close_amt_lower_bound, "rm max close amt too low");
+                assert(penalty < expected_penalty, 'rm penalty not lower');
+                assert(max_close_amt > expected_rm_max_close_amt_lower_bound, 'rm max close amt too low');
             } else {
                 common::assert_equalish(penalty, expected_penalty, (RAY_PERCENT / 10).into(), // 0.1%
                 'wrong penalty');
@@ -808,7 +813,7 @@ mod test_purger {
     fn test_full_absorb_pass() {
         let PurgerTestConfig {
             shrine, abbot, seer, absorber, purger, yangs, gates,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
         let mut spy = spy_events();
 
         let initial_trove_debt: Wad = purger_utils::TARGET_TROVE_YIN.into();
@@ -820,14 +825,14 @@ mod test_purger {
         let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
         let accrued_interest: Wad = target_trove_start_health.debt - initial_trove_debt;
         // Sanity check that some interest has accrued
-        assert!(accrued_interest.is_non_zero(), "no interest accrued");
+        assert(accrued_interest.is_non_zero(), 'no interest accrued');
 
         // Fund the absorber with twice the target trove's debt
         let absorber_start_yin: Wad = (target_trove_start_health.debt.into() * 2_u128).into();
         purger_utils::funded_absorber(shrine, abbot, absorber, yangs, gates, absorber_start_yin);
 
         // sanity check
-        assert_gt!(shrine.get_yin(absorber.contract_address), target_trove_start_health.debt, "not full absorption");
+        assert(shrine.get_yin(absorber.contract_address) > target_trove_start_health.debt, 'not full absorption');
 
         let shrine_health: Health = shrine.get_shrine_health();
         let before_total_debt: Wad = shrine_health.debt;
@@ -854,18 +859,19 @@ mod test_purger {
         // Assert that total debt includes accrued interest on liquidated trove
         let shrine_health: Health = shrine.get_shrine_health();
         let after_total_debt: Wad = shrine_health.debt;
-        let expected_total_debt: Wad = before_total_debt + accrued_interest - max_close_amt;
-        assert_eq!(after_total_debt, expected_total_debt, "wrong total debt");
+        assert(after_total_debt == before_total_debt + accrued_interest - max_close_amt, 'wrong total debt');
 
         // Check absorption occured
-        assert_eq!(absorber.get_absorptions_count(), 1, "wrong absorptions count");
+        assert(absorber.get_absorptions_count() == 1, 'wrong absorptions count');
 
         // Check trove debt and LTV
         let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
-        let expected_target_trove_debt: Wad = target_trove_start_health.debt - max_close_amt;
-        assert_eq!(target_trove_after_health.debt, expected_target_trove_debt, "wrong debt after liquidation");
+        assert(
+            target_trove_after_health.debt == target_trove_start_health.debt - max_close_amt,
+            'wrong debt after liquidation',
+        );
 
-        assert!(target_trove_after_health.debt.is_zero(), "not fully absorbed");
+        assert(target_trove_after_health.debt.is_zero(), 'not fully absorbed');
 
         // Check that caller has received compensation
         let target_trove_yang_asset_amts: Span<u128> = purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span();
@@ -889,9 +895,9 @@ mod test_purger {
         );
 
         // Check absorber yin balance
-        let expected_absorber_yin_balance: Wad = absorber_start_yin - max_close_amt;
-        assert_eq!(
-            shrine.get_yin(absorber.contract_address), expected_absorber_yin_balance, "wrong absorber yin balance",
+        assert(
+            shrine.get_yin(absorber.contract_address) == absorber_start_yin - max_close_amt,
+            'wrong absorber yin balance',
         );
 
         // Check that absorber has received collateral
@@ -922,11 +928,11 @@ mod test_purger {
         common::assert_asset_balances_equalish(
             purged_event.freed_assets, expected_freed_assets, 10_u128, 'wrong freed assets for event',
         );
-        assert_eq!(purged_event.trove_id, target_trove, "wrong Purged trove ID");
-        assert_eq!(purged_event.purge_amt, max_close_amt, "wrong Purged amt");
-        assert_eq!(purged_event.percentage_freed, RAY_ONE.into(), "wrong Purged freed pct");
-        assert_eq!(purged_event.funder, absorber.contract_address, "wrong Purged funder");
-        assert_eq!(purged_event.recipient, absorber.contract_address, "wrong Purged recipient");
+        assert(purged_event.trove_id == target_trove, 'wrong Purged trove ID');
+        assert(purged_event.purge_amt == max_close_amt, 'wrong Purged amt');
+        assert(purged_event.percentage_freed == RAY_ONE.into(), 'wrong Purged freed pct');
+        assert(purged_event.funder == absorber.contract_address, 'wrong Purged funder');
+        assert(purged_event.recipient == absorber.contract_address, 'wrong Purged recipient');
 
         let expected_events = array![
             (
@@ -1034,7 +1040,7 @@ mod test_purger {
 
                 target_trove_updated_start_health = shrine.get_trove_health(target_trove);
             } else {
-                assert!(!shrine.is_recovery_mode(), "recovery mode");
+                assert(!shrine.is_recovery_mode(), 'recovery mode');
             }
 
             let shrine_health: Health = shrine.get_shrine_health();
@@ -1051,7 +1057,7 @@ mod test_purger {
             let close_amt: Wad = *absorber_start_yin;
 
             // Sanity check
-            assert_lt!(shrine.get_yin(absorber.contract_address), max_close_amt, "not less than close amount");
+            assert(shrine.get_yin(absorber.contract_address) < max_close_amt, 'not less than close amount');
 
             let caller: ContractAddress = common::NON_ZERO_ADDR;
 
@@ -1060,7 +1066,7 @@ mod test_purger {
 
             if kill_absorber {
                 absorber_utils::kill_absorber(absorber);
-                assert!(!absorber.get_live(), "sanity check");
+                assert(!absorber.get_live(), 'sanity check');
             }
 
             cheat_caller_address(purger.contract_address, caller, CheatSpan::TargetCalls(1));
@@ -1068,14 +1074,14 @@ mod test_purger {
 
             let shrine_health: Health = shrine.get_shrine_health();
             let after_total_debt: Wad = shrine_health.debt;
-            assert_eq!(after_total_debt, before_total_debt - close_amt, "wrong total debt");
+            assert(after_total_debt == before_total_debt - close_amt, 'wrong total debt');
 
             // Check absorption occured
-            assert_eq!(absorber.get_absorptions_count(), 1, "wrong absorptions count");
+            assert(absorber.get_absorptions_count() == 1, 'wrong absorptions count');
 
             // Check trove debt, value and LTV
             let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
-            assert!(target_trove_after_health.debt.is_zero(), "wrong debt after liquidation");
+            assert(target_trove_after_health.debt.is_zero(), 'wrong debt after liquidation');
             common::assert_equalish(
                 target_trove_after_health.value, Zero::zero(), 2000_u128.into(), 'wrong value after liquidation',
             );
@@ -1101,7 +1107,7 @@ mod test_purger {
             );
 
             // Check absorber yin balance is wiped out
-            assert!(shrine.get_yin(absorber.contract_address).is_zero(), "wrong absorber yin balance");
+            assert(shrine.get_yin(absorber.contract_address).is_zero(), 'wrong absorber yin balance');
 
             // Check that absorber has received proportionate share of
             // collateral
@@ -1125,7 +1131,7 @@ mod test_purger {
             );
 
             // Check redistribution occured
-            assert_eq!(shrine.get_redistributions_count(), 1, "wrong redistributions count");
+            assert(shrine.get_redistributions_count() == 1, 'wrong redistributions count');
 
             let redistributed_amt: Wad = max_close_amt - close_amt;
 
@@ -1152,17 +1158,16 @@ mod test_purger {
 
                 // Relax the assertion because exceptional
                 // redistribution may be triggered
-                assert_gt!(
-                    recipient_trove_after_health.debt, recipient_trove_start_health.debt, "wrong recipient trove debt",
+                assert(
+                    recipient_trove_after_health.debt > recipient_trove_start_health.debt, 'wrong recipient trove debt',
                 );
 
                 // At small values, the recipient trove may have a lower end value due to
                 // fluctuations in yang prices even if yang amount stays the same.
                 if redistributed_amt > WAD_ONE.into() {
-                    assert_gt!(
-                        recipient_trove_after_health.value,
-                        recipient_trove_start_health.value,
-                        "wrong recipient trove value",
+                    assert(
+                        recipient_trove_after_health.value > recipient_trove_start_health.value,
+                        'wrong recipient trove value',
                     );
                 }
             }
@@ -1179,10 +1184,10 @@ mod test_purger {
             common::assert_equalish(
                 purged_event.percentage_freed, expected_freed_pct, 1000000_u128.into(), 'wrong Purged freed pct',
             );
-            assert_eq!(purged_event.trove_id, target_trove, "wrong Purged trove ID");
-            assert_eq!(purged_event.purge_amt, close_amt, "wrong Purged amt");
-            assert_eq!(purged_event.funder, absorber.contract_address, "wrong Purged funder");
-            assert_eq!(purged_event.recipient, absorber.contract_address, "wrong Purged recipient");
+            assert(purged_event.trove_id == target_trove, 'wrong Purged trove ID');
+            assert(purged_event.purge_amt == close_amt, 'wrong Purged amt');
+            assert(purged_event.funder == absorber.contract_address, 'wrong Purged funder');
+            assert(purged_event.recipient == absorber.contract_address, 'wrong Purged recipient');
 
             let expected_events = array![
                 (
@@ -1368,7 +1373,7 @@ mod test_purger {
             let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
             let accrued_interest: Wad = target_trove_start_health.debt - initial_trove_debt;
             // Sanity check that some interest has accrued
-            assert!(accrued_interest.is_non_zero(), "no interest accrued");
+            assert(accrued_interest.is_non_zero(), 'no interest accrued');
 
             purger_utils::set_thresholds(shrine, yangs, *threshold);
 
@@ -1378,7 +1383,7 @@ mod test_purger {
             );
 
             // sanity check
-            assert!(!(is_recovery_mode ^ shrine.is_recovery_mode()), "wrong recovery mode status");
+            assert(!(is_recovery_mode ^ shrine.is_recovery_mode()), 'wrong recovery mode status');
 
             let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
 
@@ -1387,7 +1392,7 @@ mod test_purger {
             let (_, max_close_amt, _) = purger.preview_absorb(target_trove).expect('Should be absorbable');
 
             // sanity check
-            assert_lt!(max_close_amt, target_trove_start_health.debt, "close amt ge trove debt #1");
+            assert(max_close_amt < target_trove_start_health.debt, 'close amt ge trove debt #1');
 
             let caller: ContractAddress = common::NON_ZERO_ADDR;
 
@@ -1423,7 +1428,7 @@ mod test_purger {
                 .expect('Should be absorbable');
 
             // sanity check
-            assert_lt!(max_close_amt, target_trove_start_health.debt, "close amt ge trove debt #2");
+            assert(max_close_amt < target_trove_start_health.debt, 'close amt ge trove debt #2');
 
             let before_recipient_trove_health: Health = shrine.get_trove_health(recipient_trove);
 
@@ -1452,12 +1457,12 @@ mod test_purger {
                 absorber.provide(absorber_start_yin);
             }
 
-            assert_lt!(shrine.get_yin(absorber.contract_address), max_close_amt, "not less than close amount");
-            assert_eq!(shrine.get_yin(absorber.contract_address), close_amt, "absorber has close amount");
+            assert(shrine.get_yin(absorber.contract_address) < max_close_amt, 'not less than close amount');
+            assert(shrine.get_yin(absorber.contract_address) == close_amt, 'absorber has close amount');
 
             if kill_absorber {
                 absorber_utils::kill_absorber(absorber);
-                assert!(!absorber.get_live(), "sanity check");
+                assert(!absorber.get_live(), 'sanity check');
             }
 
             cheat_caller_address(purger.contract_address, caller, CheatSpan::TargetCalls(1));
@@ -1466,10 +1471,10 @@ mod test_purger {
             // Assert that total debt includes accrued interest on liquidated trove
             let shrine_health: Health = shrine.get_shrine_health();
             let after_total_debt: Wad = shrine_health.debt;
-            assert_eq!(after_total_debt, before_total_debt + accrued_interest - close_amt, "wrong total debt");
+            assert(after_total_debt == before_total_debt + accrued_interest - close_amt, 'wrong total debt');
 
             // Check absorption occured
-            assert_eq!(absorber.get_absorptions_count(), 1, "wrong absorptions count");
+            assert(absorber.get_absorptions_count() == 1, 'wrong absorptions count');
 
             // Check trove debt, value and LTV
             let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
@@ -1478,12 +1483,12 @@ mod test_purger {
             let expected_after_value: Wad = target_trove_updated_start_health.value
                 - expected_compensation_value
                 - expected_liquidated_value;
-            assert!(target_trove_after_health.debt.is_non_zero(), "debt should not be 0");
+            assert(target_trove_after_health.debt.is_non_zero(), 'debt should not be 0');
 
             let expected_after_debt: Wad = target_trove_updated_start_health.debt - max_close_amt;
-            assert_eq!(target_trove_after_health.debt, expected_after_debt, "wrong debt after liquidation");
+            assert(target_trove_after_health.debt == expected_after_debt, 'wrong debt after liquidation');
 
-            assert!(target_trove_after_health.value.is_non_zero(), "value should not be 0");
+            assert(target_trove_after_health.value.is_non_zero(), 'value should not be 0');
 
             common::assert_equalish(
                 target_trove_after_health.value,
@@ -1522,7 +1527,7 @@ mod test_purger {
             );
 
             // Check absorber yin balance is wiped out
-            assert!(shrine.get_yin(absorber.contract_address).is_zero(), "wrong absorber yin balance");
+            assert(shrine.get_yin(absorber.contract_address).is_zero(), 'wrong absorber yin balance');
 
             // Check that absorber has received proportionate share of collateral
             let (expected_freed_pct, expected_freed_amts) = purger_utils::get_expected_liquidation_assets(
@@ -1542,7 +1547,7 @@ mod test_purger {
             );
 
             // Check redistribution occured
-            assert_eq!(shrine.get_redistributions_count(), 1, "wrong redistributions count");
+            assert(shrine.get_redistributions_count() == 1, 'wrong redistributions count');
 
             // Check recipient trove's debt
             let after_recipient_trove_health = shrine.get_trove_health(recipient_trove);
@@ -1568,25 +1573,22 @@ mod test_purger {
                 // Check recipient trove's value and debt
                 if absorber_yin_idx == 2 {
                     // Loss of precision because redistributed debt is too small
-                    assert_eq!(
-                        after_recipient_trove_health.debt,
-                        before_recipient_trove_health.debt,
-                        "wrong recipient trove debt",
+                    assert(
+                        after_recipient_trove_health.debt == before_recipient_trove_health.debt,
+                        'wrong recipient trove debt',
                     );
                 } else {
                     // Relax the assertion because exceptional redistribution may
                     // be triggered
-                    assert_gt!(
-                        after_recipient_trove_health.debt,
-                        before_recipient_trove_health.debt,
-                        "wrong recipient trove debt",
+                    assert(
+                        after_recipient_trove_health.debt > before_recipient_trove_health.debt,
+                        'wrong recipient trove debt',
                     );
                 }
                 let error_margin: Wad = 1000000000000_u128.into();
-                assert_gt!(
-                    after_recipient_trove_health.value,
-                    before_recipient_trove_health.value - error_margin,
-                    "wrong recipient trove value",
+                assert(
+                    after_recipient_trove_health.value > before_recipient_trove_health.value - error_margin,
+                    'wrong recipient trove value',
                 );
             }
 
@@ -1620,13 +1622,13 @@ mod test_purger {
             common::assert_asset_balances_equalish(
                 purged_event.freed_assets, expected_freed_assets, 1000_u128, 'wrong freed assets for event',
             );
-            assert_eq!(purged_event.trove_id, target_trove, "wrong Purged trove ID");
-            assert_eq!(purged_event.purge_amt, close_amt, "wrong Purged amt");
+            assert(purged_event.trove_id == target_trove, 'wrong Purged trove ID');
+            assert(purged_event.purge_amt == close_amt, 'wrong Purged amt');
             common::assert_equalish(
                 purged_event.percentage_freed, expected_freed_pct, 1000000_u128.into(), 'wrong Purged freed pct',
             );
-            assert_eq!(purged_event.funder, absorber.contract_address, "wrong Purged funder");
-            assert_eq!(purged_event.recipient, absorber.contract_address, "wrong Purged recipient");
+            assert(purged_event.funder == absorber.contract_address, 'wrong Purged funder');
+            assert(purged_event.recipient == absorber.contract_address, 'wrong Purged recipient');
 
             let expected_events = array![
                 (
@@ -1718,7 +1720,7 @@ mod test_purger {
                 let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
                 let accrued_interest: Wad = target_trove_start_health.debt - initial_trove_debt;
                 // Sanity check that some interest has accrued
-                assert!(accrued_interest.is_non_zero(), "no interest accrued");
+                assert(accrued_interest.is_non_zero(), 'no interest accrued');
 
                 let shrine_health: Health = shrine.get_shrine_health();
                 let before_total_debt: Wad = shrine_health.debt;
@@ -1743,7 +1745,7 @@ mod test_purger {
 
                 if kill_absorber {
                     absorber_utils::kill_absorber(absorber);
-                    assert!(!absorber.get_live(), "sanity check");
+                    assert(!absorber.get_live(), 'sanity check');
                 }
 
                 let (_, _, expected_compensation_value) = purger
@@ -1756,7 +1758,7 @@ mod test_purger {
                 // Assert that total debt includes accrued interest on liquidated
                 // trove
                 let after_total_debt: Wad = shrine.get_shrine_health().debt;
-                assert_eq!(after_total_debt, before_total_debt + accrued_interest, "wrong total debt");
+                assert(after_total_debt == before_total_debt + accrued_interest, 'wrong total debt');
 
                 // Check that caller has received compensation
                 let expected_compensation_amts: Span<u128> = purger_utils::get_expected_compensation_assets(
@@ -1779,16 +1781,16 @@ mod test_purger {
                 );
 
                 let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
-                assert!(target_trove_after_health.is_healthy(), "should be healthy");
-                assert!(target_trove_after_health.ltv.is_zero(), "LTV should be 0");
-                assert!(target_trove_after_health.value.is_zero(), "value should be 0");
-                assert!(target_trove_after_health.debt.is_zero(), "debt should be 0");
+                assert(target_trove_after_health.is_healthy(), 'should be healthy');
+                assert(target_trove_after_health.ltv.is_zero(), 'LTV should be 0');
+                assert(target_trove_after_health.value.is_zero(), 'value should be 0');
+                assert(target_trove_after_health.debt.is_zero(), 'debt should be 0');
 
                 // Check no absorption occured
-                assert_eq!(absorber.get_absorptions_count(), 0, "wrong absorptions count");
+                assert(absorber.get_absorptions_count() == 0, 'wrong absorptions count');
 
                 // Check redistribution occured
-                assert_eq!(shrine.get_redistributions_count(), 1, "wrong redistributions count");
+                assert(shrine.get_redistributions_count() == 1, 'wrong redistributions count');
 
                 let expected_redistribution_id = 1;
 
@@ -1812,16 +1814,14 @@ mod test_purger {
                 } else {
                     // Check recipient trove's value and debt
                     let after_recipient_trove_health = shrine.get_trove_health(recipient_trove);
-                    assert_gt!(
-                        after_recipient_trove_health.debt,
-                        before_recipient_trove_health.debt,
-                        "wrong recipient trove debt",
+                    assert(
+                        after_recipient_trove_health.debt > before_recipient_trove_health.debt,
+                        'wrong recipient trove debt',
                     );
 
-                    assert_gt!(
-                        after_recipient_trove_health.value,
-                        before_recipient_trove_health.value,
-                        "wrong recipient trove value",
+                    assert(
+                        after_recipient_trove_health.value > before_recipient_trove_health.value,
+                        'wrong recipient trove value',
                     );
                 }
 
@@ -1914,9 +1914,7 @@ mod test_purger {
             purger_utils::funded_absorber(shrine, abbot, absorber, yangs, gates, absorber_start_yin);
 
             // sanity check
-            assert_gt!(
-                shrine.get_yin(absorber.contract_address), target_trove_start_health.debt, "not full absorption",
-            );
+            assert(shrine.get_yin(absorber.contract_address) > target_trove_start_health.debt, 'not full absorption');
 
             // Make the target trove absorbable
             purger_utils::lower_prices_to_raise_trove_ltv(
@@ -1926,7 +1924,7 @@ mod test_purger {
             if is_recovery_mode {
                 purger_utils::trigger_recovery_mode(shrine, seer, yangs, common::RecoveryModeSetupType::ExceedsBuffer);
             } else {
-                assert!(!shrine.is_recovery_mode(), "recovery mode");
+                assert(!shrine.is_recovery_mode(), 'recovery mode');
             }
 
             let mut target_trove_updated_start_health: Health = shrine.get_trove_health(target_trove);
@@ -1935,7 +1933,7 @@ mod test_purger {
 
             if kill_absorber {
                 absorber_utils::kill_absorber(absorber);
-                assert!(!absorber.get_live(), "sanity check");
+                assert(!absorber.get_live(), 'sanity check');
             }
 
             let (penalty, max_close_amt, expected_compensation_value) = purger
@@ -1943,7 +1941,7 @@ mod test_purger {
                 .expect('Should be absorbable');
 
             if !is_recovery_mode {
-                assert_lt!(max_close_amt, target_trove_updated_start_health.debt, "close amount >= debt");
+                assert(max_close_amt < target_trove_updated_start_health.debt, 'close amount == debt');
             }
 
             let caller: ContractAddress = common::NON_ZERO_ADDR;
@@ -1952,8 +1950,10 @@ mod test_purger {
 
             // Check that LTV is close to safety margin
             let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
-            let expected_target_trove_debt: Wad = target_trove_updated_start_health.debt - max_close_amt;
-            assert_eq!(target_trove_after_health.debt, expected_target_trove_debt, "wrong debt after liquidation");
+            assert(
+                target_trove_after_health.debt == target_trove_updated_start_health.debt - max_close_amt,
+                'wrong debt after liquidation',
+            );
 
             // Perform this check only if close amount is less than
             // trove's debt. Close amount may be equal to trove's debt
@@ -1981,13 +1981,13 @@ mod test_purger {
             common::assert_asset_balances_equalish(
                 purged_event.freed_assets, expected_freed_assets, 1000_u128, 'wrong freed assets for event',
             );
-            assert_eq!(purged_event.trove_id, target_trove, "wrong Purged trove ID");
-            assert_eq!(purged_event.purge_amt, max_close_amt, "wrong Purged amt");
+            assert(purged_event.trove_id == target_trove, 'wrong Purged trove ID');
+            assert(purged_event.purge_amt == max_close_amt, 'wrong Purged amt');
             common::assert_equalish(
                 purged_event.percentage_freed, expected_freed_pct, 1000000_u128.into(), 'wrong Purged freed pct',
             );
-            assert_eq!(purged_event.funder, absorber.contract_address, "wrong Purged funder");
-            assert_eq!(purged_event.recipient, absorber.contract_address, "wrong Purged recipient");
+            assert(purged_event.funder == absorber.contract_address, 'wrong Purged funder');
+            assert(purged_event.recipient == absorber.contract_address, 'wrong Purged recipient');
 
             let expected_events = array![
                 (
@@ -2067,9 +2067,7 @@ mod test_purger {
             purger_utils::funded_absorber(shrine, abbot, absorber, yangs, gates, absorber_start_yin);
 
             // sanity check
-            assert_gt!(
-                shrine.get_yin(absorber.contract_address), target_trove_start_health.debt, "not full absorption",
-            );
+            assert(shrine.get_yin(absorber.contract_address) > target_trove_start_health.debt, 'not full absorption');
 
             // Make the target trove absorbable
             purger_utils::lower_prices_to_raise_trove_ltv(
@@ -2082,29 +2080,29 @@ mod test_purger {
                 purger_utils::trigger_recovery_mode(shrine, seer, yangs, common::RecoveryModeSetupType::ExceedsBuffer);
                 target_trove_updated_start_health = shrine.get_trove_health(target_trove);
             } else {
-                assert!(!shrine.is_recovery_mode(), "recovery mode");
+                assert(!shrine.is_recovery_mode(), 'recovery mode');
             }
 
             purger_utils::assert_trove_is_absorbable(shrine, purger, target_trove, target_trove_updated_start_health);
 
             if kill_absorber {
                 absorber_utils::kill_absorber(absorber);
-                assert!(!absorber.get_live(), "sanity check");
+                assert(!absorber.get_live(), 'sanity check');
             }
 
             let (penalty, max_close_amt, expected_compensation_value) = purger
                 .preview_absorb(target_trove)
                 .expect('Should be absorbable');
-            assert_eq!(max_close_amt, target_trove_updated_start_health.debt, "close amount != debt");
+            assert(max_close_amt == target_trove_updated_start_health.debt, 'close amount != debt');
             if *target_ltv >= ninety_nine_pct {
-                assert!(penalty.is_zero(), "wrong penalty");
+                assert(penalty.is_zero(), 'wrong penalty');
             } else {
                 let error_margin: Ray = (RAY_PERCENT / 10).into(); // 0.1%
                 if is_recovery_mode {
                     if expected_penalty.is_zero() {
                         assert_eq!(penalty, expected_penalty, "wrong rm penalty #1");
                     } else {
-                        assert_lt!(penalty, expected_penalty - error_margin, "wrong rm penalty #2");
+                        assert(penalty < expected_penalty - error_margin, 'wrong rm penalty #2');
                     }
                 } else {
                     common::assert_equalish(penalty, expected_penalty, error_margin, 'wrong penalty');
@@ -2116,9 +2114,9 @@ mod test_purger {
             let compensation: Span<AssetBalance> = purger.absorb(target_trove);
 
             let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
-            assert!(target_trove_after_health.ltv.is_zero(), "wrong LTV after liquidation");
-            assert!(target_trove_after_health.value.is_zero(), "wrong value after liquidation");
-            assert!(target_trove_after_health.debt.is_zero(), "wrong debt after liquidation");
+            assert(target_trove_after_health.ltv.is_zero(), 'wrong LTV after liquidation');
+            assert(target_trove_after_health.value.is_zero(), 'wrong value after liquidation');
+            assert(target_trove_after_health.debt.is_zero(), 'wrong debt after liquidation');
 
             let target_trove_yang_asset_amts: Span<u128> = purger_utils::TARGET_TROVE_YANG_ASSET_AMTS.span();
             let (_, expected_freed_asset_amts) = purger_utils::get_expected_liquidation_assets(
@@ -2138,11 +2136,11 @@ mod test_purger {
             let (_, raw_purged_event) = purger_events.pop_front().unwrap();
             let purged_event = purger_utils::deserialize_purged_event(raw_purged_event);
 
-            assert_eq!(purged_event.trove_id, target_trove, "wrong Purged trove ID");
-            assert_eq!(purged_event.purge_amt, max_close_amt, "wrong Purged amt");
-            assert_eq!(purged_event.percentage_freed, RAY_ONE.into(), "wrong Purged freed pct");
-            assert_eq!(purged_event.funder, absorber.contract_address, "wrong Purged funder");
-            assert_eq!(purged_event.recipient, absorber.contract_address, "wrong Purged recipient");
+            assert(purged_event.trove_id == target_trove, 'wrong Purged trove ID');
+            assert(purged_event.purge_amt == max_close_amt, 'wrong Purged amt');
+            assert(purged_event.percentage_freed == RAY_ONE.into(), 'wrong Purged freed pct');
+            assert(purged_event.funder == absorber.contract_address, 'wrong Purged funder');
+            assert(purged_event.recipient == absorber.contract_address, 'wrong Purged recipient');
             common::assert_asset_balances_equalish(
                 purged_event.freed_assets, expected_freed_assets, 100000_u128, 'wrong freed assets for event',
             );
@@ -2164,7 +2162,7 @@ mod test_purger {
     fn test_absorb_trove_healthy_fail() {
         let PurgerTestConfig {
             shrine, abbot, absorber, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         let trove_debt: Wad = purger_utils::TARGET_TROVE_YIN.into();
         let healthy_trove: u64 = purger_utils::funded_healthy_trove(abbot, yangs, gates, trove_debt);
@@ -2182,7 +2180,7 @@ mod test_purger {
     fn test_absorb_below_absorbable_ltv_fail() {
         let PurgerTestConfig {
             shrine, abbot, seer, absorber, purger, yangs, gates,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         purger_utils::create_whale_trove(abbot, yangs, gates);
 
@@ -2213,7 +2211,7 @@ mod test_purger {
         let (mut thresholds, mut target_ltvs) = purger_utils::interesting_thresholds_and_ltvs_below_absorption_ltv();
 
         for threshold in thresholds {
-            let searcher_start_yin: Wad = purger_utils::SEARCHER_YIN.into();
+            let searcher_start_yin: Wad = common::LARGE_FORGE.into();
             let PurgerTestConfig {
                 shrine, abbot, seer, absorber, purger, yangs, gates,
             } = purger_utils::purger_deploy_with_searcher(searcher_start_yin, classes);
@@ -2255,7 +2253,7 @@ mod test_purger {
     fn test_liquidate_suspended_yang() {
         let PurgerTestConfig {
             shrine, abbot, purger, yangs, gates, ..,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         // user 1 opens a trove with ETH and BTC that is close to liquidation
         // `funded_healthy_trove` supplies 2 ETH and 0.5 BTC totalling $9000 in value, so we
@@ -2272,7 +2270,7 @@ mod test_purger {
 
         // The trove has $6000 in debt and $9000 in collateral. BTC's value must decrease
         let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
-        assert!(target_trove_start_health.is_healthy(), "should still be healthy");
+        assert(target_trove_start_health.is_healthy(), 'should still be healthy');
 
         let eth_threshold: Ray = common::YANG1_THRESHOLD.into();
         let btc_threshold: Ray = common::YANG2_THRESHOLD.into();
@@ -2311,7 +2309,7 @@ mod test_purger {
         let new_timestamp: u64 = current_timestamp + ts_diff + 1;
         start_cheat_block_timestamp_global(new_timestamp);
 
-        assert!(!shrine.is_healthy(target_trove), "should be unhealthy");
+        assert(!shrine.is_healthy(target_trove), 'should be unhealthy');
 
         // Liquidate the trove
         let searcher = purger_utils::SEARCHER;
@@ -2321,12 +2319,11 @@ mod test_purger {
         // Sanity checks
         let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
 
-        assert_lt!(target_trove_after_health.debt, target_trove_start_health.debt, "trove not correctly liquidated");
+        assert(target_trove_after_health.debt < target_trove_start_health.debt, 'trove not correctly liquidated');
 
-        assert_lt!(
-            common::erc20(shrine.contract_address).balance_of(searcher).try_into().unwrap(),
-            purger_utils::SEARCHER_YIN,
-            "searcher yin not used",
+        assert(
+            common::erc20(shrine.contract_address).balance_of(searcher).try_into().unwrap() < common::LARGE_FORGE,
+            'searcher yin not used',
         );
 
         purger_utils::assert_ltv_at_safety_margin(
@@ -2416,7 +2413,7 @@ mod test_purger {
     ) {
         let PurgerTestConfig {
             shrine, abbot, seer, absorber, purger, yangs, gates,
-        } = purger_utils::purger_deploy_with_searcher(purger_utils::SEARCHER_YIN.into(), Option::None);
+        } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
 
         let eth: ContractAddress = *yangs[0];
         let eth_gate: IGateDispatcher = *gates[0];
@@ -2428,7 +2425,7 @@ mod test_purger {
 
         // Have the searcher provide half of his yin to the absorber
         let searcher = purger_utils::SEARCHER;
-        let searcher_yin: Wad = (purger_utils::SEARCHER_YIN / 2).into();
+        let searcher_yin: Wad = (common::LARGE_FORGE / 2).into();
         let yin_erc20 = common::erc20(shrine.contract_address);
 
         cheat_caller_address(shrine.contract_address, searcher, CheatSpan::TargetCalls(1));
@@ -2484,7 +2481,7 @@ mod test_purger {
                 purger_utils::trigger_recovery_mode(shrine, seer, yangs, common::RecoveryModeSetupType::ExceedsBuffer);
             }
         } else {
-            assert!(!in_recovery_mode, "in recovery mode");
+            assert(!in_recovery_mode, 'in recovery mode');
         }
 
         // Liquidate the trove
@@ -2501,18 +2498,17 @@ mod test_purger {
         // Sanity checks
         let target_trove_after_health: Health = shrine.get_trove_health(target_trove);
 
-        assert_lt!(target_trove_after_health.debt, forge_amt, "trove not correctly liquidated");
+        assert(target_trove_after_health.debt < forge_amt, 'trove not correctly liquidated');
 
         // Checking that the liquidator's yin balance has decreased
         // after liquidation
         if liquidate_via_absorption {
-            assert_lt!(
-                yin_erc20.balance_of(absorber.contract_address),
-                before_liquidation_yin_balance,
-                "absorber yin not used",
+            assert(
+                yin_erc20.balance_of(absorber.contract_address) < before_liquidation_yin_balance,
+                'absorber yin not used',
             );
         } else {
-            assert_lt!(yin_erc20.balance_of(searcher), before_liquidation_yin_balance, "searcher yin not used");
+            assert(yin_erc20.balance_of(searcher) < before_liquidation_yin_balance, 'searcher yin not used');
         }
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
@@ -2537,7 +2533,7 @@ mod test_purger {
         let classes = Option::Some(purger_utils::declare_contracts());
 
         let searcher = purger_utils::SEARCHER;
-        let searcher_start_yin: Wad = (purger_utils::SEARCHER_YIN * 6).into();
+        let searcher_start_yin: Wad = (common::LARGE_FORGE * 6).into();
 
         let minimum_operational_shares: Wad = (absorber_contract::INITIAL_SHARES
             + absorber_contract::MINIMUM_RECIPIENT_SHARES)
@@ -2634,11 +2630,11 @@ mod test_purger {
 
                 let target_trove_start_health: Health = shrine.get_trove_health(target_trove);
                 if is_recovery_mode && (*threshold).is_non_zero() {
-                    assert!(shrine.is_recovery_mode(), "not recovery mode");
+                    assert(shrine.is_recovery_mode(), 'not recovery mode');
                 } else if (*threshold).is_non_zero() {
                     // skip zero threshold because recovery mode
                     // is unavoidable
-                    assert!(!shrine.is_recovery_mode(), "recovery mode");
+                    assert(!shrine.is_recovery_mode(), 'recovery mode');
                 }
 
                 let (penalty, max_close_amt, expected_compensation_value) = purger
@@ -2700,7 +2696,7 @@ mod test_purger {
                 // If the trove wasn't fully liquidated, check
                 // that it is healthy
                 if max_close_amt < trove_debt {
-                    assert!(shrine.is_healthy(target_trove), "trove should be healthy");
+                    assert(shrine.is_healthy(target_trove), 'trove should be healthy');
                 }
 
                 // Checking that the absorbed assets are equal in value to the

@@ -27,15 +27,15 @@ mod test_absorber {
     fn test_absorber_setup() {
         let AbsorberTestConfig { absorber, .. } = absorber_utils::absorber_deploy(Option::None);
 
-        assert!(absorber.get_total_shares_for_current_epoch().is_zero(), "total shares should be 0");
-        assert_eq!(absorber.get_current_epoch(), absorber_contract::FIRST_EPOCH, "epoch should be 1");
-        assert_eq!(absorber.get_absorptions_count(), 0, "absorptions count should be 0");
-        assert_eq!(absorber.get_rewards_count(), 0, "rewards should be 0");
-        assert!(absorber.get_live(), "should be live");
-        assert!(!absorber.is_operational(), "should not be operational");
+        assert(absorber.get_total_shares_for_current_epoch().is_zero(), 'total shares should be 0');
+        assert(absorber.get_current_epoch() == absorber_contract::FIRST_EPOCH, 'epoch should be 1');
+        assert(absorber.get_absorptions_count() == 0, 'absorptions count should be 0');
+        assert(absorber.get_rewards_count() == 0, 'rewards should be 0');
+        assert(absorber.get_live(), 'should be live');
+        assert(!absorber.is_operational(), 'should not be operational');
 
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber.contract_address };
-        assert_eq!(absorber_ac.get_roles(common::ABSORBER_ADMIN), absorber_roles::ADMIN, "wrong role for admin");
+        assert(absorber_ac.get_roles(common::ABSORBER_ADMIN) == absorber_roles::ADMIN, 'wrong role for admin');
     }
 
     //
@@ -64,7 +64,7 @@ mod test_absorber {
         cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(opus_token, opus_blesser, true);
 
-        assert_eq!(absorber.get_rewards_count(), 1, "rewards count not updated");
+        assert(absorber.get_rewards_count() == 1, 'rewards count not updated');
 
         let mut opus_reward = Reward {
             asset: opus_token, blesser: IBlesserDispatcher { contract_address: opus_blesser }, is_active: true,
@@ -87,7 +87,7 @@ mod test_absorber {
         cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(veopus_token, veopus_blesser, true);
 
-        assert_eq!(absorber.get_rewards_count(), 2, "rewards count not updated");
+        assert(absorber.get_rewards_count() == 2, 'rewards count not updated');
 
         let veopus_reward = Reward {
             asset: veopus_token, blesser: IBlesserDispatcher { contract_address: veopus_blesser }, is_active: true,
@@ -170,7 +170,7 @@ mod test_absorber {
         cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
 
-        assert!(!absorber.get_live(), "should be killed");
+        assert(!absorber.get_live(), 'should be killed');
 
         // Check provider can remove
         let before_provider_yin_bal: Wad = shrine.get_yin(provider);
@@ -269,7 +269,7 @@ mod test_absorber {
 
         let mut preview_reward_assets_copy = preview_reward_assets;
         for reward_asset_balance in preview_reward_assets_copy {
-            assert!((*reward_asset_balance).amount.is_zero(), "rewards should be zero");
+            assert((*reward_asset_balance).amount.is_zero(), 'rewards should be zero');
         }
 
         cheat_caller_address(absorber.contract_address, provider, CheatSpan::TargetCalls(1));
@@ -291,7 +291,7 @@ mod test_absorber {
             'should be zero #4',
         );
 
-        assert_eq!(absorber.get_provider_last_absorption(provider), 1, "wrong last absorption");
+        assert(absorber.get_provider_last_absorption(provider) == 1, 'wrong last absorption');
 
         let error_margin: u128 = 10000;
         absorber_utils::assert_provider_received_absorbed_assets(
@@ -369,7 +369,7 @@ mod test_absorber {
 
         let mut spy = spy_events();
 
-        assert!(absorber.is_operational(), "should be operational");
+        assert(absorber.is_operational(), 'should be operational');
 
         // total shares is equal to amount provided
         let before_total_shares: Wad = first_provided_amt;
@@ -439,7 +439,7 @@ mod test_absorber {
 
         spy.assert_emitted(@expected_events);
 
-        assert_eq!(absorber.get_absorptions_count(), expected_absorption_id, "wrong absorption id");
+        assert(absorber.get_absorptions_count() == expected_absorption_id, 'wrong absorption id');
 
         absorber_utils::assert_update_is_correct(
             sentinel,
@@ -462,8 +462,8 @@ mod test_absorber {
             expected_blessings_multiplier,
         );
 
-        assert_eq!(absorber.get_total_shares_for_current_epoch(), expected_total_shares, "wrong total shares");
-        assert_eq!(absorber.get_current_epoch(), expected_epoch, "wrong epoch");
+        assert(absorber.get_total_shares_for_current_epoch() == expected_total_shares, 'wrong total shares');
+        assert(absorber.get_current_epoch() == expected_epoch, 'wrong epoch');
 
         let before_absorbed_bals = common::get_token_balances(yangs, provider);
         let before_reward_bals = common::get_token_balances(reward_tokens, provider);
@@ -532,13 +532,13 @@ mod test_absorber {
                     *after_preview_reward_assets.at(0).amount > *preview_reward_assets.at(0).amount,
                     'preview amount should decrease',
                 );
-                assert!(absorber.is_operational(), "should be operational");
+                assert(absorber.is_operational(), 'should be operational');
             } else {
-                assert!(after_preview_reward_assets.len().is_zero(), "should not have rewards");
+                assert(after_preview_reward_assets.len().is_zero(), 'should not have rewards');
                 absorber_utils::assert_reward_errors_propagated_to_next_epoch(
                     absorber, expected_epoch - 1, reward_tokens,
                 );
-                assert!(!absorber.is_operational(), "should not be operational");
+                assert(!absorber.is_operational(), 'should not be operational');
             }
         } else if after_preview_reward_assets.len().is_non_zero() {
             // Sanity check that updated preview reward amount is lower than before
@@ -571,7 +571,7 @@ mod test_absorber {
             );
 
             // Check `request` is used
-            assert!(!absorber.get_provider_request(provider).is_valid, "request should be fulfilled");
+            assert(!absorber.get_provider_request(provider).is_valid, 'request should be fulfilled');
         }
     }
 
@@ -622,8 +622,8 @@ mod test_absorber {
             before_provider_info.shares + absorber_contract::INITIAL_SHARES.into() == before_total_shares,
             'wrong total shares #1',
         );
-        assert_eq!(before_total_shares, first_provided_amt, "wrong total shares #2");
-        assert_eq!(before_absorber_yin_bal, first_provided_amt.into(), "wrong yin balance");
+        assert(before_total_shares == first_provided_amt, 'wrong total shares #2');
+        assert(before_absorber_yin_bal == first_provided_amt.into(), 'wrong yin balance');
 
         // Get preview amounts to check expected rewards
         let (_, preview_reward_assets) = absorber.preview_reap(provider);
@@ -652,9 +652,9 @@ mod test_absorber {
                 + second_provided_amt == after_total_shares,
             'wrong total shares #1',
         );
-        assert_eq!(after_total_shares, before_total_shares + second_provided_amt, "wrong total shares #2");
-        assert_eq!(after_absorber_yin_bal, (first_provided_amt + second_provided_amt).into(), "wrong yin balance");
-        assert_eq!(before_last_absorption_id, after_last_absorption_id, "absorption id should not change");
+        assert(after_total_shares == before_total_shares + second_provided_amt, 'wrong total shares #2');
+        assert(after_absorber_yin_bal == (first_provided_amt + second_provided_amt).into(), 'wrong yin balance');
+        assert(before_last_absorption_id == after_last_absorption_id, 'absorption id should not change');
 
         let expected_recipient_shares: Wad = before_total_shares - absorber_contract::INITIAL_SHARES.into();
         let expected_blessings_multiplier: Ray = RAY_SCALE.into();
@@ -732,7 +732,7 @@ mod test_absorber {
         absorber.provide(initial_shares_amt);
 
         let donor_provision: Provision = absorber.get_provision(donor);
-        assert!(donor_provision.shares.is_zero(), "donor shares not zero");
+        assert(donor_provision.shares.is_zero(), 'donor shares not zero');
 
         // Donor donates 1,000 yin
         let donation_amt: Wad = (1000 * WAD_ONE).into();
@@ -804,14 +804,14 @@ mod test_absorber {
 
         // Check provision in new epoch
         let second_provider_info: Provision = absorber.get_provision(second_provider);
-        assert_eq!(absorber.get_total_shares_for_current_epoch(), second_provided_amt, "wrong total shares");
+        assert(absorber.get_total_shares_for_current_epoch() == second_provided_amt, 'wrong total shares');
         assert(
             second_provider_info.shares + absorber_contract::INITIAL_SHARES.into() == second_provided_amt,
             'wrong provider shares',
         );
 
         let second_epoch: u32 = absorber_contract::FIRST_EPOCH + 1;
-        assert_eq!(second_provider_info.epoch, second_epoch, "wrong provider epoch");
+        assert(second_provider_info.epoch == second_epoch, 'wrong provider epoch');
 
         let second_epoch_recipient_shares: Wad = absorber.get_total_shares_for_current_epoch()
             - absorber_contract::INITIAL_SHARES.into();
@@ -824,8 +824,8 @@ mod test_absorber {
         );
 
         let third_epoch: u32 = second_epoch + 1;
-        assert_eq!(absorber.get_current_epoch(), third_epoch, "wrong epoch");
-        assert!(!absorber.is_operational(), "should not be operational");
+        assert(absorber.get_current_epoch() == third_epoch, 'wrong epoch');
+        assert(!absorber.is_operational(), 'should not be operational');
 
         let expected_absorption_id = 2;
         let expected_absorbed_assets: Span<AssetBalance> = common::combine_assets_and_amts(yangs, second_update_assets);
@@ -871,7 +871,7 @@ mod test_absorber {
         cheat_caller_address(absorber.contract_address, first_provider, CheatSpan::TargetCalls(1));
         absorber.reap();
 
-        assert_eq!(absorber.get_provider_last_absorption(first_provider), 2, "wrong last absorption");
+        assert(absorber.get_provider_last_absorption(first_provider) == 2, 'wrong last absorption');
 
         let error_margin: u128 = 10000;
         absorber_utils::assert_provider_received_absorbed_assets(
@@ -906,7 +906,7 @@ mod test_absorber {
         absorber_utils::assert_provider_reward_cumulatives_updated(absorber, first_provider, reward_tokens);
 
         let third_epoch_total_shares: Wad = absorber.get_total_shares_for_current_epoch();
-        assert!(third_epoch_total_shares.is_zero(), "wrong total shares");
+        assert(third_epoch_total_shares.is_zero(), 'wrong total shares');
         let expected_events = array![
             (
                 absorber.contract_address,
@@ -940,7 +940,7 @@ mod test_absorber {
         cheat_caller_address(absorber.contract_address, second_provider, CheatSpan::TargetCalls(1));
         absorber.reap();
 
-        assert_eq!(absorber.get_provider_last_absorption(second_provider), 2, "wrong last absorption");
+        assert(absorber.get_provider_last_absorption(second_provider) == 2, 'wrong last absorption');
 
         let error_margin: u128 = 10000;
         absorber_utils::assert_provider_received_absorbed_assets(
@@ -1020,7 +1020,7 @@ mod test_absorber {
 
         let mut spy = spy_events();
 
-        assert!(absorber.is_operational(), "should be operational");
+        assert(absorber.is_operational(), 'should be operational');
 
         let first_epoch_total_shares: Wad = absorber.get_total_shares_for_current_epoch();
 
@@ -1033,12 +1033,12 @@ mod test_absorber {
         let burn_amt: Wad = first_provided_amt - above_min_shares;
         absorber_utils::simulate_update_with_amt_to_drain(shrine, absorber, yangs, first_update_assets, burn_amt);
 
-        assert!(absorber.is_operational(), "should be operational");
+        assert(absorber.is_operational(), 'should be operational');
 
         // Check epoch and total shares after threshold absorption
         let expected_current_epoch: u32 = absorber_contract::FIRST_EPOCH + 1;
-        assert_eq!(absorber.get_current_epoch(), expected_current_epoch, "wrong epoch");
-        assert_eq!(absorber.get_total_shares_for_current_epoch(), above_min_shares, "wrong total shares");
+        assert(absorber.get_current_epoch() == expected_current_epoch, 'wrong epoch');
+        assert(absorber.get_total_shares_for_current_epoch() == above_min_shares, 'wrong total shares');
 
         absorber_utils::assert_reward_errors_propagated_to_next_epoch(
             absorber, absorber_contract::FIRST_EPOCH, reward_tokens,
@@ -1100,11 +1100,11 @@ mod test_absorber {
             second_provided_amt,
         );
 
-        assert!(absorber.is_operational(), "should be operational");
+        assert(absorber.is_operational(), 'should be operational');
 
         let second_provider_info: Provision = absorber.get_provision(second_provider);
-        assert_eq!(second_provider_info.shares, second_provided_amt, "wrong provider shares");
-        assert_eq!(second_provider_info.epoch, expected_current_epoch, "wrong provider epoch");
+        assert(second_provider_info.shares == second_provided_amt, 'wrong provider shares');
+        assert(second_provider_info.epoch == expected_current_epoch, 'wrong provider epoch');
 
         let error_margin: Wad = 1000_u128.into();
         common::assert_equalish(
@@ -1149,19 +1149,19 @@ mod test_absorber {
         start_cheat_block_timestamp_global(request_timestamp + absorber_contract::REQUEST_BASE_TIMELOCK);
         absorber.remove(Bounded::MAX);
 
-        assert!(absorber.is_operational(), "should be operational");
+        assert(absorber.is_operational(), 'should be operational');
 
         // Check that first provider receives some amount of yin from the converted
         // epoch shares.
         let first_provider_after_yin_bal = shrine.get_yin(first_provider);
-        assert_gt!(first_provider_after_yin_bal, first_provider_before_yin_bal, "yin balance should be higher");
+        assert(first_provider_after_yin_bal > first_provider_before_yin_bal, 'yin balance should be higher');
 
         let first_provider_info: Provision = absorber.get_provision(first_provider);
-        assert!(first_provider_info.shares.is_zero(), "wrong provider shares");
-        assert_eq!(first_provider_info.epoch, expected_current_epoch, "wrong provider epoch");
+        assert(first_provider_info.shares.is_zero(), 'wrong provider shares');
+        assert(first_provider_info.epoch == expected_current_epoch, 'wrong provider epoch');
 
         let request: Request = absorber.get_provider_request(first_provider);
-        assert!(!request.is_valid, "request should be fulfilled");
+        assert(!request.is_valid, 'request should be fulfilled');
 
         let error_margin: u128 = 10000;
         absorber_utils::assert_provider_received_absorbed_assets(
@@ -1267,9 +1267,9 @@ mod test_absorber {
 
         // Check epoch and total shares after threshold absorption
         let expected_epoch: u32 = absorber_contract::FIRST_EPOCH + 1;
-        assert_eq!(absorber.get_current_epoch(), expected_epoch, "wrong epoch");
-        assert_eq!(absorber.get_total_shares_for_current_epoch(), above_min_shares, "wrong total shares #1");
-        assert!(!absorber.is_operational(), "should not be operational");
+        assert(absorber.get_current_epoch() == expected_epoch, 'wrong epoch');
+        assert(absorber.get_total_shares_for_current_epoch() == above_min_shares, 'wrong total shares #1');
+        assert(!absorber.is_operational(), 'should not be operational');
 
         absorber_utils::assert_reward_errors_propagated_to_next_epoch(absorber, expected_epoch - 1, reward_tokens);
 
@@ -1280,9 +1280,9 @@ mod test_absorber {
 
         let first_provider_info: Provision = absorber.get_provision(first_provider);
         // FIrst provider has zero shares due to loss of precision
-        assert!(first_provider_info.shares.is_zero(), "wrong provider shares");
-        assert_eq!(first_provider_info.epoch, expected_epoch, "wrong provider epoch");
-        assert_eq!(absorber.get_total_shares_for_current_epoch(), above_min_shares, "wrong total shares #2");
+        assert(first_provider_info.shares.is_zero(), 'wrong provider shares');
+        assert(first_provider_info.epoch == expected_epoch, 'wrong provider epoch');
+        assert(absorber.get_total_shares_for_current_epoch() == above_min_shares, 'wrong total shares #2');
 
         let expected_events = array![
             (
@@ -1331,14 +1331,14 @@ mod test_absorber {
 
         // Check epoch and total shares after threshold absorption
         let expected_current_epoch: u32 = absorber_contract::FIRST_EPOCH + 1;
-        assert_eq!(absorber.get_current_epoch(), expected_current_epoch, "wrong epoch");
-        assert!(absorber.get_total_shares_for_current_epoch().is_zero(), "wrong total shares #1");
+        assert(absorber.get_current_epoch() == expected_current_epoch, 'wrong epoch');
+        assert(absorber.get_total_shares_for_current_epoch().is_zero(), 'wrong total shares #1');
 
         absorber_utils::assert_reward_errors_propagated_to_next_epoch(
             absorber, absorber_contract::FIRST_EPOCH, reward_tokens,
         );
 
-        assert!(!absorber.is_operational(), "should not be operational");
+        assert(!absorber.is_operational(), 'should not be operational');
 
         let expected_events = array![
             (
@@ -1367,15 +1367,15 @@ mod test_absorber {
             second_provided_amt,
         );
 
-        assert!(absorber.is_operational(), "should be operational");
+        assert(absorber.is_operational(), 'should be operational');
 
         let second_provider_info: Provision = absorber.get_provision(second_provider);
-        assert_eq!(absorber.get_total_shares_for_current_epoch(), second_provided_amt, "wrong total shares #2");
+        assert(absorber.get_total_shares_for_current_epoch() == second_provided_amt, 'wrong total shares #2');
         assert(
             second_provider_info.shares == second_provided_amt - absorber_contract::INITIAL_SHARES.into(),
             'wrong provider shares',
         );
-        assert_eq!(second_provider_info.epoch, expected_current_epoch, "wrong provider epoch");
+        assert(second_provider_info.epoch == expected_current_epoch, 'wrong provider epoch');
 
         let error_margin: Wad = 1000_u128.into(); // equal to initial minimum shares
         common::assert_equalish(
@@ -1394,17 +1394,17 @@ mod test_absorber {
         start_cheat_block_timestamp_global(get_block_timestamp() + absorber_contract::REQUEST_BASE_TIMELOCK);
         absorber.remove(Bounded::MAX);
 
-        assert!(absorber.is_operational(), "should be operational");
+        assert(absorber.is_operational(), 'should be operational');
 
         // First provider should not receive any yin
-        assert_eq!(shrine.get_yin(first_provider), first_provider_before_yin_bal, "yin balance should not change");
+        assert(shrine.get_yin(first_provider) == first_provider_before_yin_bal, 'yin balance should not change');
 
         let first_provider_info: Provision = absorber.get_provision(first_provider);
-        assert!(first_provider_info.shares.is_zero(), "wrong provider shares");
-        assert_eq!(first_provider_info.epoch, expected_current_epoch, "wrong provider epoch");
+        assert(first_provider_info.shares.is_zero(), 'wrong provider shares');
+        assert(first_provider_info.epoch == expected_current_epoch, 'wrong provider epoch');
 
         let request: Request = absorber.get_provider_request(first_provider);
-        assert!(!request.is_valid, "request should be fulfilled");
+        assert(!request.is_valid, 'request should be fulfilled');
 
         let error_margin: u128 = 10000;
         absorber_utils::assert_provider_received_absorbed_assets(
@@ -1474,13 +1474,13 @@ mod test_absorber {
         let burn_amt: Wad = first_provided_amt - remaining_yin_amt;
         absorber_utils::simulate_update_with_amt_to_drain(shrine, absorber, yangs, first_update_assets, burn_amt);
 
-        assert!(!absorber.is_operational(), "should not be operational");
+        assert(!absorber.is_operational(), 'should not be operational');
 
         // Check epoch and total shares after threshold absorption
         let expected_epoch: u32 = absorber_contract::FIRST_EPOCH + 1;
-        assert_eq!(absorber.get_current_epoch(), expected_epoch, "wrong epoch");
+        assert(absorber.get_current_epoch() == expected_epoch, 'wrong epoch');
         // New total shares should be equivalent to remaining yin in Absorber
-        assert_eq!(absorber.get_total_shares_for_current_epoch(), remaining_yin_amt, "wrong total shares");
+        assert(absorber.get_total_shares_for_current_epoch() == remaining_yin_amt, 'wrong total shares');
 
         absorber_utils::assert_reward_errors_propagated_to_next_epoch(absorber, expected_epoch - 1, reward_tokens);
 
@@ -1513,7 +1513,7 @@ mod test_absorber {
             1_u128.into(), // error margin for loss of precision from rounding down
             'wrong provider shares',
         );
-        assert_eq!(first_provider_info.epoch, expected_epoch, "wrong provider epoch");
+        assert(first_provider_info.epoch == expected_epoch, 'wrong provider epoch');
 
         let expected_first_provider_blessings_multiplier: Ray = RAY_SCALE.into();
         let error_margin: u128 = 1000;
@@ -1529,7 +1529,7 @@ mod test_absorber {
 
         let (_, preview_reward_assets) = absorber.preview_reap(first_provider);
         for reward_asset in preview_reward_assets {
-            assert!((*reward_asset.amount).is_zero(), "expected rewards should be 0");
+            assert((*reward_asset.amount).is_zero(), 'expected rewards should be 0');
         }
     }
 
@@ -1579,10 +1579,10 @@ mod test_absorber {
 
         let expected_second_provider_shares: Wad = wadray::rdiv_wr(second_provided_amt, expected_yin_per_share);
         let second_provider_info: Provision = absorber.get_provision(second_provider);
-        assert_eq!(second_provider_info.shares, expected_second_provider_shares, "wrong provider shares");
+        assert(second_provider_info.shares == expected_second_provider_shares, 'wrong provider shares');
 
         let expected_current_epoch: u32 = absorber_contract::FIRST_EPOCH;
-        assert_eq!(second_provider_info.epoch, expected_current_epoch, "wrong provider epoch");
+        assert(second_provider_info.epoch == expected_current_epoch, 'wrong provider epoch');
 
         // loss of precision from rounding favouring the protocol
         let error_margin: Wad = 1_u128.into();
@@ -1742,8 +1742,8 @@ mod test_absorber {
             expected_timelock = min(expected_timelock, absorber_contract::REQUEST_MAX_TIMELOCK);
 
             let request: Request = absorber.get_provider_request(provider);
-            assert_eq!(request.timestamp, current_ts, "wrong timestamp");
-            assert_eq!(request.timelock, expected_timelock, "wrong timelock");
+            assert(request.timestamp == current_ts, 'wrong timestamp');
+            assert(request.timelock == expected_timelock, 'wrong timelock');
 
             let removal_ts = current_ts + expected_timelock;
             start_cheat_block_timestamp_global(removal_ts);
@@ -1755,7 +1755,7 @@ mod test_absorber {
                 absorber.provide(1_u128.into());
             }
             let request: Request = absorber.get_provider_request(provider);
-            assert!(!request.is_valid, "request should not be valid");
+            assert(!request.is_valid, 'request should not be valid');
 
             expected_events
                 .append(
@@ -1793,7 +1793,7 @@ mod test_absorber {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
 
-        assert!(!shrine.get_live(), "should be killed");
+        assert(!shrine.get_live(), 'should be killed');
 
         // Check provider can remove
         let before_provider_yin_bal: Wad = shrine.get_yin(provider);
@@ -1826,7 +1826,7 @@ mod test_absorber {
         let new_eth_yang_price: Wad = (eth_yang_price.into() / 5_u128).into(); // 80% drop in price
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.advance(eth_addr, new_eth_yang_price);
-        assert!(shrine.is_recovery_mode(), "sanity check for RM threshold");
+        assert(shrine.is_recovery_mode(), 'sanity check for RM threshold');
 
         cheat_caller_address(absorber.contract_address, provider, CheatSpan::TargetCalls(2));
         absorber.request();

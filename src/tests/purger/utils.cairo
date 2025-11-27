@@ -57,11 +57,7 @@ pub mod purger_utils {
     // Constants
     //
 
-    pub const SEARCHER_YIN: u128 = common::LARGE_FORGE; // 10_000 (Wad)
     pub const TARGET_TROVE_YIN: u128 = 1000 * WAD_ONE; // 1000 (Wad)
-
-    pub const TARGET_TROVE_ETH_DEPOSIT_AMT: u128 = common::SMALL_ETH_DEPOSIT; // 2 (Wad) - ETH
-    pub const TARGET_TROVE_WBTC_DEPOSIT_AMT: u128 = common::MEDIUM_WBTC_DEPOSIT; // 0.5 (10 ** 8) - wBTC
 
     //
     // Address constants
@@ -74,7 +70,7 @@ pub mod purger_utils {
     // Constant helpers
     //
 
-    pub const TARGET_TROVE_YANG_ASSET_AMTS: [u128; 2] = [TARGET_TROVE_ETH_DEPOSIT_AMT, TARGET_TROVE_WBTC_DEPOSIT_AMT];
+    pub const TARGET_TROVE_YANG_ASSET_AMTS: [u128; 2] = [common::SMALL_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT];
 
     pub const RECIPIENT_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
         30 * WAD_ONE, // 30 (Wad) - ETH
@@ -529,7 +525,7 @@ pub mod purger_utils {
 
         decrease_yang_prices_by_pct(shrine, seer, yangs, decrease_pct);
 
-        assert!(shrine.is_recovery_mode(), "recovery mode setup");
+        assert(shrine.is_recovery_mode(), 'recovery mode setup');
     }
 
     //
@@ -590,40 +586,40 @@ pub mod purger_utils {
     pub fn assert_trove_is_healthy(
         shrine: IShrineDispatcher, purger: IPurgerDispatcher, trove_id: u64, trove_health: Health,
     ) {
-        assert!(trove_health.is_healthy(), "should be healthy");
+        assert(trove_health.is_healthy(), 'should be healthy');
 
-        assert!(purger.preview_liquidate(trove_id).is_none(), "should not be liquidatable");
+        assert(purger.preview_liquidate(trove_id).is_none(), 'should not be liquidatable');
         assert_trove_is_not_absorbable(purger, trove_id);
     }
 
     pub fn assert_trove_is_liquidatable(
         shrine: IShrineDispatcher, purger: IPurgerDispatcher, trove_id: u64, trove_health: Health,
     ) {
-        assert!(!trove_health.is_healthy(), "should not be healthy");
+        assert(!trove_health.is_healthy(), 'should not be healthy');
         let (penalty, _) = purger.preview_liquidate(trove_id).expect('Should be liquidatable');
         if trove_health.ltv < RAY_ONE.into() {
-            assert!(penalty.is_non_zero(), "penalty should not be 0");
+            assert(penalty.is_non_zero(), 'penalty should not be 0');
         } else {
-            assert!(penalty.is_zero(), "penalty should be 0");
+            assert(penalty.is_zero(), 'penalty should be 0');
         }
     }
 
     pub fn assert_trove_is_absorbable(
         shrine: IShrineDispatcher, purger: IPurgerDispatcher, trove_id: u64, trove_health: Health,
     ) {
-        assert!(!trove_health.is_healthy(), "should not be healthy");
-        assert!(purger.is_absorbable(trove_id), "should be absorbable");
+        assert(!trove_health.is_healthy(), 'should not be healthy');
+        assert(purger.is_absorbable(trove_id), 'should be absorbable');
 
         let (penalty, _, _) = purger.preview_absorb(trove_id).expect('preview should be Option::Some');
         if trove_health.ltv < (RAY_ONE - purger_contract::COMPENSATION_PCT).into() {
-            assert!(penalty.is_non_zero(), "penalty should not be 0");
+            assert(penalty.is_non_zero(), 'penalty should not be 0');
         } else {
-            assert!(penalty.is_zero(), "penalty should be 0");
+            assert(penalty.is_zero(), 'penalty should be 0');
         }
     }
 
     pub fn assert_trove_is_not_absorbable(purger: IPurgerDispatcher, trove_id: u64) {
-        assert!(purger.preview_absorb(trove_id).is_none(), "should not be absorbable");
+        assert(purger.preview_absorb(trove_id).is_none(), 'should not be absorbable');
     }
 
     pub fn assert_ltv_at_safety_margin(threshold: Ray, ltv: Ray, error_margin: Option<Ray>) {
@@ -668,7 +664,7 @@ pub mod purger_utils {
     // Helper function to deserialize the `Purged` event specifically for the purger
     // tests
     pub fn deserialize_purged_event(evt: Event) -> purger_contract::Purged {
-        assert_eq!(*evt.keys.at(0), selector!("Purged"), "wrong event");
+        assert(*evt.keys.at(0) == selector!("Purged"), 'wrong event');
         let purge_amt: u128 = (*evt.data.at(0)).try_into().unwrap();
         let pct_freed: u128 = (*evt.data.at(1)).try_into().unwrap();
         purger_contract::Purged {

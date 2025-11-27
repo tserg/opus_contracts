@@ -32,14 +32,14 @@ mod test_transmuter {
         let ceiling: Wad = transmuter_utils::INITIAL_CEILING.into();
         let receiver: ContractAddress = transmuter_utils::RECEIVER;
 
-        assert_eq!(transmuter.get_asset(), wad_usd_stable.contract_address, "wrong asset");
+        assert(transmuter.get_asset() == wad_usd_stable.contract_address, 'wrong asset');
         assert(transmuter.get_total_transmuted().is_zero(), 'wrong total transmuted');
-        assert_eq!(transmuter.get_ceiling(), ceiling, "wrong ceiling");
+        assert(transmuter.get_ceiling() == ceiling, 'wrong ceiling');
         assert(
             transmuter.get_percentage_cap() == transmuter_contract::INITIAL_PERCENTAGE_CAP.into(),
             'wrong percentage cap',
         );
-        assert_eq!(transmuter.get_receiver(), receiver, "wrong receiver");
+        assert(transmuter.get_receiver() == receiver, 'wrong receiver');
         assert(transmuter.get_reversibility(), 'not reversible');
         assert(transmuter.get_transmute_fee().is_zero(), 'non-zero transmute fee');
         assert(transmuter.get_reverse_fee().is_zero(), 'non-zero reverse fee');
@@ -50,8 +50,8 @@ mod test_transmuter {
             contract_address: transmuter.contract_address,
         };
         let admin: ContractAddress = common::TRANSMUTER_ADMIN;
-        assert_eq!(transmuter_ac.get_admin(), admin, "wrong admin");
-        assert_eq!(transmuter_ac.get_roles(admin), transmuter_roles::ADMIN, "wrong admin roles");
+        assert(transmuter_ac.get_admin() == admin, 'wrong admin');
+        assert(transmuter_ac.get_roles(admin) == transmuter_roles::ADMIN, 'wrong admin roles');
 
         let expected_events = array![
             (
@@ -94,7 +94,7 @@ mod test_transmuter {
         let new_ceiling: Wad = (2000000 * WAD_ONE).into();
         transmuter.set_ceiling(new_ceiling);
 
-        assert_eq!(transmuter.get_ceiling(), new_ceiling, "wrong ceiling");
+        assert(transmuter.get_ceiling() == new_ceiling, 'wrong ceiling');
 
         let expected_events = array![
             (
@@ -134,7 +134,7 @@ mod test_transmuter {
         let cap: Ray = 50000000000000000000000000_u128.into();
         transmuter.set_percentage_cap(cap);
 
-        assert_eq!(transmuter.get_percentage_cap(), cap, "wrong percentage cap");
+        assert(transmuter.get_percentage_cap() == cap, 'wrong percentage cap');
 
         let expected_events = array![
             (
@@ -182,7 +182,7 @@ mod test_transmuter {
         let new_receiver: ContractAddress = 'new receiver'.try_into().unwrap();
         transmuter.set_receiver(new_receiver);
 
-        assert_eq!(transmuter.get_receiver(), new_receiver, "wrong receiver");
+        assert(transmuter.get_receiver() == new_receiver, 'wrong receiver');
 
         let expected_events = array![
             (
@@ -232,7 +232,7 @@ mod test_transmuter {
         // transmute
         transmuter.set_transmute_fee(new_fee);
 
-        assert_eq!(transmuter.get_transmute_fee(), new_fee, "wrong transmute fee");
+        assert(transmuter.get_transmute_fee() == new_fee, 'wrong transmute fee');
 
         let expected_events = array![
             (
@@ -248,7 +248,7 @@ mod test_transmuter {
         cheat_caller_address(transmuter.contract_address, common::TRANSMUTER_ADMIN, CheatSpan::TargetCalls(1));
         transmuter.set_reverse_fee(new_fee);
 
-        assert_eq!(transmuter.get_reverse_fee(), new_fee, "wrong reverse fee");
+        assert(transmuter.get_reverse_fee() == new_fee, 'wrong reverse fee');
 
         let expected_events = array![
             (
@@ -437,9 +437,9 @@ mod test_transmuter {
                 cheat_caller_address(transmuter.contract_address, user, CheatSpan::TargetCalls(1));
                 transmuter.transmute(transmute_amt);
 
-                assert_eq!(shrine.get_yin(user), before_user_yin_bal + preview, "wrong user yin");
-                assert_eq!(shrine.get_total_yin(), before_total_yin + preview, "wrong total yin");
-                assert_eq!(shrine.get_budget(), expected_budget, "wrong budget");
+                assert(shrine.get_yin(user) == before_user_yin_bal + preview, 'wrong user yin');
+                assert(shrine.get_total_yin() == before_total_yin + preview, 'wrong total yin');
+                assert(shrine.get_budget() == expected_budget, 'wrong budget');
                 assert(
                     transmuter.get_total_transmuted() == before_total_transmuted + transmute_amt_wad,
                     'wrong total transmuted',
@@ -490,7 +490,7 @@ mod test_transmuter {
         let ceiling: Wad = transmuter.get_ceiling();
         cheat_caller_address(transmuter.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         transmuter.transmute(ceiling.into());
-        assert_eq!(transmuter.get_total_transmuted(), ceiling, "sanity check");
+        assert(transmuter.get_total_transmuted() == ceiling, 'sanity check');
 
         transmuter.transmute(1_u128.into());
     }
@@ -507,7 +507,7 @@ mod test_transmuter {
         // reduce total supply to 1m yin
         let target_total_yin: Wad = (1000000 * WAD_ONE).into();
         shrine.eject(transmuter_utils::RECEIVER, transmuter_utils::START_TOTAL_YIN.into() - target_total_yin);
-        assert_eq!(shrine.get_total_yin(), target_total_yin, "sanity check #1");
+        assert(shrine.get_total_yin() == target_total_yin, 'sanity check #1');
 
         // now, the cap is at 100_000
         cheat_caller_address(transmuter.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
@@ -626,9 +626,9 @@ mod test_transmuter {
 
                 cheat_caller_address(transmuter.contract_address, user, CheatSpan::TargetCalls(1));
                 transmuter.reverse(reverse_yin_amt);
-                assert_eq!(shrine.get_yin(user), before_user_yin_bal - reverse_yin_amt, "wrong user yin");
-                assert_eq!(shrine.get_total_yin(), before_total_yin - reverse_yin_amt, "wrong total yin");
-                assert_eq!(shrine.get_budget(), expected_budget, "wrong budget");
+                assert(shrine.get_yin(user) == before_user_yin_bal - reverse_yin_amt, 'wrong user yin');
+                assert(shrine.get_total_yin() == before_total_yin - reverse_yin_amt, 'wrong total yin');
+                assert(shrine.get_budget() == expected_budget, 'wrong budget');
                 assert(
                     transmuter.get_total_transmuted() == before_total_transmuted - reverse_yin_amt + expected_fee,
                     'wrong total transmuted',
@@ -658,7 +658,7 @@ mod test_transmuter {
                 asset.balance_of(transmuter.contract_address) == cumulative_asset_fees.into(),
                 'wrong cumulative asset fees',
             );
-            assert_eq!(transmuter.get_total_transmuted(), cumulative_yin_fees, "wrong cumulative yin fees");
+            assert(transmuter.get_total_transmuted() == cumulative_yin_fees, 'wrong cumulative yin fees');
         };
     }
 
@@ -996,8 +996,8 @@ mod test_transmuter {
                     leftover_yin_amt = *transmuter_yin_amt - transmuted_yin_amt;
                 }
 
-                assert_eq!(shrine.get_budget(), before_budget + expected_budget_adjustment, "wrong budget");
-                assert_eq!(shrine.get_yin(receiver), before_receiver_yin_bal + leftover_yin_amt, "wrong receiver yin");
+                assert(shrine.get_budget() == before_budget + expected_budget_adjustment, 'wrong budget');
+                assert(shrine.get_yin(receiver) == before_receiver_yin_bal + leftover_yin_amt, 'wrong receiver yin');
                 assert(shrine.get_yin(transmuter.contract_address).is_zero(), 'wrong transmuter yin');
                 assert(
                     asset.balance_of(receiver) == before_receiver_asset_bal + (*transmute_asset_amt).into(),
@@ -1154,10 +1154,10 @@ mod test_transmuter {
         transmuter.reclaim(first_reclaim_yin_amt);
 
         let first_user_asset_bal: u256 = asset.balance_of(user);
-        assert_eq!(first_user_asset_bal, before_user_asset_bal + preview.into(), "wrong reclaim amt #1");
+        assert(first_user_asset_bal == before_user_asset_bal + preview.into(), 'wrong reclaim amt #1');
 
         let first_user_yin_bal: Wad = shrine.get_yin(user);
-        assert_eq!(first_user_yin_bal, before_user_yin_bal - first_reclaim_yin_amt, "wrong user yin #1");
+        assert(first_user_yin_bal == before_user_yin_bal - first_reclaim_yin_amt, 'wrong user yin #1');
 
         expected_events
             .append(
@@ -1182,10 +1182,10 @@ mod test_transmuter {
         cheat_caller_address(transmuter.contract_address, user, CheatSpan::TargetCalls(1));
         transmuter.reclaim(second_reclaim_yin_amt);
         let second_user_asset_bal: u256 = asset.balance_of(user);
-        assert_eq!(second_user_asset_bal, first_user_asset_bal + preview.into(), "wrong reclaim amt #2");
+        assert(second_user_asset_bal == first_user_asset_bal + preview.into(), 'wrong reclaim amt #2');
 
         let second_user_yin_bal: Wad = shrine.get_yin(user);
-        assert_eq!(second_user_yin_bal, first_user_yin_bal - second_reclaim_yin_amt, "wrong user yin #2");
+        assert(second_user_yin_bal == first_user_yin_bal - second_reclaim_yin_amt, 'wrong user yin #2');
 
         expected_events
             .append(
@@ -1210,10 +1210,10 @@ mod test_transmuter {
         cheat_caller_address(transmuter.contract_address, user, CheatSpan::TargetCalls(1));
         transmuter.reclaim(third_reclaim_yin_amt);
         let third_user_asset_bal: u256 = asset.balance_of(user);
-        assert_eq!(third_user_asset_bal, second_user_asset_bal + preview.into(), "wrong reclaim amt #3");
+        assert(third_user_asset_bal == second_user_asset_bal + preview.into(), 'wrong reclaim amt #3');
 
         let third_user_yin_bal: Wad = shrine.get_yin(user);
-        assert_eq!(third_user_yin_bal, second_user_yin_bal - reclaimable_yin, "wrong user yin #3");
+        assert(third_user_yin_bal == second_user_yin_bal - reclaimable_yin, 'wrong user yin #3');
 
         expected_events
             .append(

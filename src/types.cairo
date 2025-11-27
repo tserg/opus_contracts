@@ -17,7 +17,7 @@ pub impl DislayUsingDebug<T, impl TDebug: Debug<T>> of Display<T> {
     }
 }
 
-#[derive(Copy, Drop, PartialEq, Serde, Debug)]
+#[derive(Copy, Drop, PartialEq, Serde)]
 pub enum YangSuspensionStatus {
     None,
     Temporary,
@@ -54,7 +54,7 @@ pub struct YangBalance {
     pub amount: Wad // Amount of yang in Wad
 }
 
-#[derive(Copy, Drop, PartialEq, Serde, Debug)]
+#[derive(Copy, Drop, PartialEq, Serde)]
 pub struct AssetBalance {
     pub address: ContractAddress, // Address of the ERC-20 asset
     pub amount: u128 // Amount of the asset in the asset's decimals

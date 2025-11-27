@@ -44,7 +44,7 @@ mod test_shrine_compound {
 
         // Offset by 1 because `advance_prices_and_set_multiplier` updates `start_interval`.
         let end_interval: u64 = start_interval + shrine_utils::FEED_LEN - 1;
-        assert_eq!(shrine_utils::current_interval(), end_interval, "wrong end interval"); // sanity check
+        assert(shrine_utils::current_interval() == end_interval, 'wrong end interval'); // sanity check
 
         let expected_avg_multiplier: Ray = RAY_SCALE.into();
 
@@ -53,7 +53,7 @@ mod test_shrine_compound {
         );
 
         let estimated_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(estimated_trove_health.debt, expected_debt, "wrong compounded debt");
+        assert(estimated_trove_health.debt == expected_debt, 'wrong compounded debt');
 
         let before_budget: SignedWad = shrine.get_budget();
 
@@ -61,10 +61,10 @@ mod test_shrine_compound {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(common::TROVE1_OWNER_ADDR, trove_id, Zero::zero());
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let interest: Wad = estimated_trove_health.debt - start_debt;
-        assert_eq!(shrine.get_budget(), before_budget + interest.into(), "wrong budget");
+        assert(shrine.get_budget() == before_budget + interest.into(), 'wrong budget');
 
         // Check events
         let shrine_events = spy.get_events().emitted_by(shrine.contract_address);
@@ -134,13 +134,13 @@ mod test_shrine_compound {
         // sanity check that skipped interval has no price values
         let (skipped_interval_price, _) = shrine.get_yang_price(yang1_addr, skipped_interval);
         let (skipped_interval_multiplier, _) = shrine.get_multiplier(skipped_interval);
-        assert_eq!(skipped_interval_price, Zero::zero(), "skipped price is not zero");
-        assert_eq!(skipped_interval_multiplier, Zero::zero(), "skipped multiplier is not zero");
+        assert(skipped_interval_price == Zero::zero(), 'skipped price is not zero');
+        assert(skipped_interval_multiplier == Zero::zero(), 'skipped multiplier is not zero');
 
         // Offset by 1 by excluding the skipped interval because `advance_prices_and_set_multiplier`
         // updates `start_interval`.
         let end_interval: u64 = start_interval + (num_intervals_before_skip + num_intervals_after_skip);
-        assert_eq!(shrine_utils::current_interval(), end_interval, "wrong end interval"); // sanity check
+        assert(shrine_utils::current_interval() == end_interval, 'wrong end interval'); // sanity check
 
         let expected_avg_multiplier: Ray = RAY_SCALE.into();
 
@@ -148,7 +148,7 @@ mod test_shrine_compound {
             common::YANG1_BASE_RATE.into(), expected_avg_multiplier, start_interval, end_interval, trove_health.debt,
         );
         let estimated_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(estimated_trove_health.debt, expected_debt, "wrong compounded debt");
+        assert(estimated_trove_health.debt == expected_debt, 'wrong compounded debt');
 
         let before_budget: SignedWad = shrine.get_budget();
 
@@ -156,10 +156,10 @@ mod test_shrine_compound {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(common::TROVE1_OWNER_ADDR, trove_id, Zero::zero());
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let interest: Wad = estimated_trove_health.debt - start_debt;
-        assert_eq!(shrine.get_budget(), before_budget + interest.into(), "wrong budget");
+        assert(shrine.get_budget() == before_budget + interest.into(), 'wrong budget');
 
         // Check events
         let events = spy.get_events().events;
@@ -252,10 +252,10 @@ mod test_shrine_compound {
         );
 
         let estimated_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(estimated_trove_health.debt, expected_debt, "wrong compounded debt");
+        assert(estimated_trove_health.debt == expected_debt, 'wrong compounded debt');
 
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let second_accrued_interest: Wad = estimated_trove_health.debt - trove_health.debt;
         assert(
@@ -339,7 +339,7 @@ mod test_shrine_compound {
         // instead of via `advance_prices_and_set_multiplier`
         let end_interval: u64 = start_interval + intervals_after_last_update;
         start_cheat_block_timestamp_global(end_timestamp);
-        assert_eq!(shrine_utils::current_interval(), end_interval, "wrong end interval"); // sanity check
+        assert(shrine_utils::current_interval() == end_interval, 'wrong end interval'); // sanity check
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.withdraw(yang1_addr, trove_id, Zero::zero());
@@ -351,10 +351,10 @@ mod test_shrine_compound {
         );
 
         let estimated_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(expected_debt, estimated_trove_health.debt, "wrong compounded debt");
+        assert(expected_debt == estimated_trove_health.debt, 'wrong compounded debt');
 
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let second_accrued_interest: Wad = estimated_trove_health.debt - trove_health.debt;
         assert(
@@ -428,7 +428,7 @@ mod test_shrine_compound {
 
         let end_interval: u64 = start_interval + intervals_to_skip + intervals_after_last_update;
         start_cheat_block_timestamp_global(end_timestamp);
-        assert_eq!(shrine_utils::current_interval(), end_interval, "wrong end interval"); // sanity check
+        assert(shrine_utils::current_interval() == end_interval, 'wrong end interval'); // sanity check
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.withdraw(yang1_addr, trove_id, Zero::zero());
@@ -439,15 +439,15 @@ mod test_shrine_compound {
         );
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(expected_debt, trove_health.debt, "wrong compounded debt");
+        assert(expected_debt == trove_health.debt, 'wrong compounded debt');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.forge(common::TROVE1_OWNER_ADDR, trove_id, Zero::zero(), Zero::zero());
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let interest: Wad = trove_health.debt - start_debt;
-        assert_eq!(shrine.get_budget(), before_budget + interest.into(), "wrong budget");
+        assert(shrine.get_budget() == before_budget + interest.into(), 'wrong budget');
 
         // Check events
         let events = spy.get_events().events;
@@ -532,7 +532,7 @@ mod test_shrine_compound {
         let end_interval: u64 = start_interval
             + intervals_to_last_update_after_start
             + intervals_from_last_update_to_end;
-        assert_eq!(shrine_utils::current_interval(), end_interval, "wrong end interval"); // sanity check
+        assert(shrine_utils::current_interval() == end_interval, 'wrong end interval'); // sanity check
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.withdraw(yang1_addr, trove_id, Zero::zero());
@@ -564,15 +564,15 @@ mod test_shrine_compound {
         );
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(expected_debt, trove_health.debt, "wrong compounded debt");
+        assert(expected_debt == trove_health.debt, 'wrong compounded debt');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.forge(common::TROVE1_OWNER_ADDR, trove_id, Zero::zero(), Zero::zero());
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let interest: Wad = trove_health.debt - start_debt;
-        assert_eq!(shrine.get_budget(), before_budget + interest.into(), "wrong budget");
+        assert(shrine.get_budget() == before_budget + interest.into(), 'wrong budget');
 
         // Check events
         let events = spy.get_events().events;
@@ -644,7 +644,7 @@ mod test_shrine_compound {
         let timestamp: u64 = get_block_timestamp() + time_to_skip;
         start_cheat_block_timestamp_global(timestamp);
         let end_interval: u64 = start_interval + intervals_from_start_to_end;
-        assert_eq!(shrine_utils::current_interval(), end_interval, "wrong end interval"); // sanity check
+        assert(shrine_utils::current_interval() == end_interval, 'wrong end interval'); // sanity check
 
         let start_multiplier: Ray = RAY_SCALE.into();
         start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
@@ -673,15 +673,15 @@ mod test_shrine_compound {
         );
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(expected_debt, trove_health.debt, "wrong compounded debt");
+        assert(expected_debt == trove_health.debt, 'wrong compounded debt');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.deposit(yang1_addr, trove_id, Zero::zero());
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let interest: Wad = trove_health.debt - start_debt;
-        assert_eq!(shrine.get_budget(), before_budget + interest.into(), "wrong budget");
+        assert(shrine.get_budget() == before_budget + interest.into(), 'wrong budget');
 
         // Check events
         let events = spy.get_events().events;
@@ -874,7 +874,7 @@ mod test_shrine_compound {
                 cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
                 shrine.update_rates(yangs, yang_base_rates_to_update);
                 let expected_era: u64 = i + 2;
-                assert_eq!(shrine.get_current_rate_era(), expected_era, "wrong rate era");
+                assert(shrine.get_current_rate_era() == expected_era, 'wrong rate era');
 
                 // Check that base rates are updated correctly
                 // Offset by 1 to discount the initial
@@ -883,7 +883,7 @@ mod test_shrine_compound {
                 for yang in yangs {
                     let rate: Ray = shrine.get_yang_rate(*yang, expected_era);
                     let expected_rate: Ray = *expected_base_rates.pop_front().unwrap();
-                    assert_eq!(rate, expected_rate, "wrong base rate");
+                    assert(rate == expected_rate, 'wrong base rate');
                 }
 
                 expected_events
@@ -921,15 +921,15 @@ mod test_shrine_compound {
             start_debt,
         );
 
-        assert_eq!(trove_health.debt, expected_debt, "wrong compounded debt");
+        assert(trove_health.debt == expected_debt, 'wrong compounded debt');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.withdraw(yang1_addr, trove_id, Zero::zero());
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, expected_debt, "debt not updated");
+        assert(shrine_health.debt == expected_debt, 'debt not updated');
 
         let interest: Wad = trove_health.debt - start_debt;
-        assert_eq!(shrine.get_budget(), before_budget + interest.into(), "wrong budget");
+        assert(shrine.get_budget() == before_budget + interest.into(), 'wrong budget');
 
         // Check events
         let events = spy.get_events().events;
@@ -981,7 +981,7 @@ mod test_shrine_compound {
 
         shrine_utils::advance_prices_periodically(shrine, yangs, shrine_contract::SUSPENSION_GRACE_PERIOD);
 
-        assert_eq!(shrine.get_yang_suspension_status(yang_to_delist), YangSuspensionStatus::Permanent, "not delisted");
+        assert(shrine.get_yang_suspension_status(yang_to_delist) == YangSuspensionStatus::Permanent, 'not delisted');
 
         // Trigger charge and check no interest is accrued
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
@@ -1009,7 +1009,7 @@ mod test_shrine_compound {
         let surplus: Wad = (500 * WAD_ONE).into();
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(surplus.into());
-        assert_eq!(shrine.get_budget(), surplus.into(), "wrong budget #1");
+        assert(shrine.get_budget() == surplus.into(), 'wrong budget #1');
 
         let expected_events = array![
             (
@@ -1039,7 +1039,7 @@ mod test_shrine_compound {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(deficit);
 
-        assert_eq!(shrine.get_budget(), deficit, "wrong budget #3");
+        assert(shrine.get_budget() == deficit, 'wrong budget #3');
 
         // Check events
         let events = spy.get_events().events;

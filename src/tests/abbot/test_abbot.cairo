@@ -37,14 +37,14 @@ mod test_abbot {
 
         // Check trove ID
         let expected_trove_id: u64 = 1;
-        assert_eq!(trove_id, expected_trove_id, "wrong trove ID");
+        assert(trove_id == expected_trove_id, 'wrong trove ID');
         assert(
             abbot.get_trove_owner(expected_trove_id).expect('should not be zero') == trove_owner, 'wrong trove owner',
         );
-        assert_eq!(abbot.get_troves_count(), expected_trove_id, "wrong troves count");
+        assert(abbot.get_troves_count() == expected_trove_id, 'wrong troves count');
 
         let mut expected_user_trove_ids: Array<u64> = array![expected_trove_id];
-        assert_eq!(abbot.get_user_trove_ids(trove_owner), expected_user_trove_ids.span(), "wrong user trove ids");
+        assert(abbot.get_user_trove_ids(trove_owner) == expected_user_trove_ids.span(), 'wrong user trove ids');
 
         let mut yangs_total: Array<Wad> = ArrayTrait::new();
         // Check yangs
@@ -55,10 +55,10 @@ mod test_abbot {
             let expected_initial_yang: Wad = fixed_point_to_wad(sentinel_utils::get_initial_asset_amt(*yang), decimals);
             let expected_deposited_yang: Wad = fixed_point_to_wad(asset_amt, decimals);
             let expected_yang_total: Wad = expected_initial_yang + expected_deposited_yang;
-            assert_eq!(shrine.get_yang_total(*yang), expected_yang_total, "wrong yang total #1");
+            assert(shrine.get_yang_total(*yang) == expected_yang_total, 'wrong yang total #1');
             yangs_total.append(expected_yang_total);
 
-            assert_eq!(shrine.get_deposit(*yang, trove_id), expected_deposited_yang, "wrong trove yang balance #1");
+            assert(shrine.get_deposit(*yang, trove_id) == expected_deposited_yang, 'wrong trove yang balance #1');
 
             expected_events
                 .append(
@@ -75,10 +75,10 @@ mod test_abbot {
 
         // Check trove's debt
         let trove_health: Health = shrine.get_trove_health(expected_trove_id);
-        assert_eq!(trove_health.debt, forge_amt, "wrong trove debt");
+        assert(trove_health.debt == forge_amt, 'wrong trove debt');
 
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, forge_amt, "wrong total debt");
+        assert(shrine_health.debt == forge_amt, 'wrong total debt');
 
         // User opens another trove
         let second_forge_amt: Wad = 1666000000000000000000_u128.into();
@@ -88,14 +88,14 @@ mod test_abbot {
         );
 
         let expected_trove_id: u64 = 2;
-        assert_eq!(second_trove_id, expected_trove_id, "wrong trove ID");
+        assert(second_trove_id == expected_trove_id, 'wrong trove ID');
         assert(
             abbot.get_trove_owner(expected_trove_id).expect('should not be zero') == trove_owner, 'wrong trove owner',
         );
-        assert_eq!(abbot.get_troves_count(), expected_trove_id, "wrong troves count");
+        assert(abbot.get_troves_count() == expected_trove_id, 'wrong troves count');
 
         expected_user_trove_ids.append(expected_trove_id);
-        assert_eq!(abbot.get_user_trove_ids(trove_owner), expected_user_trove_ids.span(), "wrong user trove ids");
+        assert(abbot.get_user_trove_ids(trove_owner) == expected_user_trove_ids.span(), 'wrong user trove ids');
 
         // Check yangs
         let mut yangs_total = yangs_total.span();
@@ -105,7 +105,7 @@ mod test_abbot {
             let before_yang_total: Wad = *yangs_total.pop_front().unwrap();
             let expected_deposited_yang: Wad = fixed_point_to_wad(asset_amt, decimals);
             let expected_yang_total: Wad = before_yang_total + expected_deposited_yang;
-            assert_eq!(shrine.get_yang_total(*yang), expected_yang_total, "wrong yang total #2");
+            assert(shrine.get_yang_total(*yang) == expected_yang_total, 'wrong yang total #2');
 
             assert(
                 shrine.get_deposit(*yang, second_trove_id) == expected_deposited_yang, 'wrong trove yang balance #2',
@@ -129,7 +129,7 @@ mod test_abbot {
         }
 
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, forge_amt + second_forge_amt, "wrong total debt #2");
+        assert(shrine_health.debt == forge_amt + second_forge_amt, 'wrong total debt #2');
 
         expected_events
             .append(
@@ -239,7 +239,7 @@ mod test_abbot {
         }
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert!(trove_health.debt.is_zero(), "wrong trove debt");
+        assert(trove_health.debt.is_zero(), 'wrong trove debt');
 
         expected_events
             .append(
@@ -283,7 +283,7 @@ mod test_abbot {
             cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
             abbot.deposit(trove_id, AssetBalance { address: *yang, amount: deposit_amt });
             let after_trove_yang: Wad = shrine.get_deposit(*yang, trove_id);
-            assert_eq!(after_trove_yang, before_trove_yang + expected_deposited_yang, "wrong yang amount #1");
+            assert(after_trove_yang == before_trove_yang + expected_deposited_yang, 'wrong yang amount #1');
 
             expected_events
                 .append(
@@ -304,7 +304,7 @@ mod test_abbot {
             // Depositing 0 should pass
             cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
             abbot.deposit(trove_id, AssetBalance { address: *yang, amount: 0_u128 });
-            assert_eq!(shrine.get_deposit(*yang, trove_id), after_trove_yang, "wrong yang amount #2");
+            assert(shrine.get_deposit(*yang, trove_id) == after_trove_yang, 'wrong yang amount #2');
         }
 
         shrine_utils::assert_total_yang_invariant(shrine, yangs, abbot.get_troves_count());
@@ -419,9 +419,7 @@ mod test_abbot {
             ),
         ];
 
-        assert_eq!(
-            shrine.get_deposit(asset_addr, trove_id), (*yang_asset_amts[0] - amount).into(), "wrong yang amount",
-        );
+        assert(shrine.get_deposit(asset_addr, trove_id) == (*yang_asset_amts[0] - amount).into(), 'wrong yang amount');
 
         shrine_utils::assert_total_yang_invariant(shrine, yangs, abbot.get_troves_count());
 
@@ -564,8 +562,8 @@ mod test_abbot {
         abbot.forge(trove_id, additional_forge_amt, Zero::zero());
 
         let after_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(after_trove_health.debt, forge_amt + additional_forge_amt, "wrong trove debt");
-        assert_eq!(shrine.get_yin(trove_owner), forge_amt + additional_forge_amt, "wrong yin balance");
+        assert(after_trove_health.debt == forge_amt + additional_forge_amt, 'wrong trove debt');
+        assert(shrine.get_yin(trove_owner) == forge_amt + additional_forge_amt, 'wrong yin balance');
 
         shrine_utils::assert_total_troves_debt_invariant(shrine, abbot.get_troves_count());
     }
@@ -588,7 +586,7 @@ mod test_abbot {
             1_u128.into(),
         );
 
-        assert!(!shrine.is_recovery_mode(), "recovery mode");
+        assert(!shrine.is_recovery_mode(), 'recovery mode');
 
         let unsafe_forge_amt: Wad = shrine.get_max_forge(trove_id) + 2_u128.into();
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
@@ -628,8 +626,8 @@ mod test_abbot {
         abbot.melt(trove_id, melt_amt);
 
         let after_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(after_trove_health.debt, before_trove_health.debt - melt_amt, "wrong trove debt");
-        assert_eq!(shrine.get_yin(trove_owner), before_yin - melt_amt, "wrong yin balance");
+        assert(after_trove_health.debt == before_trove_health.debt - melt_amt, 'wrong trove debt');
+        assert(shrine.get_yin(trove_owner) == before_yin - melt_amt, 'wrong yin balance');
 
         // Test non-owner melting
         let non_owner: ContractAddress = common::TROVE2_OWNER_ADDR;
@@ -643,7 +641,7 @@ mod test_abbot {
         abbot.melt(trove_id, after_trove_health.debt);
 
         let final_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert!(final_trove_health.debt.is_zero(), "wrong trove debt");
+        assert(final_trove_health.debt.is_zero(), 'wrong trove debt');
 
         shrine_utils::assert_total_troves_debt_invariant(shrine, abbot.get_troves_count());
     }
@@ -675,11 +673,11 @@ mod test_abbot {
         let mut expected_owner2_trove_ids: Array<u64> = array![second_trove_id, fourth_trove_id];
         let empty_user_trove_ids: Span<u64> = ArrayTrait::new().span();
 
-        assert_eq!(abbot.get_user_trove_ids(trove_owner1), expected_owner1_trove_ids.span(), "wrong user trove IDs");
-        assert_eq!(abbot.get_user_trove_ids(trove_owner2), expected_owner2_trove_ids.span(), "wrong user trove IDs");
-        assert_eq!(abbot.get_troves_count(), 4, "wrong troves count");
+        assert(abbot.get_user_trove_ids(trove_owner1) == expected_owner1_trove_ids.span(), 'wrong user trove IDs');
+        assert(abbot.get_user_trove_ids(trove_owner2) == expected_owner2_trove_ids.span(), 'wrong user trove IDs');
+        assert(abbot.get_troves_count() == 4, 'wrong troves count');
 
         let non_user: ContractAddress = common::TROVE3_OWNER_ADDR;
-        assert_eq!(abbot.get_user_trove_ids(non_user), empty_user_trove_ids, "wrong non user trove IDs");
+        assert(abbot.get_user_trove_ids(non_user) == empty_user_trove_ids, 'wrong non user trove IDs');
     }
 }

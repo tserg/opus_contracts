@@ -26,7 +26,7 @@ mod test_flash_mint {
         let max_loan: u256 = flash_mint.max_flash_loan(shrine.contract_address);
         let expected_max_loan: Wad = flash_mint_utils::YIN_TOTAL_SUPPLY.into()
             * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into();
-        assert_eq!(max_loan, expected_max_loan.into(), "Incorrect max flash loan");
+        assert(max_loan == expected_max_loan.into(), 'Incorrect max flash loan');
     }
 
     #[test]
@@ -56,12 +56,12 @@ mod test_flash_mint {
         let surplus: Wad = equalizer.equalize();
         assert(surplus.is_non_zero(), 'no surplus');
         let total_yin: Wad = shrine.get_total_yin();
-        assert_gt!(total_yin, debt_ceiling, "below debt ceiling");
+        assert(total_yin > debt_ceiling, 'below debt ceiling');
 
         // Check that max loan is correct
         let max_loan: u256 = flash_mint.max_flash_loan(shrine.contract_address);
         let expected_max_loan: u256 = (total_yin * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
-        assert_eq!(max_loan, expected_max_loan, "Incorrect max flash loan");
+        assert(max_loan == expected_max_loan, 'Incorrect max flash loan');
     }
 
     #[test]
@@ -90,15 +90,15 @@ mod test_flash_mint {
         let first_loan_amt: u256 = 1;
         flash_mint.flash_loan(borrower, shrine.contract_address, first_loan_amt, calldata);
 
-        assert!(yin.balance_of(borrower).is_zero(), "Wrong yin bal after flash_mint 1");
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 1');
 
         let second_loan_amt: u256 = flash_mint_utils::DEFAULT_MINT_AMOUNT.into();
         flash_mint.flash_loan(borrower, shrine.contract_address, second_loan_amt, calldata);
-        assert!(yin.balance_of(borrower).is_zero(), "Wrong yin bal after flash_mint 2");
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 2');
 
         let third_loan_amt: u256 = (1000 * WAD_ONE).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, third_loan_amt, calldata);
-        assert!(yin.balance_of(borrower).is_zero(), "Wrong yin bal after flash_mint 3");
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 3');
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         let debt_ceiling: Wad = shrine.get_debt_ceiling();
@@ -108,7 +108,7 @@ mod test_flash_mint {
 
         let fourth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, fourth_loan_amt, calldata);
-        assert!(yin.balance_of(borrower).is_zero(), "Wrong yin bal after flash_mint 4");
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 4');
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         // and the budget has a deficit
@@ -117,7 +117,7 @@ mod test_flash_mint {
 
         let fifth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, fifth_loan_amt, calldata);
-        assert!(yin.balance_of(borrower).is_zero(), "Wrong yin bal after flash_mint 5");
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 5');
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         // and the budget has a surplus
@@ -126,7 +126,7 @@ mod test_flash_mint {
 
         let sixth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, sixth_loan_amt, calldata);
-        assert!(yin.balance_of(borrower).is_zero(), "Wrong yin bal after flash_mint 6");
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 6');
 
         let expected_events = array![
             (

@@ -40,11 +40,11 @@ mod test_sentinel {
 
         let wbtc_erc20 = common::erc20(wbtc);
 
-        assert_eq!(sentinel.get_gate_address(*yangs.at(0)), eth_gate.contract_address, "Wrong gate address #1");
-        assert_eq!(sentinel.get_gate_address(*yangs.at(1)), wbtc_gate.contract_address, "Wrong gate address #2");
+        assert(sentinel.get_gate_address(*yangs.at(0)) == eth_gate.contract_address, 'Wrong gate address #1');
+        assert(sentinel.get_gate_address(*yangs.at(1)) == wbtc_gate.contract_address, 'Wrong gate address #2');
 
-        assert!(sentinel.get_gate_live(*yangs.at(0)), "Gate not live #1");
-        assert!(sentinel.get_gate_live(*yangs.at(1)), "Gate not live #2");
+        assert(sentinel.get_gate_live(*yangs.at(0)), 'Gate not live #1');
+        assert(sentinel.get_gate_live(*yangs.at(1)), 'Gate not live #2');
 
         let given_yang_addresses = sentinel.get_yang_addresses();
         assert(
@@ -52,41 +52,41 @@ mod test_sentinel {
             'Wrong yang addresses',
         );
 
-        assert_eq!(sentinel.get_yang(0), Zero::zero(), "Should be zero address");
-        assert_eq!(sentinel.get_yang(1), *yangs.at(0), "Wrong yang #1");
-        assert_eq!(sentinel.get_yang(2), *yangs.at(1), "Wrong yang #2");
+        assert(sentinel.get_yang(0) == Zero::zero(), 'Should be zero address');
+        assert(sentinel.get_yang(1) == *yangs.at(0), 'Wrong yang #1');
+        assert(sentinel.get_yang(2) == *yangs.at(1), 'Wrong yang #2');
 
-        assert_eq!(sentinel.get_yang_asset_max(eth), sentinel_utils::ETH_ASSET_MAX, "Wrong asset max #1");
-        assert_eq!(sentinel.get_yang_asset_max(wbtc), sentinel_utils::WBTC_ASSET_MAX, "Wrong asset max #2");
+        assert(sentinel.get_yang_asset_max(eth) == sentinel_utils::ETH_ASSET_MAX, 'Wrong asset max #1');
+        assert(sentinel.get_yang_asset_max(wbtc) == sentinel_utils::WBTC_ASSET_MAX, 'Wrong asset max #2');
 
-        assert_eq!(sentinel.get_yang_addresses_count(), 2, "Wrong yang addresses count");
+        assert(sentinel.get_yang_addresses_count() == 2, 'Wrong yang addresses count');
 
         let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
-        assert_eq!(sentinel_ac.get_admin(), common::SENTINEL_ADMIN, "Wrong admin");
-        assert_eq!(sentinel_ac.get_roles(common::SENTINEL_ADMIN), sentinel_roles::ADMIN, "Wrong roles for admin");
+        assert(sentinel_ac.get_admin() == common::SENTINEL_ADMIN, 'Wrong admin');
+        assert(sentinel_ac.get_roles(common::SENTINEL_ADMIN) == sentinel_roles::ADMIN, 'Wrong roles for admin');
 
         // Checking that the gates were set up correctly
 
-        assert_eq!((eth_gate).get_sentinel(), sentinel.contract_address, "Wrong sentinel #1");
-        assert_eq!((wbtc_gate).get_sentinel(), sentinel.contract_address, "Wrong sentinel #2");
+        assert((eth_gate).get_sentinel() == sentinel.contract_address, 'Wrong sentinel #1');
+        assert((wbtc_gate).get_sentinel() == sentinel.contract_address, 'Wrong sentinel #2');
 
         // Checking that shrine was set up correctly
 
         let (eth_price, _, _) = shrine.get_current_yang_price(eth);
         let (wbtc_price, _, _) = shrine.get_current_yang_price(wbtc);
 
-        assert_eq!(eth_price, eth_params.start_price.into(), "Wrong yang price #1");
-        assert_eq!(wbtc_price, wbtc_params.start_price.into(), "Wrong yang price #2");
+        assert(eth_price == eth_params.start_price.into(), 'Wrong yang price #1');
+        assert(wbtc_price == wbtc_params.start_price.into(), 'Wrong yang price #2');
 
         let eth_threshold = shrine.get_yang_threshold(eth);
-        assert_eq!(eth_threshold, eth_params.threshold.into(), "Wrong yang threshold #1");
+        assert(eth_threshold == eth_params.threshold.into(), 'Wrong yang threshold #1');
 
         let wbtc_threshold = shrine.get_yang_threshold(wbtc);
-        assert_eq!(wbtc_threshold, wbtc_params.threshold.into(), "Wrong yang threshold #2");
+        assert(wbtc_threshold == wbtc_params.threshold.into(), 'Wrong yang threshold #2');
 
         let expected_era: u64 = 1;
-        assert_eq!(shrine.get_yang_rate(eth, expected_era), eth_params.base_rate.into(), "Wrong yang rate #1");
-        assert_eq!(shrine.get_yang_rate(wbtc, expected_era), wbtc_params.base_rate.into(), "Wrong yang rate #2");
+        assert(shrine.get_yang_rate(eth, expected_era) == eth_params.base_rate.into(), 'Wrong yang rate #1');
+        assert(shrine.get_yang_rate(wbtc, expected_era) == wbtc_params.base_rate.into(), 'Wrong yang rate #2');
 
         let expected_initial_eth_yang: Wad = sentinel_utils::get_initial_asset_amt(eth).into();
         assert_eq!(shrine.get_yang_total(eth), expected_initial_eth_yang, "Wrong yang total #1");
@@ -237,18 +237,18 @@ mod test_sentinel {
         // Test increasing the max
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.set_yang_asset_max(eth, new_asset_max);
-        assert_eq!(sentinel.get_yang_asset_max(eth), new_asset_max, "Wrong asset max");
+        assert(sentinel.get_yang_asset_max(eth) == new_asset_max, 'Wrong asset max');
 
         // Test decreasing the max
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.set_yang_asset_max(eth, new_asset_max - 1);
-        assert_eq!(sentinel.get_yang_asset_max(eth), new_asset_max - 1, "Wrong asset max");
+        assert(sentinel.get_yang_asset_max(eth) == new_asset_max - 1, 'Wrong asset max');
 
         // Test decreasing the max to below the current yang total
         let initial_deposit_amt: u128 = sentinel_utils::get_initial_asset_amt(eth);
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.set_yang_asset_max(eth, initial_deposit_amt - 1);
-        assert_eq!(sentinel.get_yang_asset_max(eth), initial_deposit_amt - 1, "Wrong asset max");
+        assert(sentinel.get_yang_asset_max(eth) == initial_deposit_amt - 1, 'Wrong asset max');
 
         let expected_events = array![
             (
@@ -322,13 +322,13 @@ mod test_sentinel {
 
         let expected_initial_eth_amt: u128 = sentinel_utils::get_initial_asset_amt(eth);
 
-        assert_eq!(preview_yang_amt, yang_amt, "Wrong preview enter yang amt");
-        assert_eq!(yang_amt, deposit_amt, "Wrong yang bal after enter");
+        assert(preview_yang_amt == yang_amt, 'Wrong preview enter yang amt');
+        assert(yang_amt == deposit_amt, 'Wrong yang bal after enter');
         assert(
             eth_erc20.balance_of(eth_gate.contract_address) == expected_initial_eth_amt.into() + deposit_amt.into(),
             'Wrong eth bal after enter',
         );
-        assert_eq!(shrine.get_deposit(eth, trove_id), yang_amt, "Wrong yang bal in shrine");
+        assert(shrine.get_deposit(eth, trove_id) == yang_amt, 'Wrong yang bal in shrine');
 
         let preview_eth_amt: u128 = sentinel.convert_to_assets(eth, WAD_ONE.into());
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
@@ -336,15 +336,15 @@ mod test_sentinel {
         cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.withdraw(eth, trove_id, WAD_ONE.into());
 
-        assert_eq!(preview_eth_amt, eth_amt, "Wrong preview exit eth amt");
-        assert_eq!(eth_amt, WAD_ONE, "Wrong yang bal after exit");
+        assert(preview_eth_amt == eth_amt, 'Wrong preview exit eth amt');
+        assert(eth_amt == WAD_ONE, 'Wrong yang bal after exit');
         assert(
             eth_erc20
                 .balance_of(eth_gate.contract_address) == (expected_initial_eth_amt + deposit_amt.into() - WAD_ONE)
                 .into(),
             'Wrong eth bal after exit',
         );
-        assert_eq!(shrine.get_deposit(eth, trove_id), yang_amt - WAD_ONE.into(), "Wrong yang bal in shrine");
+        assert(shrine.get_deposit(eth, trove_id) == yang_amt - WAD_ONE.into(), 'Wrong yang bal in shrine');
     }
 
     #[test]
@@ -372,13 +372,13 @@ mod test_sentinel {
         cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.deposit(wbtc, trove_id, yang_amt);
 
-        assert_eq!(preview_yang_amt, yang_amt, "Wrong preview enter yang amt");
-        assert_eq!(yang_amt, fixed_point_to_wad(deposit_amt, common::WBTC_DECIMALS), "Wrong yang bal after enter");
+        assert(preview_yang_amt == yang_amt, 'Wrong preview enter yang amt');
+        assert(yang_amt == fixed_point_to_wad(deposit_amt, common::WBTC_DECIMALS), 'Wrong yang bal after enter');
         assert(
             wbtc_erc20.balance_of(wbtc_gate.contract_address) == (initial_wbtc_amt + deposit_amt).into(),
             'Wrong wbtc bal after enter',
         );
-        assert_eq!(shrine.get_deposit(wbtc, trove_id), yang_amt, "Wrong yang bal in shrine");
+        assert(shrine.get_deposit(wbtc, trove_id) == yang_amt, 'Wrong yang bal in shrine');
 
         let preview_wbtc_amt: u128 = sentinel.convert_to_assets(wbtc, yang_amt);
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
@@ -386,8 +386,8 @@ mod test_sentinel {
         cheat_caller_address(shrine.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         shrine.withdraw(wbtc, trove_id, yang_amt);
 
-        assert_eq!(preview_wbtc_amt, deposit_amt, "Wrong preview exit WBTC amt");
-        assert_eq!(wbtc_amt, deposit_amt, "Wrong exit amt");
+        assert(preview_wbtc_amt == deposit_amt, 'Wrong preview exit WBTC amt');
+        assert(wbtc_amt == deposit_amt, 'Wrong exit amt');
         assert(
             wbtc_erc20.balance_of(wbtc_gate.contract_address) == initial_wbtc_amt.into(), 'Wrong wbtc bal after exit',
         );
@@ -498,7 +498,7 @@ mod test_sentinel {
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.kill_gate(eth);
 
-        assert!(!sentinel.get_gate_live(eth), "Gate should be killed");
+        assert(!sentinel.get_gate_live(eth), 'Gate should be killed');
 
         let user: ContractAddress = common::TROVE1_OWNER_ADDR;
         common::fund_user(user, yangs, common::LARGE_DEPOSITS.span());
@@ -565,12 +565,12 @@ mod test_sentinel {
         start_cheat_block_timestamp_global(shrine_utils::DEPLOYMENT_TIMESTAMP);
 
         let status = shrine.get_yang_suspension_status(eth);
-        assert_eq!(status, YangSuspensionStatus::None, "status 1");
+        assert(status == YangSuspensionStatus::None, 'status 1');
 
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.suspend_yang(eth);
         let status = shrine.get_yang_suspension_status(eth);
-        assert_eq!(status, YangSuspensionStatus::Temporary, "status 2");
+        assert(status == YangSuspensionStatus::Temporary, 'status 2');
 
         // move time forward by 1 day
         start_cheat_block_timestamp_global(shrine_utils::DEPLOYMENT_TIMESTAMP + 86400);
@@ -578,7 +578,7 @@ mod test_sentinel {
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.unsuspend_yang(eth);
         let status = shrine.get_yang_suspension_status(eth);
-        assert_eq!(status, YangSuspensionStatus::None, "status 3");
+        assert(status == YangSuspensionStatus::None, 'status 3');
     }
 
     #[test]

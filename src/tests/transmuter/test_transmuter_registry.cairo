@@ -16,14 +16,14 @@ mod test_transmuter_registry {
     fn test_transmuter_registry_deploy() {
         let registry = transmuter_utils::transmuter_registry_deploy();
 
-        assert_eq!(registry.get_transmuters(), array![].span(), "should be empty");
+        assert(registry.get_transmuters() == array![].span(), 'should be empty');
 
         let registry_ac: IAccessControlDispatcher = IAccessControlDispatcher {
             contract_address: registry.contract_address,
         };
         let admin: ContractAddress = common::TRANSMUTER_ADMIN;
-        assert_eq!(registry_ac.get_admin(), admin, "wrong admin");
-        assert_eq!(registry_ac.get_roles(admin), transmuter_registry_roles::ADMIN, "wrong admin roles");
+        assert(registry_ac.get_admin() == admin, 'wrong admin');
+        assert(registry_ac.get_roles(admin) == transmuter_registry_roles::ADMIN, 'wrong admin roles');
     }
 
     //
@@ -55,9 +55,7 @@ mod test_transmuter_registry {
         start_cheat_caller_address(registry.contract_address, common::TRANSMUTER_ADMIN);
         registry.add_transmuter(first_transmuter.contract_address);
 
-        assert_eq!(
-            registry.get_transmuters(), array![first_transmuter.contract_address].span(), "wrong transmuters #1",
-        );
+        assert(registry.get_transmuters() == array![first_transmuter.contract_address].span(), 'wrong transmuters #1');
 
         registry.add_transmuter(second_transmuter.contract_address);
 
@@ -70,9 +68,7 @@ mod test_transmuter_registry {
 
         registry.remove_transmuter(first_transmuter.contract_address);
 
-        assert_eq!(
-            registry.get_transmuters(), array![second_transmuter.contract_address].span(), "wrong transmuters #3",
-        );
+        assert(registry.get_transmuters() == array![second_transmuter.contract_address].span(), 'wrong transmuters #3');
 
         registry.add_transmuter(first_transmuter.contract_address);
 
@@ -85,9 +81,7 @@ mod test_transmuter_registry {
 
         registry.remove_transmuter(first_transmuter.contract_address);
 
-        assert_eq!(
-            registry.get_transmuters(), array![second_transmuter.contract_address].span(), "wrong transmuters #5",
-        );
+        assert(registry.get_transmuters() == array![second_transmuter.contract_address].span(), 'wrong transmuters #5');
     }
 
     #[test]

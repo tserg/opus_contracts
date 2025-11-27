@@ -38,13 +38,13 @@ fn test_display_and_debug() {
 #[test]
 fn test_is_healthy() {
     let h = Health { threshold: 1_u128.into(), ltv: 0_u128.into(), value: 1_u128.into(), debt: 0_u128.into() };
-    assert!(h.is_healthy(), "is_healthy #1");
+    assert(h.is_healthy(), 'is_healthy #1');
 
     let h = Health { threshold: 1_u128.into(), ltv: 1_u128.into(), value: 1_u128.into(), debt: 1_u128.into() };
-    assert!(h.is_healthy(), "is_healthy #2");
+    assert(h.is_healthy(), 'is_healthy #2');
 
     let h = Health { threshold: 1_u128.into(), ltv: 2_u128.into(), value: 1_u128.into(), debt: 2_u128.into() };
-    assert!(!h.is_healthy(), "is_healthy #3");
+    assert(!h.is_healthy(), 'is_healthy #3');
 }
 
 #[test]

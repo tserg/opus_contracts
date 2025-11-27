@@ -437,7 +437,7 @@ pub fn assert_asset_balances_equalish(a: Span<AssetBalance>, mut b: Span<AssetBa
 
     for i in a {
         let b: AssetBalance = *b.pop_front().unwrap();
-        assert_eq!(*i.address, b.address, "wrong asset address");
+        assert(*i.address == b.address, 'wrong asset address');
         assert_equalish(*i.amount, b.amount, error, message);
     }
 }
@@ -450,7 +450,7 @@ pub fn assert_event_not_emitted_by_name(emitted_events: Span<(ContractAddress, E
     while current_idx != end_idx {
         let (_, raw_event) = emitted_events.at(current_idx);
 
-        assert!(*raw_event.keys.at(0) != event_selector, "event name emitted");
+        assert(*raw_event.keys.at(0) != event_selector, 'event name emitted');
 
         current_idx += 1;
     };
@@ -461,7 +461,7 @@ pub fn assert_event_not_emitted_by_name(emitted_events: Span<(ContractAddress, E
 //
 
 pub fn combine_assets_and_amts(assets: Span<ContractAddress>, mut amts: Span<u128>) -> Span<AssetBalance> {
-    assert_eq!(assets.len(), amts.len(), "combining diff array lengths");
+    assert(assets.len() == amts.len(), 'combining diff array lengths');
     let mut asset_balances: Array<AssetBalance> = ArrayTrait::new();
     for asset in assets {
         asset_balances.append(AssetBalance { address: *asset, amount: *amts.pop_front().unwrap() });
@@ -485,7 +485,7 @@ pub fn scale_span_by_pct(asset_amts: Span<u128>, pct: Ray) -> Span<u128> {
 // Helper function to combine two arrays of equal lengths into a single array by doing element-wise addition.
 // Assumes the arrays are ordered identically.
 pub fn combine_spans(lhs: Span<u128>, mut rhs: Span<u128>) -> Span<u128> {
-    assert_eq!(lhs.len(), rhs.len(), "combining diff array lengths");
+    assert(lhs.len() == rhs.len(), 'combining diff array lengths');
     let mut combined_asset_amts: Array<u128> = ArrayTrait::new();
 
     for asset_amt in lhs {

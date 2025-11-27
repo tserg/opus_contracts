@@ -37,9 +37,9 @@ mod test_seer {
         let mut spy = spy_events();
         let SeerTestConfig { seer, .. } = seer_utils::deploy_seer(Option::None, Option::None);
         let seer_ac = IAccessControlDispatcher { contract_address: seer.contract_address };
-        assert_eq!(seer_ac.get_roles(common::SEER_ADMIN), seer_roles::ADMIN, "wrong role for admin");
-        assert_eq!(seer.get_update_frequency(), seer_utils::UPDATE_FREQUENCY, "wrong update frequency");
-        assert_eq!(seer.get_oracles().len(), 0, "wrong number of oracles");
+        assert(seer_ac.get_roles(common::SEER_ADMIN) == seer_roles::ADMIN, 'wrong role for admin');
+        assert(seer.get_update_frequency() == seer_utils::UPDATE_FREQUENCY, 'wrong update frequency');
+        assert(seer.get_oracles().len() == 0, 'wrong number of oracles');
 
         let expected_events = array![
             (
@@ -66,7 +66,7 @@ mod test_seer {
         cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_oracles(oracles);
 
-        assert_eq!(oracles, seer.get_oracles(), "wrong set oracles");
+        assert(oracles == seer.get_oracles(), 'wrong set oracles');
     }
 
     #[test]
@@ -91,7 +91,7 @@ mod test_seer {
         cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.set_update_frequency(new_frequency);
 
-        assert_eq!(seer.get_update_frequency(), new_frequency, "wrong update frequency");
+        assert(seer.get_update_frequency() == new_frequency, 'wrong update frequency');
 
         let expected_events = array![
             (
@@ -395,11 +395,11 @@ mod test_seer {
         let (shrine_wbtc_vault_price, _, _) = shrine.get_current_yang_price(wbtc_vault_addr);
         // shrine's price is rebased by 2
         let multiplier: Wad = (2 * WAD_SCALE).into();
-        assert_eq!(shrine_eth_price, eth_price * multiplier, "wrong eth price in shrine 2");
-        assert_eq!(shrine_wbtc_price, wbtc_price * multiplier, "wrong wbtc price in shrine 2");
+        assert(shrine_eth_price == eth_price * multiplier, 'wrong eth price in shrine 2');
+        assert(shrine_wbtc_price == wbtc_price * multiplier, 'wrong wbtc price in shrine 2');
         let vault_multiplier: Wad = (3 * WAD_SCALE).into();
-        assert_eq!(shrine_eth_vault_price, eth_price * vault_multiplier, "wrong eth(v) price in shrine 2");
-        assert_eq!(shrine_wbtc_vault_price, wbtc_price * vault_multiplier, "wrong wbtc(v) price in shrine 2");
+        assert(shrine_eth_vault_price == eth_price * vault_multiplier, 'wrong eth(v) price in shrine 2');
+        assert(shrine_wbtc_vault_price == wbtc_price * vault_multiplier, 'wrong wbtc(v) price in shrine 2');
 
         // Check that delisted yangs are skipped by suspending ETH
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
@@ -430,7 +430,7 @@ mod test_seer {
             period_div -= 1;
         }
 
-        assert_eq!(shrine.get_yang_suspension_status(eth_addr), YangSuspensionStatus::Permanent, "yang not suspended");
+        assert(shrine.get_yang_suspension_status(eth_addr) == YangSuspensionStatus::Permanent, 'yang not suspended');
 
         let (last_eth_price, last_cumulative_eth_price) = shrine.get_yang_price(eth_addr, last_delisted_yang_interval);
         assert(last_eth_price.is_non_zero(), 'price should not be zero');
@@ -583,8 +583,8 @@ mod test_seer {
 
         let (shrine_eth_price, _, _) = shrine.get_current_yang_price(eth_addr);
         let (shrine_wbtc_price, _, _) = shrine.get_current_yang_price(wbtc_addr);
-        assert_eq!(shrine_eth_price, eth_price, "wrong eth price in shrine 1");
-        assert_eq!(shrine_wbtc_price, wbtc_price, "wrong wbtc price in shrine 1");
+        assert(shrine_eth_price == eth_price, 'wrong eth price in shrine 1');
+        assert(shrine_wbtc_price == wbtc_price, 'wrong wbtc price in shrine 1');
 
         let expected_events_seer = array![
             (

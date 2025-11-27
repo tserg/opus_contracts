@@ -21,13 +21,13 @@ mod test_equalizer {
     fn test_equalizer_deploy() {
         let EqualizerTestConfig { equalizer, allocator, .. } = equalizer_utils::equalizer_deploy(Option::None);
 
-        assert_eq!(equalizer.get_allocator(), allocator.contract_address, "wrong allocator address");
+        assert(equalizer.get_allocator() == allocator.contract_address, 'wrong allocator address');
 
         let equalizer_ac = IAccessControlDispatcher { contract_address: equalizer.contract_address };
         let admin = common::SHRINE_ADMIN;
-        assert_eq!(equalizer_ac.get_admin(), admin, "wrong admin");
-        assert_eq!(equalizer_ac.get_roles(admin), equalizer_roles::ADMIN, "wrong role");
-        assert!(equalizer_ac.has_role(equalizer_roles::SET_ALLOCATOR, admin), "role not granted");
+        assert(equalizer_ac.get_admin() == admin, 'wrong admin');
+        assert(equalizer_ac.get_roles(admin) == equalizer_roles::ADMIN, 'wrong role');
+        assert(equalizer_ac.has_role(equalizer_roles::SET_ALLOCATOR, admin), 'role not granted');
     }
 
     #[test]
@@ -38,21 +38,21 @@ mod test_equalizer {
         let surplus: Wad = (500 * WAD_ONE).into();
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(surplus.into());
-        assert_eq!(shrine.get_budget(), surplus.into(), "sanity check");
+        assert(shrine.get_budget() == surplus.into(), 'sanity check');
 
         let before_total_yin = shrine.get_total_yin();
         let before_equalizer_yin: Wad = shrine.get_yin(equalizer.contract_address);
 
         let minted_surplus: Wad = equalizer.equalize();
-        assert_eq!(surplus, minted_surplus, "surplus mismatch");
+        assert(surplus == minted_surplus, 'surplus mismatch');
 
         let after_equalizer_yin: Wad = shrine.get_yin(equalizer.contract_address);
-        assert_eq!(after_equalizer_yin, before_equalizer_yin + surplus, "surplus not received");
+        assert(after_equalizer_yin == before_equalizer_yin + surplus, 'surplus not received');
 
         // Check remaining surplus
-        assert!(shrine.get_budget().is_zero(), "surplus should be zeroed");
+        assert(shrine.get_budget().is_zero(), 'surplus should be zeroed');
 
-        assert_eq!(shrine.get_total_yin(), before_total_yin + minted_surplus, "wrong total yin");
+        assert(shrine.get_total_yin() == before_total_yin + minted_surplus, 'wrong total yin');
 
         let expected_events = array![
             (
@@ -63,14 +63,14 @@ mod test_equalizer {
         spy.assert_emitted(@expected_events);
 
         // Assert that calling equalize again passes when budget is zero
-        assert!(equalizer.equalize().is_zero(), "minted surplus should be zero");
+        assert(equalizer.equalize().is_zero(), 'minted surplus should be zero');
 
         // Create a deficit
         let deficit = -((500 * WAD_ONE).into());
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(deficit);
 
-        assert!(equalizer.equalize().is_zero(), "minted surplus should be zero");
+        assert(equalizer.equalize().is_zero(), 'minted surplus should be zero');
     }
 
     #[test]
@@ -95,24 +95,24 @@ mod test_equalizer {
             let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
             let expected_surplus: Wad = trove_health.debt - start_debt;
 
-            assert_eq!(shrine.get_budget(), expected_surplus.into(), "sanity check");
+            assert(shrine.get_budget() == expected_surplus.into(), 'sanity check');
 
             let before_total_yin = shrine.get_total_yin();
             let before_equalizer_yin: Wad = shrine.get_yin(equalizer.contract_address);
 
             let minted_surplus: Wad = equalizer.equalize();
-            assert_eq!(minted_surplus, expected_surplus, "surplus mismatch");
+            assert(minted_surplus == expected_surplus, 'surplus mismatch');
 
             let total_yin: Wad = shrine.get_total_yin();
-            assert_gt!(total_yin, start_debt, "below debt ceiling");
+            assert(total_yin > start_debt, 'below debt ceiling');
 
             let after_equalizer_yin: Wad = shrine.get_yin(equalizer.contract_address);
-            assert_eq!(after_equalizer_yin, before_equalizer_yin + expected_surplus, "surplus not received");
+            assert(after_equalizer_yin == before_equalizer_yin + expected_surplus, 'surplus not received');
 
             // Check remaining surplus
-            assert!(shrine.get_budget().is_zero(), "surplus should be zeroed");
+            assert(shrine.get_budget().is_zero(), 'surplus should be zeroed');
 
-            assert_eq!(shrine.get_total_yin(), before_total_yin + minted_surplus, "wrong total yin");
+            assert(shrine.get_total_yin() == before_total_yin + minted_surplus, 'wrong total yin');
 
             let expected_events = array![
                 (
@@ -160,17 +160,17 @@ mod test_equalizer {
         for percentage in percentages {
             let expected_increment = wadray::rmul_rw(*percentage, surplus);
             // sanity check
-            assert!(expected_increment.is_non_zero(), "increment is zero");
+            assert(expected_increment.is_non_zero(), 'increment is zero');
 
             let mut before_recipient_balances: Span<u128> = *before_recipients_balances.pop_front().unwrap();
             let before_yin_bal = *before_recipient_balances.pop_front().unwrap();
             let mut after_recipient_balances: Span<u128> = *after_recipients_balances.pop_front().unwrap();
             let after_yin_bal = *after_recipient_balances.pop_front().unwrap();
-            assert_eq!(after_yin_bal, before_yin_bal + expected_increment.into(), "wrong recipient balance");
+            assert(after_yin_bal == before_yin_bal + expected_increment.into(), 'wrong recipient balance');
 
             allocated += expected_increment;
         }
-        assert_eq!(surplus, allocated + shrine.get_yin(equalizer.contract_address), "allocated mismatch");
+        assert(surplus == allocated + shrine.get_yin(equalizer.contract_address), 'allocated mismatch');
 
         let expected_events = array![
             (
@@ -187,7 +187,7 @@ mod test_equalizer {
     fn test_allocate_zero_amount_pass() {
         let EqualizerTestConfig { shrine, equalizer, .. } = equalizer_utils::equalizer_deploy(Option::None);
 
-        assert!(shrine.get_yin(equalizer.contract_address).is_zero(), "sanity check");
+        assert(shrine.get_yin(equalizer.contract_address).is_zero(), 'sanity check');
 
         equalizer.allocate();
     }
@@ -213,7 +213,7 @@ mod test_equalizer {
             let deficit = -(inject_amt.into());
             cheat_caller_address(shrine.contract_address, admin, CheatSpan::TargetCalls(1));
             shrine.adjust_budget(deficit);
-            assert_eq!(shrine.get_budget(), deficit, "sanity check #1");
+            assert(shrine.get_budget() == deficit, 'sanity check #1');
 
             // Mint the deficit amount to the admin
             cheat_caller_address(shrine.contract_address, admin, CheatSpan::TargetCalls(1));
@@ -223,8 +223,8 @@ mod test_equalizer {
             let normalized_amt: Wad = equalizer.normalize(*normalize_amt);
 
             let expected_normalized_amt: Wad = min(inject_amt, *normalize_amt);
-            assert_eq!(normalized_amt, expected_normalized_amt, "wrong normalized amt");
-            assert_eq!(shrine.get_budget(), deficit + expected_normalized_amt.into(), "wrong remaining deficit");
+            assert(normalized_amt == expected_normalized_amt, 'wrong normalized amt');
+            assert(shrine.get_budget() == deficit + expected_normalized_amt.into(), 'wrong remaining deficit');
 
             // Event is emitted only if non-zero amount of deficit was wiped
             if expected_normalized_amt.is_non_zero() {
@@ -243,13 +243,13 @@ mod test_equalizer {
             cheat_caller_address(equalizer.contract_address, admin, CheatSpan::TargetCalls(1));
             equalizer.normalize(Bounded::MAX);
 
-            assert!(shrine.get_budget().is_zero(), "sanity check #2");
+            assert(shrine.get_budget().is_zero(), 'sanity check #2');
 
             // Assert nothing happens if we try to normalize again
             cheat_caller_address(equalizer.contract_address, admin, CheatSpan::TargetCalls(1));
             equalizer.normalize(Bounded::MAX);
 
-            assert!(shrine.get_budget().is_zero(), "sanity check #3");
+            assert(shrine.get_budget().is_zero(), 'sanity check #3');
         };
     }
 
@@ -267,7 +267,7 @@ mod test_equalizer {
         equalizer.set_allocator(new_allocator.contract_address);
 
         // Check allocator is updated
-        assert_eq!(equalizer.get_allocator(), new_allocator.contract_address, "allocator not updated");
+        assert(equalizer.get_allocator() == new_allocator.contract_address, 'allocator not updated');
 
         let expected_events = array![
             (

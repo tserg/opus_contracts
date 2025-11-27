@@ -28,15 +28,15 @@ mod test_shrine {
 
         // Check ERC-20 getters
         let yin = common::erc20(shrine.contract_address);
-        assert_eq!(yin.name(), shrine_utils::YIN_NAME, "wrong name");
-        assert_eq!(yin.symbol(), shrine_utils::YIN_SYMBOL, "wrong symbol");
-        assert_eq!(yin.decimals(), WAD_DECIMALS, "wrong decimals");
+        assert(yin.name() == shrine_utils::YIN_NAME, 'wrong name');
+        assert(yin.symbol() == shrine_utils::YIN_SYMBOL, 'wrong symbol');
+        assert(yin.decimals() == WAD_DECIMALS, 'wrong decimals');
 
         // Check Shrine getters
-        assert!(shrine.get_live(), "not live");
+        assert(shrine.get_live(), 'not live');
         let (multiplier, _, _) = shrine.get_current_multiplier();
-        assert_eq!(multiplier, RAY_ONE.into(), "wrong multiplier");
-        assert!(shrine.get_minimum_trove_value().is_zero(), "wrong min trove value");
+        assert(multiplier == RAY_ONE.into(), 'wrong multiplier');
+        assert(shrine.get_minimum_trove_value().is_zero(), 'wrong min trove value');
         assert_eq!(
             shrine.get_recovery_mode_target_factor(),
             shrine_contract::INITIAL_RECOVERY_MODE_TARGET_FACTOR.into(),
@@ -51,7 +51,7 @@ mod test_shrine {
         let shrine_accesscontrol: IAccessControlDispatcher = IAccessControlDispatcher {
             contract_address: shrine.contract_address,
         };
-        assert_eq!(shrine_accesscontrol.get_admin(), common::SHRINE_ADMIN, "wrong admin");
+        assert(shrine_accesscontrol.get_admin() == common::SHRINE_ADMIN, 'wrong admin');
 
         let expected_events = array![
             (
@@ -93,28 +93,28 @@ mod test_shrine {
     fn test_shrine_deploy_with_dummy_yangs() {
         let mut spy = spy_events();
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
-        assert_eq!(shrine.get_debt_ceiling(), shrine_utils::DEBT_CEILING.into(), "wrong debt ceiling");
-        assert_eq!(shrine.get_minimum_trove_value(), shrine_utils::MINIMUM_TROVE_VALUE.into(), "wrong min trove value");
-        assert_eq!(shrine.get_yangs_count(), 3, "wrong yangs count");
+        assert(shrine.get_debt_ceiling() == shrine_utils::DEBT_CEILING.into(), 'wrong debt ceiling');
+        assert(shrine.get_minimum_trove_value() == shrine_utils::MINIMUM_TROVE_VALUE.into(), 'wrong min trove value');
+        assert(shrine.get_yangs_count() == 3, 'wrong yangs count');
 
         let expected_era: u64 = 1;
         for yang_param in common::THREE_YANG_PARAMS.span() {
             let (yang_price, _, _) = shrine.get_current_yang_price(*yang_param.address);
-            assert_eq!(yang_price, (*yang_param.start_price).into(), "wrong yang start price");
+            assert(yang_price == (*yang_param.start_price).into(), 'wrong yang start price');
 
             let threshold = shrine.get_yang_threshold(*yang_param.address);
-            assert_eq!(threshold, (*yang_param.threshold).into(), "wrong yang threshold");
+            assert(threshold == (*yang_param.threshold).into(), 'wrong yang threshold');
 
             let base_rate = shrine.get_yang_rate(*yang_param.address, expected_era);
-            assert_eq!(base_rate, (*yang_param.base_rate).into(), "wrong yang base rate");
+            assert(base_rate == (*yang_param.base_rate).into(), 'wrong yang base rate');
         }
 
         // Check shrine threshold and value
         let shrine_health: Health = shrine.get_shrine_health();
         // recovery mode threshold will be zero if threshold is zero
-        assert!(shrine_health.threshold.is_zero(), "wrong shrine threshold");
-        assert!(shrine_health.value.is_zero(), "wrong shrine value");
-        assert_eq!(shrine_health.ltv, Bounded::MAX, "wrong shrine LTV");
+        assert(shrine_health.threshold.is_zero(), 'wrong shrine threshold');
+        assert(shrine_health.value.is_zero(), 'wrong shrine value');
+        assert(shrine_health.ltv == Bounded::MAX, 'wrong shrine LTV');
 
         let expected_events = array![
             (
@@ -175,7 +175,7 @@ mod test_shrine {
         }
 
         let (_, start_cumulative_multiplier) = shrine.get_multiplier(start_interval - 1);
-        assert_eq!(start_cumulative_multiplier, RAY_ONE.into(), "wrong start cumulative mul");
+        assert(start_cumulative_multiplier == RAY_ONE.into(), 'wrong start cumulative mul');
         let mut expected_cumulative_multiplier = start_cumulative_multiplier;
 
         let yang_feed_len = (*yang_feeds.at(0)).len();
@@ -197,13 +197,13 @@ mod test_shrine {
             for yang_param in yang_params {
                 let (price, cumulative_price) = shrine.get_yang_price(*yang_param.address, interval);
                 let expected_price = *yang_feeds.at(yang_idx)[idx];
-                assert_eq!(price, expected_price, "wrong price in feed");
+                assert(price == expected_price, 'wrong price in feed');
 
                 let prev_cumulative_price = *expected_yang_cumulative_prices_copy.at(yang_idx);
                 let expected_cumulative_price = prev_cumulative_price + price;
 
                 expected_yang_cumulative_prices.append(expected_cumulative_price);
-                assert_eq!(cumulative_price, expected_cumulative_price, "wrong cumulative price in feed");
+                assert(cumulative_price == expected_cumulative_price, 'wrong cumulative price in feed');
 
                 expected_events
                     .append(
@@ -225,8 +225,8 @@ mod test_shrine {
 
             expected_cumulative_multiplier += RAY_ONE.into();
             let (multiplier, cumulative_multiplier) = shrine.get_multiplier(interval);
-            assert_eq!(multiplier, RAY_ONE.into(), "wrong multiplier in feed");
-            assert_eq!(cumulative_multiplier, expected_cumulative_multiplier, "wrong cumulative mul in feed");
+            assert(multiplier == RAY_ONE.into(), 'wrong multiplier in feed');
+            assert(cumulative_multiplier == expected_cumulative_multiplier, 'wrong cumulative mul in feed');
 
             expected_events
                 .append(
@@ -258,7 +258,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         let new_value: Wad = (100 * WAD_ONE).into();
         shrine.set_minimum_trove_value(new_value);
-        assert_eq!(shrine.get_minimum_trove_value(), new_value, "wrong min trove value");
+        assert(shrine.get_minimum_trove_value() == new_value, 'wrong min trove value');
         let expected_events = array![
             (
                 shrine.contract_address,
@@ -294,7 +294,7 @@ mod test_shrine {
 
         let current_rate_era: u64 = shrine.get_current_rate_era();
         let yangs_count: u32 = shrine.get_yangs_count();
-        assert_eq!(yangs_count, 3, "incorrect yangs count");
+        assert(yangs_count == 3, 'incorrect yangs count');
 
         let new_yang_address: ContractAddress = 'new yang'.try_into().unwrap();
         let new_yang_threshold: Ray = 600000000000000000000000000_u128.into(); // 60% (Ray)
@@ -305,15 +305,15 @@ mod test_shrine {
         shrine.add_yang(new_yang_address, new_yang_threshold, new_yang_start_price, new_yang_rate, Zero::zero());
 
         let expected_yangs_count: u32 = yangs_count + 1;
-        assert_eq!(shrine.get_yangs_count(), expected_yangs_count, "incorrect yangs count");
-        assert!(shrine.get_yang_total(new_yang_address).is_zero(), "incorrect yang total");
+        assert(shrine.get_yangs_count() == expected_yangs_count, 'incorrect yangs count');
+        assert(shrine.get_yang_total(new_yang_address).is_zero(), 'incorrect yang total');
 
         let (current_yang_price, _, _) = shrine.get_current_yang_price(new_yang_address);
-        assert_eq!(current_yang_price, new_yang_start_price, "incorrect yang price");
+        assert(current_yang_price == new_yang_start_price, 'incorrect yang price');
         let threshold = shrine.get_yang_threshold(new_yang_address);
-        assert_eq!(threshold, new_yang_threshold, "incorrect yang threshold");
+        assert(threshold == new_yang_threshold, 'incorrect yang threshold');
 
-        assert_eq!(shrine.get_yang_rate(new_yang_address, current_rate_era), new_yang_rate, "incorrect yang rate");
+        assert(shrine.get_yang_rate(new_yang_address, current_rate_era) == new_yang_rate, 'incorrect yang rate');
 
         let expected_events = array![
             (
@@ -381,7 +381,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.set_threshold(yang1_addr, new_threshold);
         let threshold = shrine.get_yang_threshold(yang1_addr);
-        assert_eq!(threshold, new_threshold, "threshold not updated");
+        assert(threshold == new_threshold, 'threshold not updated');
 
         let expected_events = array![
             (
@@ -441,7 +441,7 @@ mod test_shrine {
             );
 
         let expected_rate_era: u64 = 2;
-        assert_eq!(shrine.get_current_rate_era(), expected_rate_era, "wrong rate era");
+        assert(shrine.get_current_rate_era() == expected_rate_era, 'wrong rate era');
 
         let mut expected_rates: Span<Ray> = array![
             common::YANG1_BASE_RATE.into(), common::YANG2_BASE_RATE.into(), RAY_ONE.into(),
@@ -450,7 +450,7 @@ mod test_shrine {
 
         for yang in yangs {
             let expected_rate = *expected_rates.pop_front().unwrap();
-            assert_eq!(shrine.get_yang_rate(*yang, expected_rate_era), expected_rate, "wrong rate");
+            assert(shrine.get_yang_rate(*yang, expected_rate_era) == expected_rate, 'wrong rate');
         };
     }
 
@@ -654,7 +654,7 @@ mod test_shrine {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let mut spy = spy_events();
 
-        assert!(shrine.get_live(), "should be live");
+        assert(shrine.get_live(), 'should be live');
 
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
@@ -673,11 +673,11 @@ mod test_shrine {
         // Check eject pass
         shrine.eject(common::TROVE1_OWNER_ADDR, 1_u128.into());
 
-        assert!(!shrine.get_live(), "should not be live");
+        assert(!shrine.get_live(), 'should not be live');
 
         let mut expected_after_yang_total_amts: Span<Wad> = expected_after_yang_total_amts.span();
         for yang in yangs {
-            assert!(shrine.get_protocol_owned_yang_amt(*yang).is_zero(), "yang not rebased");
+            assert(shrine.get_protocol_owned_yang_amt(*yang).is_zero(), 'yang not rebased');
 
             let after_yang_total_amt: Wad = shrine.get_yang_total(*yang);
             let expected_after_yang_total_amt: Wad = *expected_after_yang_total_amts.pop_front().unwrap();
@@ -694,11 +694,11 @@ mod test_shrine {
     #[should_panic(expected: 'SH: System is not live')]
     fn test_killed_deposit_fail() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-        assert!(shrine.get_live(), "should be live");
+        assert(shrine.get_live(), 'should be live');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
-        assert!(!shrine.get_live(), "should not be live");
+        assert(!shrine.get_live(), 'should not be live');
 
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
     }
@@ -707,12 +707,12 @@ mod test_shrine {
     #[should_panic(expected: 'SH: System is not live')]
     fn test_killed_withdraw_fail() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-        assert!(shrine.get_live(), "should be live");
+        assert(shrine.get_live(), 'should be live');
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
-        assert!(!shrine.get_live(), "should not be live");
+        assert(!shrine.get_live(), 'should not be live');
 
         shrine_utils::trove1_withdraw(shrine, 1_u128.into());
     }
@@ -721,12 +721,12 @@ mod test_shrine {
     #[should_panic(expected: 'SH: System is not live')]
     fn test_killed_forge_fail() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-        assert!(shrine.get_live(), "should be live");
+        assert(shrine.get_live(), 'should be live');
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
-        assert!(!shrine.get_live(), "should not be live");
+        assert(!shrine.get_live(), 'should not be live');
 
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
         shrine_utils::trove1_forge(shrine, forge_amt);
@@ -736,13 +736,13 @@ mod test_shrine {
     #[should_panic(expected: 'SH: System is not live')]
     fn test_killed_melt_fail() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-        assert!(shrine.get_live(), "should be live");
+        assert(shrine.get_live(), 'should be live');
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
         shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
-        assert!(!shrine.get_live(), "should not be live");
+        assert(!shrine.get_live(), 'should not be live');
 
         shrine_utils::trove1_melt(shrine, 1_u128.into());
     }
@@ -751,11 +751,11 @@ mod test_shrine {
     #[should_panic(expected: 'SH: System is not live')]
     fn test_killed_inject_fail() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-        assert!(shrine.get_live(), "should be live");
+        assert(shrine.get_live(), 'should be live');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
-        assert!(!shrine.get_live(), "should not be live");
+        assert(!shrine.get_live(), 'should not be live');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(common::SHRINE_ADMIN, 1_u128.into());
@@ -765,7 +765,7 @@ mod test_shrine {
     #[should_panic(expected: 'Caller missing role')]
     fn test_kill_unauthorized() {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-        assert!(shrine.get_live(), "should be live");
+        assert(shrine.get_live(), 'should be live');
 
         cheat_caller_address(shrine.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         shrine.kill();
@@ -786,7 +786,7 @@ mod test_shrine {
         let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang = *yangs.at(0);
 
-        assert_eq!(shrine.get_yang_total(yang), shrine_utils::TROVE1_YANG1_DEPOSIT.into(), "incorrect yang total");
+        assert(shrine.get_yang_total(yang) == shrine_utils::TROVE1_YANG1_DEPOSIT.into(), 'incorrect yang total');
         assert(
             shrine.get_deposit(yang, trove_id) == shrine_utils::TROVE1_YANG1_DEPOSIT.into(), 'incorrect yang deposit',
         );
@@ -801,7 +801,7 @@ mod test_shrine {
         let expected_max_forge: Wad = shrine_utils::calculate_max_forge(
             yang_prices.span(), yang_amts.span(), yang_thresholds.span(),
         );
-        assert_eq!(max_forge_amt, expected_max_forge, "incorrect max forge amt");
+        assert(max_forge_amt == expected_max_forge, 'incorrect max forge amt');
 
         shrine_utils::assert_total_yang_invariant(shrine, yangs, 1);
     }
@@ -842,12 +842,12 @@ mod test_shrine {
         let yangs: Span<ContractAddress> = common::THREE_YANG_ADDRS.span();
         let yang1_addr = *yangs.at(0);
         let remaining_amt: Wad = shrine_utils::TROVE1_YANG1_DEPOSIT.into() - withdraw_amt;
-        assert_eq!(shrine.get_yang_total(yang1_addr), remaining_amt, "incorrect yang total");
-        assert_eq!(shrine.get_deposit(yang1_addr, trove_id), remaining_amt, "incorrect yang deposit");
+        assert(shrine.get_yang_total(yang1_addr) == remaining_amt, 'incorrect yang total');
+        assert(shrine.get_deposit(yang1_addr, trove_id) == remaining_amt, 'incorrect yang deposit');
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert!(trove_health.ltv.is_zero(), "LTV should be zero");
-        assert!(trove_health.is_healthy(), "trove should be healthy");
+        assert(trove_health.ltv.is_zero(), 'LTV should be zero');
+        assert(trove_health.is_healthy(), 'trove should be healthy');
 
         let (yang1_price, _, _) = shrine.get_current_yang_price(yang1_addr);
         let max_forge_amt: Wad = shrine.get_max_forge(trove_id);
@@ -859,7 +859,7 @@ mod test_shrine {
         let expected_max_forge: Wad = shrine_utils::calculate_max_forge(
             yang_prices.span(), yang_amts.span(), yang_thresholds.span(),
         );
-        assert_eq!(max_forge_amt, expected_max_forge, "incorrect max forge amt");
+        assert(max_forge_amt == expected_max_forge, 'incorrect max forge amt');
 
         shrine_utils::assert_total_yang_invariant(shrine, yangs, 1);
     }
@@ -876,13 +876,13 @@ mod test_shrine {
 
         let yang1_addr = common::YANG1_ADDR;
         let remaining_amt: Wad = shrine_utils::TROVE1_YANG1_DEPOSIT.into() - withdraw_amt;
-        assert_eq!(shrine.get_yang_total(yang1_addr), remaining_amt, "incorrect yang total");
-        assert_eq!(shrine.get_deposit(yang1_addr, common::TROVE_1), remaining_amt, "incorrect yang deposit");
+        assert(shrine.get_yang_total(yang1_addr) == remaining_amt, 'incorrect yang total');
+        assert(shrine.get_deposit(yang1_addr, common::TROVE_1) == remaining_amt, 'incorrect yang deposit');
 
         let (yang1_price, _, _) = shrine.get_current_yang_price(yang1_addr);
         let expected_ltv: Ray = wadray::rdiv_ww(shrine_utils::TROVE1_FORGE_AMT.into(), (yang1_price * remaining_amt));
         let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
-        assert_eq!(trove_health.ltv, expected_ltv, "incorrect LTV");
+        assert(trove_health.ltv == expected_ltv, 'incorrect LTV');
     }
 
     #[test]
@@ -988,24 +988,24 @@ mod test_shrine {
         shrine_utils::trove1_forge(shrine, forge_amt);
 
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, forge_amt, "incorrect system debt");
+        assert(shrine_health.debt == forge_amt, 'incorrect system debt');
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(trove_health.debt, forge_amt, "incorrect trove debt");
+        assert(trove_health.debt == forge_amt, 'incorrect trove debt');
 
         let (yang1_price, _, _) = shrine.get_current_yang_price(yang1_addr);
         let expected_value: Wad = yang1_price * shrine_utils::TROVE1_YANG1_DEPOSIT.into();
         let expected_ltv: Ray = wadray::rdiv_ww(forge_amt, expected_value);
-        assert_eq!(trove_health.ltv, expected_ltv, "incorrect ltv");
-        assert!(trove_health.is_healthy(), "trove should be healthy");
+        assert(trove_health.ltv == expected_ltv, 'incorrect ltv');
+        assert(trove_health.is_healthy(), 'trove should be healthy');
 
         let after_max_forge_amt: Wad = shrine.get_max_forge(trove_id);
-        assert_eq!(after_max_forge_amt, before_max_forge_amt - forge_amt, "incorrect max forge amt");
+        assert(after_max_forge_amt == before_max_forge_amt - forge_amt, 'incorrect max forge amt');
 
         let yin = common::erc20(shrine.contract_address);
         let trove1_owner_addr: ContractAddress = common::TROVE1_OWNER_ADDR;
-        assert_eq!(yin.balance_of(trove1_owner_addr), forge_amt.into(), "incorrect ERC-20 balance");
-        assert_eq!(yin.total_supply(), forge_amt.into(), "incorrect ERC-20 balance");
+        assert(yin.balance_of(trove1_owner_addr) == forge_amt.into(), 'incorrect ERC-20 balance');
+        assert(yin.total_supply() == forge_amt.into(), 'incorrect ERC-20 balance');
 
         shrine_utils::assert_total_troves_debt_invariant(shrine, 1);
 
@@ -1069,7 +1069,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
 
         shrine.deposit(common::YANG1_ADDR, common::TROVE_2, shrine_utils::WHALE_TROVE_YANG1_DEPOSIT.into());
-        assert!(!shrine.is_recovery_mode(), "recovery mode");
+        assert(!shrine.is_recovery_mode(), 'recovery mode');
 
         let max_forge_amt: Wad = shrine.get_max_forge(common::TROVE_1);
         let unsafe_forge_amt: Wad = max_forge_amt + 1_u128.into();
@@ -1139,7 +1139,7 @@ mod test_shrine {
 
         let fee_pct: Wad = shrine.get_forge_fee_pct();
 
-        assert_eq!(after_max_forge_amt, before_max_forge_amt / (WAD_ONE.into() + fee_pct), "incorrect max forge amt");
+        assert(after_max_forge_amt == before_max_forge_amt / (WAD_ONE.into() + fee_pct), 'incorrect max forge amt');
 
         let before_budget: SignedWad = shrine.get_budget();
 
@@ -1148,10 +1148,10 @@ mod test_shrine {
 
         let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
         let fee = trove_health.debt - forge_amt;
-        assert_eq!(trove_health.debt - forge_amt, fee_pct * forge_amt, "wrong forge fee charged #1");
+        assert(trove_health.debt - forge_amt == fee_pct * forge_amt, 'wrong forge fee charged #1');
 
         let intermediate_budget: SignedWad = shrine.get_budget();
-        assert_eq!(intermediate_budget, before_budget + fee.into(), "wrong budget #1");
+        assert(intermediate_budget == before_budget + fee.into(), 'wrong budget #1');
 
         let expected_events = array![
             (
@@ -1173,7 +1173,7 @@ mod test_shrine {
         assert(
             new_trove_health.debt - trove_health.debt - forge_amt == fee_pct * forge_amt, 'wrong forge fee charged #2',
         );
-        assert_eq!(shrine.get_budget(), intermediate_budget + fee.into(), "wrong budget #2");
+        assert(shrine.get_budget() == intermediate_budget + fee.into(), 'wrong budget #2');
 
         let expected_events = array![
             (
@@ -1241,21 +1241,21 @@ mod test_shrine {
         shrine.melt(trove1_owner_addr, trove_id, melt_amt);
 
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.debt, before_total_debt - melt_amt, "incorrect total debt");
+        assert(shrine_health.debt == before_total_debt - melt_amt, 'incorrect total debt');
 
         let after_trove_health: Health = shrine.get_trove_health(trove_id);
-        assert_eq!(after_trove_health.debt, before_trove_health.debt - melt_amt, "incorrect trove debt");
+        assert(after_trove_health.debt == before_trove_health.debt - melt_amt, 'incorrect trove debt');
 
         let after_yin_bal: u256 = yin.balance_of(trove1_owner_addr);
-        assert_eq!(after_yin_bal, before_yin_bal - melt_amt.into(), "incorrect yin balance");
+        assert(after_yin_bal == before_yin_bal - melt_amt.into(), 'incorrect yin balance');
 
         let (yang1_price, _, _) = shrine.get_current_yang_price(yang1_addr);
         let expected_ltv: Ray = wadray::rdiv_ww(outstanding_amt, (yang1_price * deposit_amt));
-        assert_eq!(after_trove_health.ltv, expected_ltv, "incorrect LTV");
-        assert!(after_trove_health.is_healthy(), "trove should be healthy");
+        assert(after_trove_health.ltv == expected_ltv, 'incorrect LTV');
+        assert(after_trove_health.is_healthy(), 'trove should be healthy');
 
         let after_max_forge_amt: Wad = shrine.get_max_forge(trove_id);
-        assert_eq!(after_max_forge_amt, before_max_forge_amt + melt_amt, "incorrect max forge amount");
+        assert(after_max_forge_amt == before_max_forge_amt + melt_amt, 'incorrect max forge amount');
 
         shrine_utils::assert_total_troves_debt_invariant(shrine, 1);
 
@@ -1323,9 +1323,9 @@ mod test_shrine {
         let success: bool = yin.transfer(yin_user, shrine_utils::TROVE1_FORGE_AMT.into());
 
         yin.transfer(yin_user, 0);
-        assert!(success, "yin transfer fail");
-        assert!(yin.balance_of(trove1_owner).is_zero(), "wrong transferor balance");
-        assert_eq!(yin.balance_of(yin_user), shrine_utils::TROVE1_FORGE_AMT.into(), "wrong transferee balance");
+        assert(success, 'yin transfer fail');
+        assert(yin.balance_of(trove1_owner).is_zero(), 'wrong transferor balance');
+        assert(yin.balance_of(yin_user) == shrine_utils::TROVE1_FORGE_AMT.into(), 'wrong transferee balance');
 
         let expected_events = array![
             (
@@ -1388,10 +1388,10 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, yin_user, CheatSpan::TargetCalls(1));
         let success: bool = yin.transfer_from(trove1_owner, yin_user, transfer_amt);
 
-        assert!(success, "yin transfer fail");
+        assert(success, 'yin transfer fail');
 
-        assert!(yin.balance_of(trove1_owner).is_zero(), "wrong transferor balance");
-        assert_eq!(yin.balance_of(yin_user), transfer_amt, "wrong transferee balance");
+        assert(yin.balance_of(trove1_owner).is_zero(), 'wrong transferor balance');
+        assert(yin.balance_of(yin_user) == transfer_amt, 'wrong transferee balance');
 
         let expected_events = array![
             (
@@ -1431,15 +1431,15 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, trove1_owner, CheatSpan::TargetCalls(1));
         yin.approve(yin_user, transfer_amt);
 
-        assert_eq!(yin.total_supply(), camel_yin.totalSupply(), "wrong total supply");
+        assert(yin.total_supply() == camel_yin.totalSupply(), 'wrong total supply');
 
         cheat_caller_address(shrine.contract_address, yin_user, CheatSpan::TargetCalls(1));
         let success: bool = camel_yin.transferFrom(trove1_owner, yin_user, transfer_amt);
 
-        assert!(success, "yin transfer fail");
+        assert(success, 'yin transfer fail');
 
-        assert!(camel_yin.balanceOf(trove1_owner).is_zero(), "wrong transferor balance");
-        assert_eq!(camel_yin.balanceOf(yin_user), transfer_amt, "wrong transferee balance");
+        assert(camel_yin.balanceOf(trove1_owner).is_zero(), 'wrong transferor balance');
+        assert(camel_yin.balanceOf(yin_user) == transfer_amt, 'wrong transferee balance');
 
         let expected_events = array![
             (
@@ -1559,9 +1559,9 @@ mod test_shrine {
 
         let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
         let expected_debt: Wad = forge_amt - melt_amt;
-        assert_eq!(trove_health.debt, expected_debt, "wrong debt after melt");
+        assert(trove_health.debt == expected_debt, 'wrong debt after melt');
 
-        assert_eq!(shrine.get_yin(trove1_owner), forge_amt - melt_amt - transfer_amt, "wrong balance");
+        assert(shrine.get_yin(trove1_owner) == forge_amt - melt_amt - transfer_amt, 'wrong balance');
     }
 
     //
@@ -1578,24 +1578,24 @@ mod test_shrine {
         let admin: ContractAddress = common::SHRINE_ADMIN;
         let new_admin: ContractAddress = 'new shrine admin'.try_into().unwrap();
 
-        assert_eq!(shrine_accesscontrol.get_admin(), admin, "wrong admin");
+        assert(shrine_accesscontrol.get_admin() == admin, 'wrong admin');
 
         // Authorizing an address and testing that it can use authorized functions
         cheat_caller_address(shrine.contract_address, admin, CheatSpan::TargetCalls(1));
         shrine_accesscontrol.grant_role(shrine_roles::SET_DEBT_CEILING, new_admin);
         assert(shrine_accesscontrol.has_role(shrine_roles::SET_DEBT_CEILING, new_admin), 'role not granted');
-        assert_eq!(shrine_accesscontrol.get_roles(new_admin), shrine_roles::SET_DEBT_CEILING, "role not granted");
+        assert(shrine_accesscontrol.get_roles(new_admin) == shrine_roles::SET_DEBT_CEILING, 'role not granted');
 
         cheat_caller_address(shrine.contract_address, new_admin, CheatSpan::TargetCalls(1));
         let new_ceiling: Wad = (WAD_SCALE + 1).into();
         shrine.set_debt_ceiling(new_ceiling);
-        assert_eq!(shrine.get_debt_ceiling(), new_ceiling, "wrong debt ceiling");
+        assert(shrine.get_debt_ceiling() == new_ceiling, 'wrong debt ceiling');
 
         // Revoking an address
         cheat_caller_address(shrine.contract_address, admin, CheatSpan::TargetCalls(1));
         shrine_accesscontrol.revoke_role(shrine_roles::SET_DEBT_CEILING, new_admin);
         assert(!shrine_accesscontrol.has_role(shrine_roles::SET_DEBT_CEILING, new_admin), 'role not revoked');
-        assert_eq!(shrine_accesscontrol.get_roles(new_admin), 0, "role not revoked");
+        assert(shrine_accesscontrol.get_roles(new_admin) == 0, 'role not revoked');
     }
 
     #[test]
@@ -1633,7 +1633,7 @@ mod test_shrine {
         shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert!(trove_health.value.is_non_zero(), "sanity check");
+        assert(trove_health.value.is_non_zero(), 'sanity check');
 
         let (_, prev_cumulative_price, _) = shrine.get_current_yang_price(yang);
 
@@ -1658,16 +1658,16 @@ mod test_shrine {
         spy.assert_emitted(@expected_events);
 
         let (new_price, new_cumulative_price, _) = shrine.get_current_yang_price(yang);
-        assert_eq!(new_price, zero_price, "wrong zero price");
+        assert(new_price == zero_price, 'wrong zero price');
         assert_eq!(new_cumulative_price, prev_cumulative_price, "wrong cumulative price");
 
         // Check effect of zero price on trove
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert!(trove_health.value.is_zero(), "trove value should be zero");
+        assert(trove_health.value.is_zero(), 'trove value should be zero');
 
         // Check effect of zero price on Shrine's health
         let shrine_health: Health = shrine.get_shrine_health();
-        assert!(shrine_health.value.is_zero(), "shrine value should be zero");
+        assert(shrine_health.value.is_zero(), 'shrine value should be zero');
     }
 
     #[test]
@@ -1726,17 +1726,17 @@ mod test_shrine {
         ];
         spy.assert_emitted(@expected_events);
 
-        assert_eq!(yin.total_supply(), before_total_supply + inject_amt.into(), "incorrect total supply");
-        assert_eq!(yin.balance_of(trove1_owner), before_user_bal + inject_amt.into(), "incorrect user balance");
-        assert_eq!(shrine.get_total_yin(), before_total_yin + inject_amt, "incorrect total yin");
-        assert_eq!(shrine.get_yin(trove1_owner), before_user_yin + inject_amt, "incorrect user yin");
+        assert(yin.total_supply() == before_total_supply + inject_amt.into(), 'incorrect total supply');
+        assert(yin.balance_of(trove1_owner) == before_user_bal + inject_amt.into(), 'incorrect user balance');
+        assert(shrine.get_total_yin() == before_total_yin + inject_amt, 'incorrect total yin');
+        assert(shrine.get_yin(trove1_owner) == before_user_yin + inject_amt, 'incorrect user yin');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.eject(trove1_owner, inject_amt);
-        assert_eq!(yin.total_supply(), before_total_supply, "incorrect total supply");
-        assert_eq!(yin.balance_of(trove1_owner), before_user_bal, "incorrect user balance");
-        assert_eq!(shrine.get_total_yin(), before_total_yin, "incorrect total yin");
-        assert_eq!(shrine.get_yin(trove1_owner), before_user_yin, "incorrect user yin");
+        assert(yin.total_supply() == before_total_supply, 'incorrect total supply');
+        assert(yin.balance_of(trove1_owner) == before_user_bal, 'incorrect user balance');
+        assert(shrine.get_total_yin() == before_total_yin, 'incorrect total yin');
+        assert(shrine.get_yin(trove1_owner) == before_user_yin, 'incorrect user yin');
 
         let expected_events = array![
             (
@@ -1769,12 +1769,12 @@ mod test_shrine {
         let inject_amt: Wad = shrine.get_debt_ceiling();
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(trove1_owner, inject_amt);
-        assert_eq!(shrine.get_total_yin(), inject_amt, "sanity check #1");
+        assert(shrine.get_total_yin() == inject_amt, 'sanity check #1');
 
         let deficit: SignedWad = -(1_u128.into());
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(deficit);
-        assert_eq!(shrine.get_budget(), deficit, "sanity check #2");
+        assert(shrine.get_budget() == deficit, 'sanity check #2');
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(trove1_owner, 1_u128.into());
@@ -1827,7 +1827,7 @@ mod test_shrine {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.advance(common::YANG1_ADDR, unsafe_price);
 
-        assert!(shrine.is_healthy(common::TROVE_1), "should be unhealthy");
+        assert(shrine.is_healthy(common::TROVE_1), 'should be unhealthy');
     }
 
     #[test]
@@ -1862,13 +1862,13 @@ mod test_shrine {
             yang_prices, yang_amts, yang_thresholds,
         );
         let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
-        assert_eq!(trove_health.threshold, expected_threshold, "wrong threshold");
+        assert(trove_health.threshold == expected_threshold, 'wrong threshold');
 
         let forge_amt: Wad = shrine_utils::TROVE1_FORGE_AMT.into();
         shrine_utils::trove1_forge(shrine, forge_amt);
         let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
         let expected_ltv: Ray = wadray::rdiv_ww(forge_amt, expected_value);
-        assert_eq!(trove_health.ltv, expected_ltv, "wrong LTV");
+        assert(trove_health.ltv == expected_ltv, 'wrong LTV');
     }
 
     #[test]
@@ -1876,10 +1876,10 @@ mod test_shrine {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
 
         let trove_health: Health = shrine.get_trove_health(common::TROVE_3);
-        assert!(trove_health.threshold.is_zero(), "threshold should be 0");
-        assert!(trove_health.ltv.is_zero(), "LTV should be 0");
-        assert!(trove_health.value.is_zero(), "value should be 0");
-        assert!(trove_health.debt.is_zero(), "debt should be 0");
+        assert(trove_health.threshold.is_zero(), 'threshold should be 0');
+        assert(trove_health.ltv.is_zero(), 'LTV should be 0');
+        assert(trove_health.value.is_zero(), 'value should be 0');
+        assert(trove_health.debt.is_zero(), 'debt should be 0');
     }
 
     //
@@ -1926,8 +1926,8 @@ mod test_shrine {
             yang_prices.span(), yang_amts.span(), yang_thresholds.span(),
         );
         let shrine_health: Health = shrine.get_shrine_health();
-        assert_eq!(shrine_health.threshold, expected_threshold, "wrong threshold");
-        assert_eq!(shrine_health.value, expected_value, "wrong value");
+        assert(shrine_health.threshold == expected_threshold, 'wrong threshold');
+        assert(shrine_health.value == expected_value, 'wrong value');
     }
 
     // Tests - Getter for forge fee
@@ -1947,7 +1947,7 @@ mod test_shrine {
 
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.update_yin_spot_price(first_yin_price);
-        assert!(shrine.get_forge_fee_pct().is_zero(), "wrong forge fee #1");
+        assert(shrine.get_forge_fee_pct().is_zero(), 'wrong forge fee #1');
 
         let expected_events = array![
             (
@@ -2014,11 +2014,11 @@ mod test_shrine {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
 
         let status_yang1 = shrine.get_yang_suspension_status(common::YANG1_ADDR);
-        assert_eq!(status_yang1, YangSuspensionStatus::None, "yang1");
+        assert(status_yang1 == YangSuspensionStatus::None, 'yang1');
         let status_yang2 = shrine.get_yang_suspension_status(common::YANG2_ADDR);
-        assert_eq!(status_yang2, YangSuspensionStatus::None, "yang2");
+        assert(status_yang2 == YangSuspensionStatus::None, 'yang2');
         let status_yang3 = shrine.get_yang_suspension_status(common::YANG3_ADDR);
-        assert_eq!(status_yang3, YangSuspensionStatus::None, "yang3");
+        assert(status_yang3 == YangSuspensionStatus::None, 'yang3');
     }
 
     #[test]
@@ -2060,7 +2060,7 @@ mod test_shrine {
 
         // check suspension status
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::Temporary, "status 1");
+        assert(status == YangSuspensionStatus::Temporary, 'status 1');
 
         // setting block time to a second before the suspension would be permanent
         let next_ts = start_ts + shrine_contract::SUSPENSION_GRACE_PERIOD - 1;
@@ -2072,7 +2072,7 @@ mod test_shrine {
 
         // check suspension status
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::None, "status 2");
+        assert(status == YangSuspensionStatus::None, 'status 2');
 
         // check event emission
         let expected_events = array![
@@ -2133,7 +2133,7 @@ mod test_shrine {
 
         // check suspension status
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::Temporary, "status 1");
+        assert(status == YangSuspensionStatus::Temporary, 'status 1');
 
         // check event emission
         spy
@@ -2150,10 +2150,10 @@ mod test_shrine {
 
         // check threshold (should be the same at the beginning)
         let threshold = shrine.get_yang_threshold(yang);
-        assert_eq!(threshold, common::YANG1_THRESHOLD.into(), "threshold 1");
+        assert(threshold == common::YANG1_THRESHOLD.into(), 'threshold 1');
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert!(trove_health.value.is_non_zero(), "trove has no value");
+        assert(trove_health.value.is_non_zero(), 'trove has no value');
         assert_eq!(trove_health.threshold, threshold, "wrong trove threshold #1");
 
         // the threshold should decrease by 1% in this amount of time
@@ -2166,11 +2166,11 @@ mod test_shrine {
 
             // check suspension status
             let status = shrine.get_yang_suspension_status(yang);
-            assert_eq!(status, YangSuspensionStatus::Temporary, "status 2");
+            assert(status == YangSuspensionStatus::Temporary, 'status 2');
 
             // check threshold
             let threshold = shrine.get_yang_threshold(yang);
-            assert_eq!(threshold, (common::YANG1_THRESHOLD / 100 * (100_u64 - *time_pct).into()).into(), "threshold 2");
+            assert(threshold == (common::YANG1_THRESHOLD / 100 * (100_u64 - *time_pct).into()).into(), 'threshold 2');
 
             // intermediate price update to avoid iteration timeout
             cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
@@ -2184,7 +2184,7 @@ mod test_shrine {
 
         // check suspension status
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::Temporary, "status 3");
+        assert(status == YangSuspensionStatus::Temporary, 'status 3');
 
         // check threshold
         let threshold = shrine.get_yang_threshold(yang);
@@ -2201,15 +2201,15 @@ mod test_shrine {
 
         // check suspension status
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::Permanent, "status 4");
+        assert(status == YangSuspensionStatus::Permanent, 'status 4');
 
         // check threshold
         let threshold = shrine.get_yang_threshold(yang);
-        assert_eq!(threshold, Zero::zero(), "threshold 4");
+        assert(threshold == Zero::zero(), 'threshold 4');
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
-        assert!(trove_health.value.is_zero(), "trove has value");
-        assert!(trove_health.threshold.is_zero(), "wrong trove threshold #2");
+        assert(trove_health.value.is_zero(), 'trove has value');
+        assert(trove_health.threshold.is_zero(), 'wrong trove threshold #2');
 
         let after_shrine_health: Health = shrine.get_shrine_health();
         let expected_shrine_value: Wad = start_shrine_health.value - start_trove_health.value;
@@ -2233,7 +2233,7 @@ mod test_shrine {
 
         // sanity check
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::Permanent, "delisted");
+        assert(status == YangSuspensionStatus::Permanent, 'delisted');
 
         // trying to reset yang suspension status, should fail
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
@@ -2256,7 +2256,7 @@ mod test_shrine {
 
         // sanity check
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::Temporary, "should be temporary");
+        assert(status == YangSuspensionStatus::Temporary, 'should be temporary');
 
         // trying to suspend an already suspended yang, should fail
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
@@ -2282,7 +2282,7 @@ mod test_shrine {
 
         // sanity check
         let status = shrine.get_yang_suspension_status(yang);
-        assert_eq!(status, YangSuspensionStatus::Permanent, "should be permanent");
+        assert(status == YangSuspensionStatus::Permanent, 'should be permanent');
 
         // trying to suspend an already suspended yang, should fail
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
@@ -2372,7 +2372,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold below rm target');
 
@@ -2401,7 +2401,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferUpperBound,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold below rm target');
 
@@ -2430,7 +2430,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferUpperBound,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold below rm target');
 
@@ -2466,7 +2466,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(!shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold above rm target');
 
@@ -2508,7 +2508,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
         assert(!shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold above rm target');
 
         let max_forge_amt: Wad = shrine.get_max_forge(trove_id);
@@ -2548,7 +2548,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferUpperBound,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(!shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold above rm target');
 
@@ -2587,13 +2587,13 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold below rm target');
 
         let trove_health: Health = shrine.get_trove_health(trove_id);
         let trove_base_threshold: Ray = shrine.get_trove_base_threshold(trove_id);
-        assert_lt!(trove_health.threshold, trove_base_threshold, "rm threshold not scaled");
+        assert(trove_health.threshold < trove_base_threshold, 'rm threshold not scaled');
 
         shrine_utils::trove1_withdraw(shrine, (shrine_utils::TROVE1_YANG1_DEPOSIT / 100).into());
     }
@@ -2620,7 +2620,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold below rm target');
         shrine_utils::trove1_forge(shrine, WAD_ONE.into());
@@ -2647,7 +2647,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold below rm target');
 
@@ -2682,7 +2682,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(!shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold above rm target');
 
@@ -2724,7 +2724,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(!shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold above rm target');
 
@@ -2765,7 +2765,7 @@ mod test_shrine {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::ExceedsBuffer,
         );
 
-        assert!(shrine.is_recovery_mode(), "should be recovery mode");
+        assert(shrine.is_recovery_mode(), 'should be recovery mode');
 
         assert(!shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold above rm target');
 
@@ -2834,7 +2834,7 @@ mod test_shrine {
             }
             stop_cheat_caller_address(shrine.contract_address);
 
-            assert!(shrine.is_recovery_mode(), "should be recovery mode");
+            assert(shrine.is_recovery_mode(), 'should be recovery mode');
             assert(
                 shrine_utils::trove_ltv_ge_recovery_mode_target(shrine, trove_id), 'trove threshold above rm target',
             );
@@ -2851,8 +2851,8 @@ mod test_shrine {
     fn test_src5_for_erc20_support() {
         let shrine = shrine_utils::shrine_deploy(Option::None);
         let src5 = ISRC5Dispatcher { contract_address: shrine.contract_address };
-        assert!(src5.supports_interface(shrine_contract::ISRC5_ID), "should support SRC5");
-        assert!(src5.supports_interface(shrine_contract::IERC20_ID), "should support ERC20");
-        assert!(src5.supports_interface(shrine_contract::IERC20_CAMEL_ID), "should support ERC20 Camel");
+        assert(src5.supports_interface(shrine_contract::ISRC5_ID), 'should support SRC5');
+        assert(src5.supports_interface(shrine_contract::IERC20_ID), 'should support ERC20');
+        assert(src5.supports_interface(shrine_contract::IERC20_CAMEL_ID), 'should support ERC20 Camel');
     }
 }
