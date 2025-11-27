@@ -1,12 +1,6 @@
 use starknet::ContractAddress;
 
-pub fn mock_eth_token_addr() -> ContractAddress {
-    'ETH'.try_into().unwrap()
-}
-
-pub fn pepe_token_addr() -> ContractAddress {
-    'PEPE'.try_into().unwrap()
-}
+pub const PEPE_TOKEN_ADDR: ContractAddress = 'PEPE'.try_into().unwrap();
 
 pub mod pragma_utils {
     use core::num::traits::Pow;
@@ -20,7 +14,7 @@ pub mod pragma_utils {
     use opus::types::pragma::{AggregationMode, PairSettings, PragmaPricesResponse};
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::{ContractAddress, get_block_timestamp};
-    use wadray::{WAD_DECIMALS, Wad};
+    use wadray::{WAD_ONE, Wad};
 
     #[derive(Copy, Drop)]
     pub struct PragmaTestConfig {
@@ -38,9 +32,11 @@ pub mod pragma_utils {
     pub const DEFAULT_NUM_SOURCES: u32 = 5;
     pub const PEPE_USD_PAIR_ID: felt252 = 'PEPE/USD';
 
-    //
-    // Constant addresses
-    //
+    pub const PRAGMA_SCALE: u128 = 10_u128.pow(PRAGMA_DECIMALS.into());
+
+    pub const PEPE_PAIR_SETTINGS: PairSettings = PairSettings {
+        pair_id: PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
+    };
 
     //
     // Test setup helpers
@@ -48,11 +44,8 @@ pub mod pragma_utils {
 
     pub fn mock_pragma_deploy(mock_pragma_class: Option<ContractClass>) -> IMockPragmaDispatcher {
         let mut calldata: Array<felt252> = ArrayTrait::new();
-
         let mock_pragma_class = mock_pragma_class.unwrap_or(*declare("mock_pragma").unwrap().contract_class());
-
         let (mock_pragma_addr, _) = mock_pragma_class.deploy(@calldata).expect('mock pragma deploy failed');
-
         IMockPragmaDispatcher { contract_address: mock_pragma_addr }
     }
 
@@ -69,9 +62,7 @@ pub mod pragma_utils {
         ];
 
         let pragma_class = pragma_class.unwrap_or(*declare("pragma").unwrap().contract_class());
-
         let (pragma_addr, _) = pragma_class.deploy(@calldata).expect('pragma  deploy failed');
-
         let pragma = IPragmaDispatcher { contract_address: pragma_addr };
 
         PragmaTestConfig { pragma: pragma, mock_pragma }
@@ -103,8 +94,7 @@ pub mod pragma_utils {
     //
 
     pub fn convert_price_to_pragma_scale(price: Wad) -> u128 {
-        let scale: u128 = 10_u128.pow((WAD_DECIMALS - PRAGMA_DECIMALS).into());
-        price.into() / scale
+        price.into() / (WAD_ONE / PRAGMA_SCALE)
     }
 
     pub fn get_pair_id_for_yang(yang: ContractAddress) -> felt252 {
@@ -160,7 +150,6 @@ pub mod ekubo_utils {
     //
 
     pub const TWAP_DURATION: u64 = 5 * 60; // 5 minutes * 60 seconds
-    pub const PEPE_USD_PAIR_ID: felt252 = 'PEPE/USD';
 
     //
     // Constant addresses
@@ -180,14 +169,9 @@ pub mod ekubo_utils {
         );
         let quote_tokens: Span<ContractAddress> = common::quote_tokens(token_class);
         let mut calldata: Array<felt252> = array![
-            common::EKUBO_ADMIN.into(),
-            mock_ekubo.contract_address.into(),
-            TWAP_DURATION.into(),
-            quote_tokens.len().into(),
-            (*quote_tokens[0]).into(),
-            (*quote_tokens[1]).into(),
-            (*quote_tokens[2]).into(),
+            common::EKUBO_ADMIN.into(), mock_ekubo.contract_address.into(), TWAP_DURATION.into(),
         ];
+        quote_tokens.serialize(ref calldata);
 
         let ekubo_class = ekubo_class.unwrap_or(*declare("ekubo").unwrap().contract_class());
         let (ekubo_addr, _) = ekubo_class.deploy(@calldata).expect('ekubo deploy failed');

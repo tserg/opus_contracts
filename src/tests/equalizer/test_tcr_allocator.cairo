@@ -12,9 +12,7 @@ mod test_tcr_allocator {
 
 
     const INITIAL_TCR_RECIPIENTS: [ContractAddress; 3] = [
-        common::SHRINE_ADMIN,
-        common::MOCK_ABSORBER,
-        common::MOCK_STABILIZER
+        common::SHRINE_ADMIN, common::MOCK_ABSORBER, common::MOCK_STABILIZER,
     ];
 
     fn setup_trove(shrine: IShrineDispatcher) {
