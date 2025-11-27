@@ -24,7 +24,7 @@ mod test_sentinel {
         let mut spy = spy_events();
 
         let SentinelTestConfig {
-            sentinel, shrine, yangs, gates,
+            sentinel, shrine, yangs, gates, ..,
         } = sentinel_utils::deploy_sentinel_with_gates(Option::None);
 
         // Checking that sentinel was set up correctly
@@ -307,9 +307,10 @@ mod test_sentinel {
         let eth_gate = *gates[0];
 
         let eth_erc20 = common::erc20(eth);
-        let user: ContractAddress = common::ETH_HOARDER;
         let trove_id: u64 = common::TROVE_1;
 
+        let user: ContractAddress = common::TROVE1_OWNER_ADDR;
+        common::fund_user(user, yangs, common::LARGE_DEPOSITS.span());
         common::approve_gate_for_token(eth_gate, eth_erc20, user);
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
@@ -355,9 +356,10 @@ mod test_sentinel {
         let wbtc: ContractAddress = *yangs[1];
         let wbtc_erc20 = common::erc20(wbtc);
         let wbtc_gate: IGateDispatcher = *gates[1];
-        let user: ContractAddress = common::WBTC_HOARDER;
         let trove_id: u64 = common::TROVE_1;
 
+        let user: ContractAddress = common::TROVE1_OWNER_ADDR;
+        common::fund_user(user, yangs, common::LARGE_DEPOSITS.span());
         common::approve_gate_for_token(wbtc_gate, wbtc_erc20, user);
 
         let initial_wbtc_amt: u128 = sentinel_utils::get_initial_asset_amt(wbtc);
@@ -399,9 +401,11 @@ mod test_sentinel {
         let eth = *yangs[0];
 
         let eth_erc20 = common::erc20(eth);
-        let user: ContractAddress = common::ETH_HOARDER;
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
+
+        let user: ContractAddress = common::TROVE1_OWNER_ADDR;
+        common::fund_user(user, yangs, common::LARGE_DEPOSITS.span());
 
         // Reduce user's balance to below the deposit amount
         cheat_caller_address(eth, user, CheatSpan::TargetCalls(1));
@@ -416,7 +420,7 @@ mod test_sentinel {
     fn test_enter_yang_not_added() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
 
-        let user: ContractAddress = common::ETH_HOARDER;
+        let user: ContractAddress = common::NON_ZERO_ADDR;
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
@@ -429,8 +433,10 @@ mod test_sentinel {
         let SentinelTestConfig { sentinel, yangs, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
         let eth = *yangs[0];
 
-        let user: ContractAddress = common::ETH_HOARDER;
         let deposit_amt: Wad = (sentinel_utils::ETH_ASSET_MAX + 1).into(); // Deposit amount exceeds max deposit
+
+        let user: ContractAddress = common::TROVE1_OWNER_ADDR;
+        common::fund_user(user, yangs, common::LARGE_DEPOSITS.span());
 
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.enter(eth, user, deposit_amt.into());
@@ -441,7 +447,7 @@ mod test_sentinel {
     fn test_exit_yang_not_added() {
         let (sentinel, _) = sentinel_utils::deploy_sentinel(Option::None);
 
-        let user: ContractAddress = common::ETH_HOARDER;
+        let user: ContractAddress = common::NON_ZERO_ADDR;
 
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
         sentinel.exit(common::DUMMY_YANG_ADDR, user, WAD_ONE.into());
@@ -453,10 +459,8 @@ mod test_sentinel {
         let SentinelTestConfig { sentinel, yangs, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
         let eth = *yangs[0];
 
-        let user: ContractAddress = common::ETH_HOARDER;
-
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
-        sentinel.exit(eth, user, WAD_ONE.into()); // User does not have any yang to exit
+        sentinel.exit(eth, common::NON_ZERO_ADDR, WAD_ONE.into()); // User does not have any yang to exit
     }
 
     #[test]
@@ -465,12 +469,10 @@ mod test_sentinel {
         let SentinelTestConfig { sentinel, yangs, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
         let eth = *yangs[0];
 
-        let user: ContractAddress = common::ETH_HOARDER;
-
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
         cheat_caller_address(sentinel.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        sentinel.enter(eth, user, deposit_amt.into());
+        sentinel.enter(eth, common::NON_ZERO_ADDR, deposit_amt.into());
     }
 
     #[test]
@@ -479,10 +481,8 @@ mod test_sentinel {
         let SentinelTestConfig { sentinel, yangs, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
         let eth = *yangs[0];
 
-        let user: ContractAddress = common::ETH_HOARDER;
-
         cheat_caller_address(sentinel.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        sentinel.exit(eth, user, WAD_ONE.into());
+        sentinel.exit(eth, common::NON_ZERO_ADDR, WAD_ONE.into());
     }
 
 
@@ -491,7 +491,6 @@ mod test_sentinel {
     fn test_kill_gate_and_enter() {
         let SentinelTestConfig { sentinel, yangs, .. } = sentinel_utils::deploy_sentinel_with_eth_gate(Option::None);
         let eth = *yangs[0];
-        let user: ContractAddress = common::ETH_HOARDER;
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
@@ -500,6 +499,9 @@ mod test_sentinel {
         sentinel.kill_gate(eth);
 
         assert!(!sentinel.get_gate_live(eth), "Gate should be killed");
+
+        let user: ContractAddress = common::TROVE1_OWNER_ADDR;
+        common::fund_user(user, yangs, common::LARGE_DEPOSITS.span());
 
         // Attempt to enter a killed gate should fail
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
@@ -515,9 +517,10 @@ mod test_sentinel {
         let eth_gate = *gates[0];
 
         // Making a regular deposit
-        let user: ContractAddress = common::ETH_HOARDER;
         let trove_id: u64 = common::TROVE_1;
 
+        let user: ContractAddress = common::TROVE1_OWNER_ADDR;
+        common::fund_user(user, yangs, common::LARGE_DEPOSITS.span());
         common::approve_gate_for_token(eth_gate, common::erc20(eth), user);
 
         let deposit_amt: Wad = (2 * WAD_ONE).into();
@@ -586,11 +589,10 @@ mod test_sentinel {
         cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.suspend_yang(eth);
 
-        let user: ContractAddress = common::ETH_HOARDER;
         let deposit_amt: Wad = (2 * WAD_ONE).into();
 
         cheat_caller_address(sentinel.contract_address, common::MOCK_ABBOT, CheatSpan::TargetCalls(1));
-        sentinel.enter(eth, user, deposit_amt.into());
+        sentinel.enter(eth, common::NON_ZERO_ADDR, deposit_amt.into());
     }
 
     #[test]

@@ -76,11 +76,46 @@ pub mod sentinel_utils {
         let (eth, eth_gate) = add_eth_yang(sentinel, shrine, classes.token, classes.gate);
         let (wbtc, wbtc_gate) = add_wbtc_yang(sentinel, shrine, classes.token, classes.gate);
 
-        let mut yangs: Span<ContractAddress> = array![eth, wbtc].span();
-        let mut gates: Span<IGateDispatcher> = array![eth_gate, wbtc_gate].span();
+        let yangs: Span<ContractAddress> = array![eth, wbtc].span();
+        let gates: Span<IGateDispatcher> = array![eth_gate, wbtc_gate].span();
 
         SentinelTestConfig { sentinel, shrine, yangs, gates }
     }
+
+    pub fn deploy_gate_and_add_yang(
+        shrine: IShrineDispatcher,
+        sentinel: ISentinelDispatcher,
+        gate_class: Option<ContractClass>,
+        yang: ContractAddress,
+        asset_max: u128,
+        asset_params: common::YangParams,
+    ) -> (ContractAddress, IGateDispatcher) {
+        let gate: IGateDispatcher = gate_utils::gate_deploy(
+            yang, shrine.contract_address, sentinel.contract_address, gate_class,
+        );
+
+        let yang_erc20 = common::erc20(yang);
+        let initial_deposit_amt: u128 = get_initial_asset_amt(yang);
+
+        // The mock sentinel admin is funded during token deployment
+        cheat_caller_address(yang, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        yang_erc20.approve(sentinel.contract_address, initial_deposit_amt.into());
+
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
+        sentinel
+            .add_yang(
+                yang,
+                // Re-use ETH parameters
+                asset_max,
+                asset_params.threshold.into(),
+                asset_params.start_price.into(),
+                asset_params.base_rate.into(),
+                gate.contract_address,
+            );
+
+        (yang, gate)
+    }
+
 
     pub fn add_eth_vault_yang(
         sentinel: ISentinelDispatcher,
@@ -90,35 +125,8 @@ pub mod sentinel_utils {
         eth: ContractAddress,
     ) -> (ContractAddress, IGateDispatcher) {
         let eth_vault: ContractAddress = common::eth_vault_deploy(vault_class, eth);
-
-        let eth_vault_gate: IGateDispatcher = gate_utils::gate_deploy(
-            eth_vault, shrine.contract_address, sentinel.contract_address, Option::Some(gate_class),
-        );
-
-        let eth_vault_erc20 = common::erc20(eth_vault);
-        let initial_deposit_amt: u128 = get_initial_asset_amt(eth_vault);
-
-        // Transferring the initial deposit amounts to `ADMIN`
-        cheat_caller_address(eth_vault, common::ETH_HOARDER, CheatSpan::TargetCalls(1));
-        eth_vault_erc20.transfer(common::SENTINEL_ADMIN, initial_deposit_amt.into());
-
-        cheat_caller_address(eth_vault, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        eth_vault_erc20.approve(sentinel.contract_address, initial_deposit_amt.into());
-
-        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         let eth_params = common::YANG1_PARAMS;
-        sentinel
-            .add_yang(
-                eth_vault,
-                // Re-use ETH parameters
-                ETH_ASSET_MAX,
-                eth_params.threshold.into(),
-                eth_params.start_price.into(),
-                eth_params.base_rate.into(),
-                eth_vault_gate.contract_address,
-            );
-
-        (eth_vault, eth_vault_gate)
+        deploy_gate_and_add_yang(shrine, sentinel, Option::Some(gate_class), eth_vault, ETH_ASSET_MAX, eth_params)
     }
 
     pub fn add_wbtc_vault_yang(
@@ -129,33 +137,8 @@ pub mod sentinel_utils {
         wbtc: ContractAddress,
     ) -> (ContractAddress, IGateDispatcher) {
         let wbtc_vault: ContractAddress = common::wbtc_vault_deploy(vault_class, wbtc);
-        let wbtc_vault_gate: IGateDispatcher = gate_utils::gate_deploy(
-            wbtc_vault, shrine.contract_address, sentinel.contract_address, Option::Some(gate_class),
-        );
-
-        let wbtc_vault_erc20 = common::erc20(wbtc_vault);
-        let initial_deposit_amt: u128 = get_initial_asset_amt(wbtc_vault);
-
-        // Transferring the initial deposit amounts to `ADMIN`
-        cheat_caller_address(wbtc_vault, common::WBTC_HOARDER, CheatSpan::TargetCalls(1));
-        wbtc_vault_erc20.transfer(common::SENTINEL_ADMIN, initial_deposit_amt.into());
-
-        cheat_caller_address(wbtc_vault, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        wbtc_vault_erc20.approve(sentinel.contract_address, initial_deposit_amt.into());
-
-        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        sentinel
-            .add_yang(
-                wbtc_vault,
-                // Re-use WBTC parameters
-                WBTC_ASSET_MAX,
-                common::YANG2_THRESHOLD.into(),
-                common::YANG2_START_PRICE.into(),
-                common::YANG2_BASE_RATE.into(),
-                wbtc_vault_gate.contract_address,
-            );
-
-        (wbtc_vault, wbtc_vault_gate)
+        let wbtc_params = common::YANG2_PARAMS;
+        deploy_gate_and_add_yang(shrine, sentinel, Option::Some(gate_class), wbtc_vault, WBTC_ASSET_MAX, wbtc_params)
     }
 
     pub fn add_vaults_to_sentinel(
@@ -183,7 +166,10 @@ pub mod sentinel_utils {
         let (sentinel, shrine) = deploy_sentinel(Option::Some(classes));
         let (eth, eth_gate) = add_eth_yang(sentinel, shrine, classes.token, classes.gate);
 
-        SentinelTestConfig { sentinel, shrine, yangs: array![eth].span(), gates: array![eth_gate].span() }
+        let yangs: Span<ContractAddress> = array![eth].span();
+        let gates: Span<IGateDispatcher> = array![eth_gate].span();
+
+        SentinelTestConfig { sentinel, shrine, yangs, gates }
     }
 
     pub fn add_eth_yang(
@@ -193,34 +179,8 @@ pub mod sentinel_utils {
         gate_class: Option<ContractClass>,
     ) -> (ContractAddress, IGateDispatcher) {
         let eth: ContractAddress = common::eth_token_deploy(token_class);
-
-        let eth_gate: IGateDispatcher = gate_utils::gate_deploy(
-            eth, shrine.contract_address, sentinel.contract_address, gate_class,
-        );
-
-        let eth_erc20 = common::erc20(eth);
-        let initial_deposit_amt: u128 = get_initial_asset_amt(eth);
-
-        // Transferring the initial deposit amounts to `ADMIN`
-        cheat_caller_address(eth, common::ETH_HOARDER, CheatSpan::TargetCalls(1));
-        eth_erc20.transfer(common::SENTINEL_ADMIN, initial_deposit_amt.into());
-
-        cheat_caller_address(eth, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        eth_erc20.approve(sentinel.contract_address, initial_deposit_amt.into());
-
-        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         let eth_params = common::YANG1_PARAMS;
-        sentinel
-            .add_yang(
-                eth,
-                ETH_ASSET_MAX,
-                eth_params.threshold.into(),
-                eth_params.start_price.into(),
-                eth_params.base_rate.into(),
-                eth_gate.contract_address,
-            );
-
-        (eth, eth_gate)
+        deploy_gate_and_add_yang(shrine, sentinel, gate_class, eth, ETH_ASSET_MAX, eth_params)
     }
 
     pub fn add_wbtc_yang(
@@ -230,32 +190,8 @@ pub mod sentinel_utils {
         gate_class: Option<ContractClass>,
     ) -> (ContractAddress, IGateDispatcher) {
         let wbtc: ContractAddress = common::wbtc_token_deploy(token_class);
-        let wbtc_gate: IGateDispatcher = gate_utils::gate_deploy(
-            wbtc, shrine.contract_address, sentinel.contract_address, gate_class,
-        );
-
-        let wbtc_erc20 = common::erc20(wbtc);
-        let initial_deposit_amt: u128 = get_initial_asset_amt(wbtc);
-
-        // Transferring the initial deposit amounts to `ADMIN`
-        cheat_caller_address(wbtc, common::WBTC_HOARDER, CheatSpan::TargetCalls(1));
-        wbtc_erc20.transfer(common::SENTINEL_ADMIN, initial_deposit_amt.into());
-
-        cheat_caller_address(wbtc, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        wbtc_erc20.approve(sentinel.contract_address, initial_deposit_amt.into());
-
-        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
-        sentinel
-            .add_yang(
-                wbtc,
-                WBTC_ASSET_MAX,
-                common::YANG2_THRESHOLD.into(),
-                common::YANG2_START_PRICE.into(),
-                common::YANG2_BASE_RATE.into(),
-                wbtc_gate.contract_address,
-            );
-
-        (wbtc, wbtc_gate)
+        let wbtc_params = common::YANG2_PARAMS;
+        deploy_gate_and_add_yang(shrine, sentinel, gate_class, wbtc, WBTC_ASSET_MAX, wbtc_params)
     }
 
     pub fn get_initial_asset_amt(asset_addr: ContractAddress) -> u128 {

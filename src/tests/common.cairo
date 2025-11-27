@@ -40,8 +40,6 @@ pub struct YangParams {
 // Constants
 //
 
-pub const ETH_TOTAL: u128 = 100 * WAD_ONE; // 100 (Wad)
-pub const WBTC_TOTAL: u128 = 30 * WAD_ONE; // 30 (Wad)
 pub const WBTC_DECIMALS: u8 = 8;
 pub const WBTC_SCALE: u128 = 100000000; // WBTC has 8 decimals, scale is 10**8
 
@@ -86,12 +84,6 @@ pub const TROVE1_OWNER_ADDR: ContractAddress = 'trove1 owner'.try_into().unwrap(
 pub const TROVE2_OWNER_ADDR: ContractAddress = 'trove2 owner'.try_into().unwrap();
 pub const TROVE3_OWNER_ADDR: ContractAddress = 'trove3 owner'.try_into().unwrap();
 pub const NON_ZERO_ADDR: ContractAddress = 'nonzero address'.try_into().unwrap();
-
-// Asset hoarder addresses
-pub const ETH_HOARDER: ContractAddress = 'eth hoarder'.try_into().unwrap();
-pub const WBTC_HOARDER: ContractAddress = 'wbtc hoarder'.try_into().unwrap();
-pub const DAI_HOARDER: ContractAddress = 'dai hoarder'.try_into().unwrap();
-pub const USDC_HOARDER: ContractAddress = 'usdc hoarder'.try_into().unwrap();
 
 // Yang token addresses
 pub const YANG1_ADDR: ContractAddress = 'yang 1'.try_into().unwrap();
@@ -151,6 +143,8 @@ pub const LARGE_ETH_DEPOSIT: u128 = 50 * WAD_ONE;
 // WBTC-specific amounts (accounting for 8 decimals)
 pub const MEDIUM_WBTC_DEPOSIT: u128 = 50000000; // 0.5 WBTC
 pub const LARGE_WBTC_DEPOSIT: u128 = 500000000; // 5 WBTC
+
+pub const LARGE_DEPOSITS: [u128; 2] = [LARGE_ETH_DEPOSIT, LARGE_WBTC_DEPOSIT];
 
 // Common forge amounts
 pub const MEDIUM_FORGE: u128 = 3000 * WAD_ONE;
@@ -257,12 +251,15 @@ pub fn advance_intervals(intervals: u64) {
 
 // Mock tokens
 
+pub const ETH_TOTAL_SUPPLY: u128 = 100 * WAD_ONE; // 100 (Wad)
+pub const WBTC_TOTAL_SUPPLY: u128 = 30 * WAD_ONE; // 30 (Wad)
+
 pub fn eth_token_deploy(token_class: Option<ContractClass>) -> ContractAddress {
-    deploy_token('Ether', 'ETH', 18, ETH_TOTAL.into(), ETH_HOARDER, token_class)
+    deploy_token('Ether', 'ETH', 18, ETH_TOTAL_SUPPLY.into(), SENTINEL_ADMIN, token_class)
 }
 
 pub fn wbtc_token_deploy(token_class: Option<ContractClass>) -> ContractAddress {
-    deploy_token('Bitcoin', 'WBTC', 8, WBTC_TOTAL.into(), WBTC_HOARDER, token_class)
+    deploy_token('Bitcoin', 'WBTC', 8, WBTC_TOTAL_SUPPLY.into(), SENTINEL_ADMIN, token_class)
 }
 
 pub fn usdc_token_deploy(token_class: Option<ContractClass>) -> ContractAddress {
@@ -292,11 +289,11 @@ pub fn quote_tokens(token_class: Option<ContractClass>) -> Span<ContractAddress>
 }
 
 pub fn eth_vault_deploy(vault_class: Option<ContractClass>, eth: ContractAddress) -> ContractAddress {
-    deploy_vault('Ether Vault', 'vETH', 18, ETH_TOTAL.into(), ETH_HOARDER, eth, vault_class)
+    deploy_vault('Ether Vault', 'vETH', 18, ETH_TOTAL_SUPPLY.into(), SENTINEL_ADMIN, eth, vault_class)
 }
 
 pub fn wbtc_vault_deploy(vault_class: Option<ContractClass>, wbtc: ContractAddress) -> ContractAddress {
-    deploy_vault('Bitcoin Vault', 'vWBTC', 18, WBTC_TOTAL.into(), WBTC_HOARDER, wbtc, vault_class)
+    deploy_vault('Bitcoin Vault', 'vWBTC', 18, WBTC_TOTAL_SUPPLY.into(), SENTINEL_ADMIN, wbtc, vault_class)
 }
 
 pub fn declare_token() -> ContractClass {
