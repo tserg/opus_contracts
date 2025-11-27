@@ -408,11 +408,11 @@ pub mod purger_utils {
     pub fn flash_liquidator_deploy(
         shrine: ContractAddress,
         abbot: ContractAddress,
-        flashmint: ContractAddress,
+        flash_mint: ContractAddress,
         purger: ContractAddress,
         fl_class: Option<ContractClass>,
     ) -> IFlashLiquidatorDispatcher {
-        let calldata = array![shrine.into(), abbot.into(), flashmint.into(), purger.into()];
+        let calldata = array![shrine.into(), abbot.into(), flash_mint.into(), purger.into()];
 
         let fl_class = fl_class.unwrap_or(*declare("flash_liquidator").unwrap().contract_class());
 

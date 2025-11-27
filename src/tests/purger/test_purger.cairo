@@ -407,7 +407,7 @@ mod test_purger {
     }
 
     #[test]
-    fn test_liquidate_with_flashmint_pass() {
+    fn test_liquidate_with_flash_mint_pass() {
         let PurgerTestConfig {
             shrine, abbot, seer, purger, yangs, gates, ..,
         } = purger_utils::purger_deploy_with_searcher(common::LARGE_FORGE.into(), Option::None);
@@ -417,11 +417,11 @@ mod test_purger {
         let target_trove: u64 = purger_utils::funded_healthy_trove(
             abbot, yangs, gates, purger_utils::TARGET_TROVE_YIN.into(),
         );
-        let flashmint = flash_mint_utils::flashmint_deploy(shrine.contract_address);
+        let flash_mint = flash_mint_utils::flash_mint_deploy(shrine.contract_address);
         let flash_liquidator = purger_utils::flash_liquidator_deploy(
             shrine.contract_address,
             abbot.contract_address,
-            flashmint.contract_address,
+            flash_mint.contract_address,
             purger.contract_address,
             Option::None,
         );
