@@ -11,9 +11,11 @@ mod test_tcr_allocator {
     use wadray::{RAY_PERCENT, Ray, WAD_ONE, Wad};
 
 
-    fn initial_tcr_recipients() -> Span<ContractAddress> {
-        array![common::SHRINE_ADMIN, common::MOCK_ABSORBER, common::MOCK_STABILIZER].span()
-    }
+    const INITIAL_TCR_RECIPIENTS: [ContractAddress; 3] = [
+        common::SHRINE_ADMIN,
+        common::MOCK_ABSORBER,
+        common::MOCK_STABILIZER
+    ];
 
     fn setup_trove(shrine: IShrineDispatcher) {
         // Trove 1 deposits 10,000 USD worth, and borrows 3,000 USD
@@ -33,7 +35,7 @@ mod test_tcr_allocator {
             shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
-        let expected_recipients = initial_tcr_recipients();
+        let expected_recipients = INITIAL_TCR_RECIPIENTS.span();
 
         let (recipients, percentages) = allocator.get_allocation();
 
@@ -62,7 +64,7 @@ mod test_tcr_allocator {
 
         shrine_utils::create_whale_trove(shrine);
 
-        let expected_recipients = initial_tcr_recipients();
+        let expected_recipients = INITIAL_TCR_RECIPIENTS.span();
 
         let (recipients, percentages) = allocator.get_allocation();
 
@@ -127,7 +129,7 @@ mod test_tcr_allocator {
         ]
             .span();
 
-        let expected_recipients = initial_tcr_recipients();
+        let expected_recipients = INITIAL_TCR_RECIPIENTS.span();
         let error_margin: Ray = (RAY_PERCENT / 2).into();
 
         for target_yang1_price in target_yang1_prices {

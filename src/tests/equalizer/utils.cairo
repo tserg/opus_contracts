@@ -21,20 +21,16 @@ pub mod equalizer_utils {
     // Convenience helpers
     //
 
-    pub fn initial_recipients() -> Span<ContractAddress> {
-        array!['recipient 1'.try_into().unwrap(), 'recipient 2'.try_into().unwrap(), 'recipient 3'.try_into().unwrap()]
-            .span()
-    }
+    pub const INITIAL_RECIPIENTS: [ContractAddress; 3] = [
+        'recipient 1'.try_into().unwrap(), 'recipient 2'.try_into().unwrap(), 'recipient 3'.try_into().unwrap(),
+    ];
 
-    pub fn new_recipients() -> Span<ContractAddress> {
-        array![
-            'new recipient 1'.try_into().unwrap(),
-            'new recipient 2'.try_into().unwrap(),
-            'new recipient 3'.try_into().unwrap(),
-            'new recipient 4'.try_into().unwrap(),
-        ]
-            .span()
-    }
+    pub const NEW_RECIPIENTS: [ContractAddress; 4] = [
+        'new recipient 1'.try_into().unwrap(),
+        'new recipient 2'.try_into().unwrap(),
+        'new recipient 3'.try_into().unwrap(),
+        'new recipient 4'.try_into().unwrap(),
+    ];
 
     pub fn initial_percentages() -> Span<Ray> {
         array![
@@ -72,17 +68,9 @@ pub mod equalizer_utils {
     pub fn allocator_deploy(
         mut recipients: Span<ContractAddress>, mut percentages: Span<Ray>, allocator_class: Option<ContractClass>,
     ) -> IAllocatorDispatcher {
-        let mut calldata: Array<felt252> = array![common::SHRINE_ADMIN.into(), recipients.len().into()];
-
-        for recipient in recipients {
-            calldata.append((*recipient).into());
-        }
-
-        calldata.append(percentages.len().into());
-        for percentage in percentages {
-            let val: u128 = (*percentage).into();
-            calldata.append(val.into());
-        }
+        let mut calldata: Array<felt252> = array![common::SHRINE_ADMIN.into()];
+        recipients.serialize(ref calldata);
+        percentages.serialize(ref calldata);
 
         let allocator_class = allocator_class.unwrap_or(*declare("allocator").unwrap().contract_class());
         let (allocator_addr, _) = allocator_class.deploy(@calldata).expect('failed allocator deploy');
@@ -108,31 +96,30 @@ pub mod equalizer_utils {
 
     pub fn equalizer_deploy(allocator_class: Option<ContractClass>) -> EqualizerTestConfig {
         let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
-        equalizer_deploy_with_shrine(shrine.contract_address, allocator_class)
+        equalizer_deploy_with_shrine(shrine, allocator_class)
     }
 
     pub fn equalizer_deploy_with_shrine(
-        shrine: ContractAddress, allocator_class: Option<ContractClass>,
+        shrine: IShrineDispatcher, allocator_class: Option<ContractClass>,
     ) -> EqualizerTestConfig {
         let allocator: IAllocatorDispatcher = allocator_deploy(
-            initial_recipients(), initial_percentages(), allocator_class,
+            INITIAL_RECIPIENTS.span(), initial_percentages(), allocator_class,
         );
         let admin = common::SHRINE_ADMIN;
 
-        let mut calldata: Array<felt252> = array![admin.into(), shrine.into(), allocator.contract_address.into()];
+        let mut calldata: Array<felt252> = array![
+            admin.into(), shrine.contract_address.into(), allocator.contract_address.into(),
+        ];
 
         let equalizer_class = declare("equalizer").unwrap().contract_class();
         let (equalizer_addr, _) = equalizer_class.deploy(@calldata).expect('failed equalizer deploy');
 
         common::grant_role_for_address(equalizer_addr, equalizer_roles::ADMIN, admin);
 
-        common::grant_role_for_address(shrine, shrine_roles::EQUALIZER, equalizer_addr);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::EQUALIZER, equalizer_addr);
 
-        EqualizerTestConfig {
-            shrine: IShrineDispatcher { contract_address: shrine },
-            equalizer: IEqualizerDispatcher { contract_address: equalizer_addr },
-            allocator,
-        }
+        let equalizer = IEqualizerDispatcher { contract_address: equalizer_addr };
+        EqualizerTestConfig { shrine, equalizer, allocator }
     }
 
     // Assertion helpers

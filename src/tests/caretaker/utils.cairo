@@ -31,7 +31,7 @@ pub mod caretaker_utils {
         } = abbot_utils::abbot_deploy(Option::None);
         let equalizer_utils::EqualizerTestConfig {
             shrine, equalizer, ..,
-        } = equalizer_utils::equalizer_deploy_with_shrine(shrine.contract_address, Option::None);
+        } = equalizer_utils::equalizer_deploy_with_shrine(shrine, Option::None);
 
         let calldata: Array<felt252> = array![
             common::CARETAKER_ADMIN.into(),
