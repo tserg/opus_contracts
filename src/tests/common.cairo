@@ -53,7 +53,7 @@ pub const WHALE_TROVE: u64 = 0xb17b01;
 
 
 //
-// Centralized Address Registry
+// Test addresses
 //
 
 // Access control addresses
