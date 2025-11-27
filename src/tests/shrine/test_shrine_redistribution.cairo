@@ -207,7 +207,7 @@ mod test_shrine_redistribution {
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
-        assert(shrine.get_redistributions_count() == 0, 'wrong start state');
+        assert_eq!(shrine.get_redistributions_count(), 0, "wrong start state");
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, trove1_health.debt, RAY_ONE.into());
 
@@ -224,7 +224,7 @@ mod test_shrine_redistribution {
         );
 
         let expected_redistribution_id: u32 = 1;
-        assert(shrine.get_redistributions_count() == expected_redistribution_id, 'wrong redistribution count');
+        assert_eq!(shrine.get_redistributions_count(), expected_redistribution_id, "wrong redistribution count");
 
         let (expected_trove2_debt_increment, cumulative_redistributed_debt) = assert_redistribution_is_correct(
             shrine,
@@ -242,7 +242,7 @@ mod test_shrine_redistribution {
 
         // Check invariant of [(yang1_total * yang1_unit_debt + error) + ... (yang2 ...) + rounding]
         // is equal to redistributed trove's debt
-        assert(cumulative_redistributed_debt == trove1_health.debt, 'wrong redistributed debt');
+        assert_eq!(cumulative_redistributed_debt, trove1_health.debt, "wrong redistributed debt");
 
         let after_trove2_health: Health = shrine.get_trove_health(recipient_trove);
 
@@ -250,7 +250,7 @@ mod test_shrine_redistribution {
             after_trove2_health.debt, expected_trove2_debt, error_margin, 'wrong debt after redistribution',
         );
 
-        assert(shrine.get_trove_redistribution_id(recipient_trove) == 0, 'wrong redistribution id');
+        assert_eq!(shrine.get_trove_redistribution_id(recipient_trove), 0, "wrong redistribution id");
 
         let unpulled_debt: Wad = shrine.get_redistributed_debt_for_trove(recipient_trove);
         common::assert_equalish(unpulled_debt, expected_trove2_debt_increment, 10_u128.into(), 'wrong attributed debt');
@@ -258,7 +258,7 @@ mod test_shrine_redistribution {
         // Trigger an update in trove 2 with an empty melt
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, recipient_trove, Zero::zero());
-        assert(shrine.get_trove_redistribution_id(recipient_trove) == expected_redistribution_id, 'wrong id');
+        assert_eq!(shrine.get_trove_redistribution_id(recipient_trove), expected_redistribution_id, "wrong id");
 
         let expected_events = array![
             (
@@ -337,7 +337,7 @@ mod test_shrine_redistribution {
         assert(unpulled_debt.is_zero(), 'should be zero');
 
         let expected_redistribution_id: u32 = 2;
-        assert(shrine.get_redistributions_count() == expected_redistribution_id, 'wrong redistribution count');
+        assert_eq!(shrine.get_redistributions_count(), expected_redistribution_id, "wrong redistribution count");
 
         let (expected_recipient_trove_debt_increment, cumulative_redistributed_debt) = assert_redistribution_is_correct(
             shrine,
@@ -356,7 +356,7 @@ mod test_shrine_redistribution {
 
         // Check invariant of [(yang1_total * yang1_unit_debt + error) + ... (yang2 ...) + rounding]
         // is equal to redistributed trove's debt
-        assert(redistributed_trove2_health.debt == cumulative_redistributed_debt, 'wrong redistributed debt');
+        assert_eq!(redistributed_trove2_health.debt, cumulative_redistributed_debt, "wrong redistributed debt");
 
         let after_recipient_trove_health: Health = shrine.get_trove_health(recipient_trove);
         common::assert_equalish(
@@ -366,7 +366,7 @@ mod test_shrine_redistribution {
             'wrong debt after redistribution',
         );
 
-        assert(shrine.get_trove_redistribution_id(recipient_trove) == 0, 'wrong redistribution id');
+        assert_eq!(shrine.get_trove_redistribution_id(recipient_trove), 0, "wrong redistribution id");
 
         let unpulled_debt: Wad = shrine.get_redistributed_debt_for_trove(recipient_trove);
         let expected_recipient_trove_debt_total_increment = redistributed_trove1_health.debt
@@ -380,7 +380,7 @@ mod test_shrine_redistribution {
         // Trigger an update in trove 3 with an empty melt
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(common::TROVE2_OWNER_ADDR, recipient_trove, Zero::zero());
-        assert(shrine.get_trove_redistribution_id(recipient_trove) == expected_redistribution_id, 'wrong id');
+        assert_eq!(shrine.get_trove_redistribution_id(recipient_trove), expected_redistribution_id, "wrong id");
 
         shrine_utils::assert_shrine_invariants(shrine, yangs, 3);
     }
@@ -418,7 +418,7 @@ mod test_shrine_redistribution {
             cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
             shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
-            assert(shrine.get_redistributions_count() == 0, 'wrong start state');
+            assert_eq!(shrine.get_redistributions_count(), 0, "wrong start state");
             let debt_to_redistribute: Wad = wadray::rmul_wr(
                 before_redistributed_trove_health.debt, pct_debt_to_redistribute,
             );
@@ -454,7 +454,7 @@ mod test_shrine_redistribution {
 
             // Sanity check that we accrued more interest than the protocol owned troves' debt
             // for the next part of the test
-            assert(accrued_interest > after_protocol_owned_troves_debt, 'interest sanity check');
+            assert_gt!(accrued_interest, after_protocol_owned_troves_debt, "interest sanity check");
 
             cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
             shrine.melt(trove1_owner, recipient_trove1, Zero::zero());
@@ -546,7 +546,7 @@ mod test_shrine_redistribution {
         let trove2_yang2_debt = wadray::rmul_rw(
             wadray::rdiv_ww(expected_yang2_redistributed_value, trove2_health.value), trove2_health.debt,
         );
-        assert(trove2_yang2_debt < shrine_contract::ROUNDING_THRESHOLD.into(), 'not below rounding threshold');
+        assert_lt!(trove2_yang2_debt, shrine_contract::ROUNDING_THRESHOLD.into(), "not below rounding threshold");
 
         // Redistribute trove 2
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
@@ -558,7 +558,7 @@ mod test_shrine_redistribution {
 
         // Check that yang 1 unit debt is zero
         let expected_redistribution_id: u32 = 1;
-        assert(shrine.get_redistributions_count() == expected_redistribution_id, 'wrong redistribution count');
+        assert_eq!(shrine.get_redistributions_count(), expected_redistribution_id, "wrong redistribution count");
         assert(
             shrine.get_redistribution_for_yang(yang2_addr, expected_redistribution_id).is_zero(), 'should be skipped',
         );
@@ -663,7 +663,7 @@ mod test_shrine_redistribution {
             shrine
                 .redistribute(redistributed_trove, before_redistributed_trove_health.debt, *pct_value_to_redistribute);
             let expected_redistribution_id: u32 = 1;
-            assert(shrine.get_redistributions_count() == expected_redistribution_id, 'wrong redistribution count');
+            assert_eq!(shrine.get_redistributions_count(), expected_redistribution_id, "wrong redistribution count");
 
             // Check redistributions attributed to recipient troves
             let recipient_troves_yang2_amt: Wad = (TROVE2_YANG2_DEPOSIT + TROVE3_YANG2_DEPOSIT).into();
@@ -744,8 +744,8 @@ mod test_shrine_redistribution {
             shrine.melt(trove1_owner, recipient_trove1, Zero::zero());
             shrine.melt(trove1_owner, recipient_trove2, Zero::zero());
 
-            assert(shrine.get_trove_redistribution_id(recipient_trove1) == expected_redistribution_id, 'wrong id');
-            assert(shrine.get_trove_redistribution_id(recipient_trove2) == expected_redistribution_id, 'wrong id');
+            assert_eq!(shrine.get_trove_redistribution_id(recipient_trove1), expected_redistribution_id, "wrong id");
+            assert_eq!(shrine.get_trove_redistribution_id(recipient_trove2), expected_redistribution_id, "wrong id");
 
             let after_recipient_trove1_health: Health = shrine.get_trove_health(recipient_trove1);
             let after_recipient_trove2_health: Health = shrine.get_trove_health(recipient_trove2);
@@ -855,7 +855,7 @@ mod test_shrine_redistribution {
 
         let before_protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
 
-        assert(shrine.get_redistributions_count() == 0, 'wrong start state');
+        assert_eq!(shrine.get_redistributions_count(), 0, "wrong start state");
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, redistributed_trove_health.debt, RAY_ONE.into());
 
@@ -865,17 +865,17 @@ mod test_shrine_redistribution {
         assert_eq!(after_protocol_owned_troves_debt, expected_protocol_owned_troves_debt, "wrong protocol debt");
 
         let expected_redistribution_id: u32 = 1;
-        assert(shrine.get_redistributions_count() == expected_redistribution_id, 'wrong redistribution count');
+        assert_eq!(shrine.get_redistributions_count(), expected_redistribution_id, "wrong redistribution count");
 
         let after_trove_health: Health = shrine.get_trove_health(common::TROVE_2);
         assert(after_trove_health.value.is_zero(), 'wrong value post redistribution');
         assert(after_trove_health.debt.is_zero(), 'wrong debt after redistribution');
 
-        assert(shrine.get_trove_redistribution_id(common::TROVE_2) == 0, 'wrong redistribution id');
+        assert_eq!(shrine.get_trove_redistribution_id(common::TROVE_2), 0, "wrong redistribution id");
         // Trigger an update in trove 2 with an empty melt
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, common::TROVE_2, Zero::zero());
-        assert(shrine.get_trove_redistribution_id(common::TROVE_2) == expected_redistribution_id, 'wrong id');
+        assert_eq!(shrine.get_trove_redistribution_id(common::TROVE_2), expected_redistribution_id, "wrong id");
 
         shrine_utils::assert_shrine_invariants(shrine, common::TWO_YANG_ADDRS.span(), 3);
     }
@@ -937,14 +937,14 @@ mod test_shrine_redistribution {
 
         shrine_utils::advance_prices_periodically(shrine, yangs, shrine_contract::SUSPENSION_GRACE_PERIOD);
 
-        assert(shrine.get_yang_suspension_status(yang_to_delist) == YangSuspensionStatus::Permanent, 'not delisted');
+        assert_eq!(shrine.get_yang_suspension_status(yang_to_delist), YangSuspensionStatus::Permanent, "not delisted");
 
         // Simulate purge with 0 yin to update the trove's debt
         let trove1_health: Health = shrine.get_trove_health(redistributed_trove);
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
-        assert(shrine.get_redistributions_count() == 0, 'wrong start state');
+        assert_eq!(shrine.get_redistributions_count(), 0, "wrong start state");
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, trove1_health.debt, RAY_ONE.into());
 
@@ -985,14 +985,14 @@ mod test_shrine_redistribution {
 
         shrine_utils::advance_prices_periodically(shrine, yangs, shrine_contract::SUSPENSION_GRACE_PERIOD);
 
-        assert(shrine.get_yang_suspension_status(yang_to_delist) == YangSuspensionStatus::Permanent, 'not delisted');
+        assert_eq!(shrine.get_yang_suspension_status(yang_to_delist), YangSuspensionStatus::Permanent, "not delisted");
 
         // Simulate purge with 0 yin to update the trove's debt
         let trove1_health: Health = shrine.get_trove_health(redistributed_trove);
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.melt(trove1_owner, redistributed_trove, Zero::zero());
 
-        assert(shrine.get_redistributions_count() == 0, 'wrong start state');
+        assert_eq!(shrine.get_redistributions_count(), 0, "wrong start state");
         cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.redistribute(redistributed_trove, trove1_health.debt, RAY_ONE.into());
 

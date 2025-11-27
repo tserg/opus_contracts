@@ -33,15 +33,15 @@ mod test_allocator {
 
         let (recipients, percentages) = allocator.get_allocation();
 
-        assert(recipients == expected_recipients, 'wrong recipients');
-        assert(percentages == expected_percentages, 'wrong percentages');
-        assert(recipients.len() == 3, 'wrong array length');
-        assert(recipients.len() == percentages.len(), 'array length mismatch');
+        assert_eq!(recipients, expected_recipients, "wrong recipients");
+        assert_eq!(percentages, expected_percentages, "wrong percentages");
+        assert_eq!(recipients.len(), 3, "wrong array length");
+        assert_eq!(recipients.len(), percentages.len(), "array length mismatch");
 
         let allocator_ac = IAccessControlDispatcher { contract_address: allocator.contract_address };
         let admin = common::SHRINE_ADMIN;
-        assert(allocator_ac.get_admin() == admin, 'wrong admin');
-        assert(allocator_ac.get_roles(admin) == allocator_roles::SET_ALLOCATION, 'wrong role');
+        assert_eq!(allocator_ac.get_admin(), admin, "wrong admin");
+        assert_eq!(allocator_ac.get_roles(admin), allocator_roles::SET_ALLOCATION, "wrong role");
         assert(allocator_ac.has_role(allocator_roles::SET_ALLOCATION, admin), 'role not granted');
     }
 
@@ -59,10 +59,10 @@ mod test_allocator {
         allocator.set_allocation(new_recipients, new_percentages);
 
         let (recipients, percentages) = allocator.get_allocation();
-        assert(recipients == new_recipients, 'wrong recipients');
-        assert(percentages == new_percentages, 'wrong percentages');
-        assert(recipients.len() == 4, 'wrong array length');
-        assert(recipients.len() == percentages.len(), 'array length mismatch');
+        assert_eq!(recipients, new_recipients, "wrong recipients");
+        assert_eq!(percentages, new_percentages, "wrong percentages");
+        assert_eq!(recipients.len(), 4, "wrong array length");
+        assert_eq!(recipients.len(), percentages.len(), "array length mismatch");
 
         let expected_events = array![
             (

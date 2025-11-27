@@ -455,7 +455,7 @@ pub mod absorber_utils {
             let reward_info: DistributionInfo = absorber.get_cumulative_reward_amt_by_epoch(*asset, current_epoch);
             let provider_cumulative: u128 = absorber.get_provider_last_reward_cumulative(provider, *asset);
 
-            assert(provider_cumulative == reward_info.asset_amt_per_share, 'wrong provider cumulative');
+            assert_eq!(provider_cumulative, reward_info.asset_amt_per_share, "wrong provider cumulative");
         };
     }
 
@@ -519,8 +519,8 @@ pub mod absorber_utils {
             let after_epoch_distribution: DistributionInfo = absorber
                 .get_cumulative_reward_amt_by_epoch(*asset, before_epoch + 1);
 
-            assert(before_epoch_distribution.error == after_epoch_distribution.error, 'error not propagated');
-            assert(after_epoch_distribution.asset_amt_per_share.is_zero(), 'wrong start reward cumulative');
+            assert_eq!(before_epoch_distribution.error, after_epoch_distribution.error, "error not propagated");
+            assert!(after_epoch_distribution.asset_amt_per_share.is_zero(), "wrong start reward cumulative");
         };
     }
 
@@ -540,7 +540,7 @@ pub mod absorber_utils {
             let expected_asset_amt_per_share: u128 = (asset_amt / recipient_shares).into();
 
             // Check asset amt per share is correct
-            assert(actual_asset_amt_per_share == expected_asset_amt_per_share, 'wrong absorbed amount per share');
+            assert_eq!(actual_asset_amt_per_share, expected_asset_amt_per_share, "wrong absorbed amount per share");
 
             let yang_erc20 = common::erc20(*yang);
             let gate: ContractAddress = sentinel.get_gate_address(*yang);
@@ -551,7 +551,7 @@ pub mod absorber_utils {
             // Convert to Wad for fixed point operations
             let distributed_amt: Wad = (recipient_shares * actual_asset_amt_per_share.into())
                 + actual_distribution_error.into();
-            assert(asset_amt == distributed_amt, 'update amount mismatch');
+            assert_eq!(asset_amt, distributed_amt, "update amount mismatch");
         };
     }
 }

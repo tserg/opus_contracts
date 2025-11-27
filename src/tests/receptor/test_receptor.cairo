@@ -28,8 +28,8 @@ mod test_receptor {
 
         let receptor_ac = IAccessControlDispatcher { contract_address: receptor.contract_address };
         let admin = common::SHRINE_ADMIN;
-        assert(receptor_ac.get_admin() == admin, 'wrong admin');
-        assert(receptor_ac.get_roles(admin) == receptor_roles::ADMIN, 'wrong role');
+        assert_eq!(receptor_ac.get_admin(), admin, "wrong admin");
+        assert_eq!(receptor_ac.get_roles(admin), receptor_roles::ADMIN, "wrong role");
 
         let ekubo_oracle_adapter = IEkuboOracleAdapterDispatcher { contract_address: receptor.contract_address };
         assert_eq!(
@@ -275,15 +275,15 @@ mod test_receptor {
         set_next_ekubo_prices(mock_ekubo_oracle_extension, shrine.contract_address, quote_tokens, prices);
 
         let task = ITaskDispatcher { contract_address: receptor.contract_address };
-        assert(task.probe_task(), 'should be ready 1');
+        assert!(task.probe_task(), "should be ready 1");
 
         task.execute_task();
-        assert(!task.probe_task(), 'should not be ready 1');
+        assert!(!task.probe_task(), "should not be ready 1");
 
         start_cheat_block_timestamp_global(get_block_timestamp() + receptor.get_update_frequency() - 1);
-        assert(!task.probe_task(), 'should not be ready 2');
+        assert!(!task.probe_task(), "should not be ready 2");
 
         start_cheat_block_timestamp_global(get_block_timestamp() + 1);
-        assert(task.probe_task(), 'should be ready 2');
+        assert!(task.probe_task(), "should be ready 2");
     }
 }

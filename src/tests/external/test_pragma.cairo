@@ -36,13 +36,13 @@ mod test_pragma {
         let pragma_ac = IAccessControlDispatcher { contract_address: pragma.contract_address };
         let admin: ContractAddress = common::PRAGMA_ADMIN;
 
-        assert(pragma_ac.get_admin() == admin, 'wrong admin');
-        assert(pragma_ac.get_roles(admin) == pragma_roles::ADMIN, 'wrong admin role');
+        assert_eq!(pragma_ac.get_admin(), admin, "wrong admin");
+        assert_eq!(pragma_ac.get_roles(admin), pragma_roles::ADMIN, "wrong admin role");
 
         let oracle = IOracleDispatcher { contract_address: pragma.contract_address };
-        assert(oracle.get_name() == 'Pragma', 'wrong name');
+        assert_eq!(oracle.get_name(), 'Pragma', "wrong name");
         let oracles: Span<ContractAddress> = array![mock_pragma.contract_address, mock_pragma.contract_address].span();
-        assert(oracle.get_oracles() == oracles, 'wrong oracle addresses');
+        assert_eq!(oracle.get_oracles(), oracles, "wrong oracle addresses");
 
         let expected_events = array![
             (
@@ -367,8 +367,8 @@ mod test_pragma {
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
         let fetched_wbtc: Result<Wad, felt252> = pragma_oracle.fetch_price(wbtc_addr);
 
-        assert(eth_price == fetched_eth.unwrap(), 'wrong ETH price 1');
-        assert(wbtc_price == fetched_wbtc.unwrap(), 'wrong WBTC price 1');
+        assert_eq!(eth_price, fetched_eth.unwrap(), "wrong ETH price 1");
+        assert_eq!(wbtc_price, fetched_wbtc.unwrap(), "wrong WBTC price 1");
 
         let next_ts = first_ts + shrine::TIME_INTERVAL;
         start_cheat_block_timestamp_global(next_ts);
@@ -381,8 +381,8 @@ mod test_pragma {
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
         let fetched_wbtc: Result<Wad, felt252> = pragma_oracle.fetch_price(wbtc_addr);
 
-        assert(eth_price == fetched_eth.unwrap(), 'wrong ETH price 2');
-        assert(wbtc_price == fetched_wbtc.unwrap(), 'wrong WBTC price 2');
+        assert_eq!(eth_price, fetched_eth.unwrap(), "wrong ETH price 2");
+        assert_eq!(wbtc_price, fetched_wbtc.unwrap(), "wrong WBTC price 2");
     }
 
     #[test]
@@ -414,7 +414,7 @@ mod test_pragma {
         cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
 
-        assert(fetched_eth.unwrap() == spot_eth_price.into(), 'wrong ETH price');
+        assert_eq!(fetched_eth.unwrap(), spot_eth_price.into(), "wrong ETH price");
     }
 
     #[test]
@@ -446,7 +446,7 @@ mod test_pragma {
         cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
 
-        assert(fetched_eth.unwrap() == twap_eth_price.into(), 'wrong ETH price');
+        assert_eq!(fetched_eth.unwrap(), twap_eth_price.into(), "wrong ETH price");
     }
 
 
@@ -471,11 +471,11 @@ mod test_pragma {
 
         // check if first fetch works, advance block time to be out of freshness range
         // and check if there's a error and if an event was emitted
-        assert(eth_price == fetched_eth.unwrap(), 'wrong ETH price 1');
+        assert_eq!(eth_price, fetched_eth.unwrap(), "wrong ETH price 1");
         start_cheat_block_timestamp_global(now + pragma_utils::FRESHNESS_THRESHOLD + 1);
         cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
-        assert(fetched_eth.unwrap_err() == 'PGM: Invalid price update', 'wrong result');
+        assert_eq!(fetched_eth.unwrap_err(), 'PGM: Invalid price update', "wrong result");
 
         let expected_events = array![
             (
@@ -527,7 +527,7 @@ mod test_pragma {
         cheat_caller_address(pragma.contract_address, common::NON_ZERO_ADDR, CheatSpan::TargetCalls(1));
         let fetched_eth: Result<Wad, felt252> = pragma_oracle.fetch_price(eth_addr);
 
-        assert(fetched_eth.unwrap_err() == 'PGM: Invalid price update', 'wrong result');
+        assert_eq!(fetched_eth.unwrap_err(), 'PGM: Invalid price update', "wrong result");
 
         let expected_events = array![
             (

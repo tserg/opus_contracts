@@ -21,8 +21,8 @@ mod test_caretaker {
 
         let caretaker_ac = IAccessControlDispatcher { contract_address: caretaker.contract_address };
 
-        assert(caretaker_ac.get_admin() == common::CARETAKER_ADMIN, 'setup admin');
-        assert(caretaker_ac.get_roles(common::CARETAKER_ADMIN) == caretaker_roles::SHUT, 'admin roles');
+        assert_eq!(caretaker_ac.get_admin(), common::CARETAKER_ADMIN, "setup admin");
+        assert_eq!(caretaker_ac.get_roles(common::CARETAKER_ADMIN), caretaker_roles::SHUT, "admin roles");
 
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
         assert(shrine_ac.has_role(shrine_roles::KILL, caretaker.contract_address), 'caretaker cant kill shrine');
@@ -191,8 +191,8 @@ mod test_caretaker {
         common::assert_equalish(actual_release_y1, expected_release_y1, wbtc_tolerance, 'y1 release');
 
         // assert all deposits were released and assets are back in user's account
-        assert(*trove1_released_assets.at(0).address == *yangs[0], 'yang 1 not released #1');
-        assert(*trove1_released_assets.at(1).address == *yangs[1], 'yang 2 not released #1');
+        assert_eq!(*trove1_released_assets.at(0).address, *yangs[0], "yang 1 not released #1");
+        assert_eq!(*trove1_released_assets.at(1).address, *yangs[1], "yang 2 not released #1");
         assert(
             user1_yang0_after_balance == user1_yang0_before_balance + (*trove1_released_assets.at(0).amount).into(),
             'user1 yang0 after balance',
@@ -209,8 +209,8 @@ mod test_caretaker {
         // sanity check that for user with only one yang, release reports a 0 asset amount
         cheat_caller_address(caretaker.contract_address, user2, CheatSpan::TargetCalls(1));
         let trove2_released_assets: Span<AssetBalance> = caretaker.release(trove2_id);
-        assert(*trove2_released_assets.at(0).address == *yangs[0], 'yang 1 not released #2');
-        assert(*trove2_released_assets.at(1).address == *yangs[1], 'yang 2 not released #2');
+        assert_eq!(*trove2_released_assets.at(0).address, *yangs[0], "yang 1 not released #2");
+        assert_eq!(*trove2_released_assets.at(1).address, *yangs[1], "yang 2 not released #2");
         assert((*trove2_released_assets.at(1).amount).is_zero(), 'incorrect release');
 
         let expected_events = array![
@@ -250,8 +250,8 @@ mod test_caretaker {
         let expected_reclaimable_assets: Span<AssetBalance> = common::combine_assets_and_amts(
             yangs, caretaker_balances,
         );
-        assert(reclaimable_assets == expected_reclaimable_assets, 'wrong reclaimable assets');
-        assert(reclaimed_yin == trove1_forge_amt, 'wrong reclaimed yin');
+        assert_eq!(reclaimable_assets, expected_reclaimable_assets, "wrong reclaimable assets");
+        assert_eq!(reclaimed_yin, trove1_forge_amt, "wrong reclaimed yin");
     }
 
     #[test]
@@ -301,7 +301,7 @@ mod test_caretaker {
         // assert none of user's yin is left
         assert(shrine.get_yin(user1).is_zero(), 'user yin balance');
         // assert scammer still has theirs
-        assert(shrine.get_yin(scammer) == scam_amt.try_into().unwrap(), 'scammer yin balance 1');
+        assert_eq!(shrine.get_yin(scammer), scam_amt.try_into().unwrap(), "scammer yin balance 1");
 
         let ct_yang0_after_balance: u256 = y0.balance_of(caretaker.contract_address);
         let ct_yang1_after_balance: u256 = y1.balance_of(caretaker.contract_address);
@@ -314,12 +314,12 @@ mod test_caretaker {
         let user1_yang0_diff = user1_yang0_after_balance - user1_yang0_before_balance;
         let user1_yang1_diff = user1_yang1_after_balance - user1_yang1_before_balance;
 
-        assert(ct_yang0_diff == user1_yang0_diff, 'user1 yang0 diff');
-        assert(ct_yang1_diff == user1_yang1_diff, 'user1 yang1 diff');
-        assert(ct_yang0_diff == (*user1_reclaimed_assets.at(0).amount).into(), 'user1 reclaimed yang0');
-        assert(ct_yang1_diff == (*user1_reclaimed_assets.at(1).amount).into(), 'user1 reclaimed yang1');
+        assert_eq!(ct_yang0_diff, user1_yang0_diff, "user1 yang0 diff");
+        assert_eq!(ct_yang1_diff, user1_yang1_diff, "user1 yang1 diff");
+        assert_eq!(ct_yang0_diff, (*user1_reclaimed_assets.at(0).amount).into(), "user1 reclaimed yang0");
+        assert_eq!(ct_yang1_diff, (*user1_reclaimed_assets.at(1).amount).into(), "user1 reclaimed yang1");
 
-        assert(user1_reclaimed_yin == user1_yin, 'user1 reclaimed yin');
+        assert_eq!(user1_reclaimed_yin, user1_yin, "user1 reclaimed yin");
 
         //
         // scammer reclaim
@@ -357,7 +357,7 @@ mod test_caretaker {
         common::assert_equalish(
             ct_yang1_diff, (*scammer_reclaimed_assets.at(1).amount).into(), tolerance, 'scammer reclaimed yang1',
         );
-        assert(scammer_reclaimed_yin == scammer_yin, 'scammer reclaimed yin');
+        assert_eq!(scammer_reclaimed_yin, scammer_yin, "scammer reclaimed yin");
 
         let expected_events = array![
             (

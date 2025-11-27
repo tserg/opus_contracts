@@ -33,12 +33,12 @@ mod test_ekubo {
         let ekubo_ac = IAccessControlDispatcher { contract_address: ekubo.contract_address };
         let admin: ContractAddress = common::EKUBO_ADMIN;
 
-        assert(ekubo_ac.get_admin() == admin, 'wrong admin');
-        assert(ekubo_ac.get_roles(admin) == ekubo_roles::ADMIN, 'wrong admin role');
+        assert_eq!(ekubo_ac.get_admin(), admin, "wrong admin");
+        assert_eq!(ekubo_ac.get_roles(admin), ekubo_roles::ADMIN, "wrong admin role");
 
-        assert(oracle.get_name() == 'Ekubo', 'wrong name');
+        assert_eq!(oracle.get_name(), 'Ekubo', "wrong name");
         let oracles: Span<ContractAddress> = array![mock_ekubo.contract_address].span();
-        assert(oracle.get_oracles() == oracles, 'wrong oracle addresses');
+        assert_eq!(oracle.get_oracles(), oracles, "wrong oracle addresses");
     }
 
     #[test]
@@ -96,7 +96,7 @@ mod test_ekubo {
         set_next_ekubo_prices(mock_ekubo, eth, quote_tokens, prices);
 
         let result: Result<Wad, felt252> = oracle.fetch_price(eth);
-        assert(result.is_ok(), 'fetch price failed #1');
+        assert!(result.is_ok(), "fetch price failed #1");
         let actual_price: Wad = result.unwrap();
         let exact_eth_usdc_price: Wad = convert_ekubo_oracle_price_to_wad(
             eth_usdc_x128_price, WAD_DECIMALS, constants::USDC_DECIMALS,
@@ -121,7 +121,7 @@ mod test_ekubo {
             wbtc_usdc_x128_price, constants::WBTC_DECIMALS, constants::USDC_DECIMALS,
         );
         let result: Result<Wad, felt252> = oracle.fetch_price(wbtc);
-        assert(result.is_ok(), 'fetch price failed #2');
+        assert!(result.is_ok(), "fetch price failed #2");
         let actual_price: Wad = result.unwrap();
         assert_eq!(actual_price, exact_wbtc_usdc_price, "wrong price #2");
 
@@ -154,8 +154,8 @@ mod test_ekubo {
             eth_usdc_x128_price, WAD_DECIMALS, constants::USDC_DECIMALS,
         );
         let result: Result<Wad, felt252> = oracle.fetch_price(eth);
-        assert(result.is_err(), 'fetch price should fail');
-        assert(result.unwrap_err() == 'EKB: Invalid price update', 'wrong err');
+        assert!(result.is_err(), "fetch price should fail");
+        assert_eq!(result.unwrap_err(), 'EKB: Invalid price update', "wrong err");
 
         spy
             .assert_emitted(

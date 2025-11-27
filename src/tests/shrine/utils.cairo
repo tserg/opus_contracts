@@ -312,10 +312,10 @@ pub mod shrine_utils {
         mut debt: Wad,
     ) -> Wad {
         // Sanity check on input array lengths
-        assert(yang_base_rates_history.len() == yang_rate_update_intervals.len(), 'array length mismatch');
-        assert(yang_base_rates_history.len() == yang_avg_prices.len(), 'array length mismatch');
-        assert(yang_base_rates_history.len() == avg_multipliers.len(), 'array length mismatch');
-        assert((*yang_base_rates_history.at(0)).len() == yang_amts.len(), 'array length mismatch');
+        assert_eq!(yang_base_rates_history.len(), yang_rate_update_intervals.len(), "array length mismatch");
+        assert_eq!(yang_base_rates_history.len(), yang_avg_prices.len(), "array length mismatch");
+        assert_eq!(yang_base_rates_history.len(), avg_multipliers.len(), "array length mismatch");
+        assert_eq!((*yang_base_rates_history.at(0)).len(), yang_amts.len(), "array length mismatch");
 
         let mut yang_avg_prices_copy = yang_avg_prices;
         for base_rates_history in yang_base_rates_history {
@@ -541,7 +541,7 @@ pub mod shrine_utils {
         let protocol_owned_troves_debt: Wad = shrine.get_protocol_owned_troves_debt();
         let cumulative_troves_debt_with_protocol_owned: Wad = cumulative_troves_debt + protocol_owned_troves_debt;
 
-        assert(cumulative_troves_debt_with_protocol_owned <= shrine_health.debt, 'debt invariant failed #1');
+        assert_le!(cumulative_troves_debt_with_protocol_owned, shrine_health.debt, "debt invariant failed #1");
 
         // there may be some precision loss when pulling redistributed debt
         let error_margin: Wad = 10_u128.into();

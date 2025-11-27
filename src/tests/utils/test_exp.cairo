@@ -11,8 +11,8 @@ mod test_exp {
     #[test]
     fn test_exp_basic() {
         // Basic tests
-        assert(exp(Zero::zero()) == WAD_ONE.into(), 'Incorrect e^0 result');
-        assert(exp(WAD_ONE.into()) == 2718281828459045235_u128.into(), 'Incorrect e^1 result');
+        assert_eq!(exp(Zero::zero()), WAD_ONE.into(), "Incorrect e^0 result");
+        assert_eq!(exp(WAD_ONE.into()), 2718281828459045235_u128.into(), "Incorrect e^1 result");
 
         let res = exp((WAD_PERCENT * 2).into());
         assert_equalish(
