@@ -90,15 +90,15 @@ mod test_flash_mint {
         let first_loan_amt: u256 = 1;
         flash_mint.flash_loan(borrower, shrine.contract_address, first_loan_amt, calldata);
 
-        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 1');
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after FM 1');
 
         let second_loan_amt: u256 = flash_mint_utils::DEFAULT_MINT_AMOUNT.into();
         flash_mint.flash_loan(borrower, shrine.contract_address, second_loan_amt, calldata);
-        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 2');
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after FM 2');
 
         let third_loan_amt: u256 = (1000 * WAD_ONE).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, third_loan_amt, calldata);
-        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 3');
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after FM 3');
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         let debt_ceiling: Wad = shrine.get_debt_ceiling();
@@ -108,7 +108,7 @@ mod test_flash_mint {
 
         let fourth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, fourth_loan_amt, calldata);
-        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 4');
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after FM 4');
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         // and the budget has a deficit
@@ -117,7 +117,7 @@ mod test_flash_mint {
 
         let fifth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, fifth_loan_amt, calldata);
-        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 5');
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after FM 5');
 
         // check that flash loan still functions normally when yin supply is at debt ceiling
         // and the budget has a surplus
@@ -126,7 +126,7 @@ mod test_flash_mint {
 
         let sixth_loan_amt: u256 = (debt_ceiling * flash_mint_contract::FLASH_MINT_AMOUNT_PCT.into()).into();
         flash_mint.flash_loan(borrower, shrine.contract_address, sixth_loan_amt, calldata);
-        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after flash_mint 6');
+        assert(yin.balance_of(borrower).is_zero(), 'Wrong yin bal after FM 6');
 
         let expected_events = array![
             (
