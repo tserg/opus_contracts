@@ -54,12 +54,12 @@ pub const WHALE_TROVE: u64 = 0xb17b01;
 // Test addresses
 //
 
+pub const BAD_GUY: ContractAddress = 'bad guy'.try_into().unwrap();
+
 // Access control addresses
 pub const ADMIN: ContractAddress = 'admin'.try_into().unwrap();
 pub const SHRINE_ADMIN: ContractAddress = 'shrine admin'.try_into().unwrap();
 pub const SENTINEL_ADMIN: ContractAddress = 'sentinel admin'.try_into().unwrap();
-
-// Component-specific admin/owner addresses
 pub const CONTROLLER_ADMIN: ContractAddress = 'controller admin'.try_into().unwrap();
 pub const TRANSMUTER_ADMIN: ContractAddress = 'transmuter admin'.try_into().unwrap();
 pub const SEER_ADMIN: ContractAddress = 'seer owner'.try_into().unwrap();
@@ -68,8 +68,6 @@ pub const ABSORBER_ADMIN: ContractAddress = 'absorber owner'.try_into().unwrap()
 pub const PURGER_ADMIN: ContractAddress = 'purger owner'.try_into().unwrap();
 pub const PRAGMA_ADMIN: ContractAddress = 'pragma owner'.try_into().unwrap();
 pub const EKUBO_ADMIN: ContractAddress = 'ekubo owner'.try_into().unwrap();
-
-pub const BAD_GUY: ContractAddress = 'bad guy'.try_into().unwrap();
 
 // Mock contract addresses
 pub const MOCK_ABBOT: ContractAddress = 'mock abbot'.try_into().unwrap();
@@ -153,23 +151,6 @@ pub const LARGE_FORGE: u128 = 10000 * WAD_ONE;
 //
 // Trait implementations
 //
-
-// Taken from Alexandria
-// https://github.com/keep-starknet-strange/alexandria/blob/main/src/data_structures/src/array_ext.cairo
-pub trait SpanTraitExt<T> {
-    fn contains<impl TPartialEq: PartialEq<T>>(self: Span<T>, item: T) -> bool;
-}
-
-pub impl SpanImpl<T, impl TCopy: Copy<T>, impl TDrop: Drop<T>> of SpanTraitExt<T> {
-    fn contains<impl TPartialEq: PartialEq<T>>(mut self: Span<T>, item: T) -> bool {
-        for v in self {
-            if *v == item {
-                return true;
-            }
-        }
-        false
-    }
-}
 
 pub impl RewardPartialEq of PartialEq<Reward> {
     fn eq(mut lhs: @Reward, mut rhs: @Reward) -> bool {
