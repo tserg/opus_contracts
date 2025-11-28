@@ -2,15 +2,17 @@
 //       declared in constructor args when deploying, can call the gate
 
 mod test_gate {
-    use core::num::traits::Zero;
+    use core::num::traits::{Pow, Zero};
+    use opus::constants::WBTC_DECIMALS;
     use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IGate::IGateDispatcherTrait;
     use opus::interfaces::IShrine::IShrineDispatcherTrait;
     use opus::tests::common;
     use opus::tests::gate::utils::gate_utils;
+    use opus::utils::math::fixed_point_to_wad;
     use snforge_std::{CheatSpan, cheat_caller_address};
     use starknet::ContractAddress;
-    use wadray::{WAD_SCALE, Wad};
+    use wadray::{WAD_DECIMALS, WAD_ONE, Wad};
 
     #[test]
     fn test_eth_gate_deploy() {
@@ -24,7 +26,7 @@ mod test_gate {
         gate_utils::add_eth_as_yang(shrine, eth);
 
         assert(gate.get_total_yang().is_zero(), 'get_total_yang');
-        assert(gate.get_asset_amt_per_yang() == WAD_SCALE.into(), 'get_asset_amt_per_yang');
+        assert(gate.get_asset_amt_per_yang() == WAD_ONE.into(), 'get_asset_amt_per_yang');
     }
 
     #[test]
@@ -40,7 +42,7 @@ mod test_gate {
         gate_utils::add_wbtc_as_yang(shrine, wbtc);
 
         assert(gate.get_total_yang().is_zero(), 'get_total_yang');
-        assert(gate.get_asset_amt_per_yang() == WAD_SCALE.into(), 'get_asset_amt_per_yang');
+        assert(gate.get_asset_amt_per_yang() == WAD_ONE.into(), 'get_asset_amt_per_yang');
     }
 
     #[test]
@@ -52,7 +54,7 @@ mod test_gate {
         common::fund_user(user, array![eth.contract_address].span(), array![common::LARGE_ETH_DEPOSIT].span());
         common::approve_gate_for_token(gate, eth, user);
 
-        let asset_amt = 20_u128 * WAD_SCALE;
+        let asset_amt = 20_u128 * WAD_ONE;
 
         // a gate can only be called from a sentinel
         cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
@@ -60,7 +62,7 @@ mod test_gate {
 
         // check exchange rate and gate asset balance
         assert(enter_yang_amt.into() == asset_amt, 'enter amount');
-        assert(gate.get_asset_amt_per_yang() == WAD_SCALE.into(), 'get_asset_amt_per_yang');
+        assert(gate.get_asset_amt_per_yang() == WAD_ONE.into(), 'get_asset_amt_per_yang');
         assert(eth.balance_of(gate.contract_address) == asset_amt.into(), 'gate balance');
     }
 
@@ -74,14 +76,14 @@ mod test_gate {
         common::fund_user(user, array![wbtc.contract_address].span(), array![common::LARGE_WBTC_DEPOSIT].span());
         common::approve_gate_for_token(gate, wbtc, user);
 
-        let asset_amt = 3_u128 * common::WBTC_SCALE;
+        let asset_amt: u128 = 3 * 10_u128.pow(WBTC_DECIMALS.into());
 
         cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
         let enter_yang_amt: Wad = gate.enter(user, asset_amt);
 
         // check exchange rate and gate asset balance
-        assert(enter_yang_amt.into() == asset_amt * (WAD_SCALE / common::WBTC_SCALE), 'enter amount');
-        assert(gate.get_asset_amt_per_yang() == WAD_SCALE.into(), 'get_asset_amt_per_yang');
+        assert(enter_yang_amt.into() == asset_amt * 10_u128.pow((WAD_DECIMALS - WBTC_DECIMALS).into()), 'enter amount');
+        assert(gate.get_asset_amt_per_yang() == WAD_ONE.into(), 'get_asset_amt_per_yang');
         assert(wbtc.balance_of(gate.contract_address) == asset_amt.into(), 'gate balance');
     }
 
@@ -95,9 +97,9 @@ mod test_gate {
         common::fund_user(user, array![eth.contract_address].span(), array![common::LARGE_ETH_DEPOSIT].span());
         common::approve_gate_for_token(gate, eth, user);
 
-        let asset_amt = 10_u128 * WAD_SCALE;
-        let exit_yang_amt: Wad = (2_u128 * WAD_SCALE).into();
-        let remaining_yang_amt = 8_u128 * WAD_SCALE;
+        let asset_amt = 10_u128 * WAD_ONE;
+        let exit_yang_amt: Wad = (2_u128 * WAD_ONE).into();
+        let remaining_yang_amt = 8_u128 * WAD_ONE;
 
         cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(2));
         gate.enter(user, asset_amt);
@@ -113,7 +115,7 @@ mod test_gate {
     fn test_gate_unauthorized_enter() {
         let (shrine, eth, gate) = gate_utils::eth_gate_deploy(Option::None);
         gate_utils::add_eth_as_yang(shrine, eth);
-        gate.enter(common::BAD_GUY, WAD_SCALE);
+        gate.enter(common::BAD_GUY, WAD_ONE);
     }
 
     #[test]
@@ -121,7 +123,7 @@ mod test_gate {
     fn test_gate_unauthorized_exit() {
         let (shrine, eth, gate) = gate_utils::eth_gate_deploy(Option::None);
         gate_utils::add_eth_as_yang(shrine, eth);
-        gate.exit(common::BAD_GUY, WAD_SCALE.into());
+        gate.exit(common::BAD_GUY, WAD_ONE.into());
     }
 
     #[test]
@@ -131,8 +133,8 @@ mod test_gate {
 
         let user1: ContractAddress = common::TROVE1_OWNER_ADDR;
         let trove1: u64 = common::TROVE_1;
-        let enter1_amt = 50_u128 * WAD_SCALE;
-        let enter2_amt = 30_u128 * WAD_SCALE;
+        let enter1_amt = 50_u128 * WAD_ONE;
+        let enter2_amt = 30_u128 * WAD_ONE;
 
         // fund user1
         common::fund_user(user1, array![eth.contract_address].span(), array![enter1_amt + enter2_amt].span());
@@ -153,7 +155,7 @@ mod test_gate {
         //
         // rebase
         //
-        let rebase1_amt = 5_u128 * WAD_SCALE;
+        let rebase1_amt = 5_u128 * WAD_ONE;
         gate_utils::rebase(gate, eth, rebase1_amt);
 
         // mark values before second deposit
@@ -193,8 +195,8 @@ mod test_gate {
 
         let user2: ContractAddress = common::TROVE2_OWNER_ADDR;
         let trove2: u64 = common::TROVE_2;
-        let enter3_amt = 10_u128 * WAD_SCALE;
-        let enter4_amt = 8_u128 * WAD_SCALE;
+        let enter3_amt = 10_u128 * WAD_ONE;
+        let enter4_amt = 8_u128 * WAD_ONE;
 
         common::fund_user(user2, array![eth.contract_address].span(), array![enter3_amt + enter4_amt].span());
         common::approve_gate_for_token(gate, eth, user2);
@@ -228,7 +230,7 @@ mod test_gate {
         // rebase
         //
 
-        let rebase2_amt = 2_u128 * WAD_SCALE;
+        let rebase2_amt = 2_u128 * WAD_ONE;
         gate_utils::rebase(gate, eth, rebase2_amt);
 
         //
@@ -285,7 +287,7 @@ mod test_gate {
         gate_utils::add_eth_as_yang(shrine, eth);
 
         let user: ContractAddress = common::NON_ZERO_ADDR;
-        let enter_amt = 10_u128 * WAD_SCALE;
+        let enter_amt = 10_u128 * WAD_ONE;
 
         // simulate sentinel calling enter
         cheat_caller_address(gate.contract_address, common::MOCK_SENTINEL, CheatSpan::TargetCalls(1));
@@ -300,7 +302,7 @@ mod test_gate {
 
         let user = common::TROVE1_OWNER_ADDR;
         let trove_id = common::TROVE_1;
-        let enter_amt = 10_u128 * WAD_SCALE;
+        let enter_amt: u128 = fixed_point_to_wad(10, WBTC_DECIMALS).into();
         let exit_amt = enter_amt + 1;
 
         // make funds available and fund user

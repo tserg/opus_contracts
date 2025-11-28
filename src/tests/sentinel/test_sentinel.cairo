@@ -1,6 +1,7 @@
 mod test_sentinel {
     use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Zero;
+    use opus::constants::WBTC_DECIMALS;
     use opus::core::roles::sentinel_roles;
     use opus::core::sentinel::sentinel as sentinel_contract;
     use opus::interfaces::IERC20::IERC20DispatcherTrait;
@@ -373,7 +374,7 @@ mod test_sentinel {
         shrine.deposit(wbtc, trove_id, yang_amt);
 
         assert(preview_yang_amt == yang_amt, 'Wrong preview enter yang amt');
-        assert(yang_amt == fixed_point_to_wad(deposit_amt, common::WBTC_DECIMALS), 'Wrong yang bal after enter');
+        assert(yang_amt == fixed_point_to_wad(deposit_amt, WBTC_DECIMALS), 'Wrong yang bal after enter');
         assert(
             wbtc_erc20.balance_of(wbtc_gate.contract_address) == (initial_wbtc_amt + deposit_amt).into(),
             'Wrong wbtc bal after enter',

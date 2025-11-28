@@ -1,8 +1,7 @@
 mod test_seer {
     use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
-    use core::array::SpanTrait;
     use core::num::traits::Zero;
-    use opus::constants::{PRAGMA_DECIMALS, USDC_DECIMALS};
+    use opus::constants::{PRAGMA_DECIMALS, USDC_DECIMALS, WBTC_DECIMALS};
     use opus::core::roles::seer_roles;
     use opus::core::seer::seer as seer_contract;
     use opus::core::shrine::shrine as shrine_contract;
@@ -373,7 +372,7 @@ mod test_seer {
         let new_eth_vault_conversion_rate: u256 = (WAD_SCALE + WAD_SCALE / 2).into(); // 150%
         IMockERC4626Dispatcher { contract_address: eth_vault_addr }
             .set_convert_to_assets_per_wad_scale(new_eth_vault_conversion_rate);
-        let new_wbtc_vault_conversion_rate: u256 = (common::WBTC_SCALE + common::WBTC_SCALE / 2).into(); // 150%
+        let new_wbtc_vault_conversion_rate: u256 = 150000000; // 150% (8 decimals)
         IMockERC4626Dispatcher { contract_address: wbtc_vault_addr }
             .set_convert_to_assets_per_wad_scale(new_wbtc_vault_conversion_rate);
 

@@ -36,13 +36,6 @@ pub struct YangParams {
     pub start_price: u128,
 }
 
-//
-// Constants
-//
-
-pub const WBTC_DECIMALS: u8 = 8;
-pub const WBTC_SCALE: u128 = 100000000; // WBTC has 8 decimals, scale is 10**8
-
 // Trove constants
 pub const TROVE_1: u64 = 1;
 pub const TROVE_2: u64 = 2;
