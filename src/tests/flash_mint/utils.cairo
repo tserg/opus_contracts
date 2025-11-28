@@ -24,7 +24,7 @@ pub mod flash_mint_utils {
 
         // Grant flash_mint contract the FLASHMINT role
         common::grant_role_for_address(shrine, shrine_roles::FLASH_MINT, flash_mint_addr);
-        
+
         IFlashMintDispatcher { contract_address: flash_mint_addr }
     }
 
