@@ -1732,10 +1732,9 @@ mod test_absorber {
         let mut spy = spy_events();
 
         start_cheat_caller_address(absorber.contract_address, provider);
-        let mut idx: u128 = 0;
         let mut expected_timelock = absorber_contract::REQUEST_BASE_TIMELOCK;
         let mut expected_events: Array<(ContractAddress, absorber_contract::Event)> = ArrayTrait::new();
-        while idx != 6 {
+        for idx in 0..6_usize {
             let current_ts = get_block_timestamp();
             absorber.request();
 
@@ -1770,7 +1769,6 @@ mod test_absorber {
                 );
 
             expected_timelock *= absorber_contract::REQUEST_TIMELOCK_MULTIPLIER;
-            idx += 1;
         }
         spy.assert_emitted(@expected_events);
     }

@@ -85,9 +85,8 @@ mod test_equalizer {
         shrine_utils::trove1_deposit(shrine, (1000 * WAD_ONE).into());
         shrine_utils::trove1_forge(shrine, debt_ceiling);
 
-        let mut loop_id = 5;
         let mut start_debt = debt_ceiling;
-        while loop_id != 0 {
+        for _ in 0..5_usize {
             // accrue interest to exceed the debt ceiling
             common::advance_intervals_and_refresh_prices_and_multiplier(shrine, yangs, 500);
 
@@ -123,8 +122,6 @@ mod test_equalizer {
             spy.assert_emitted(@expected_events);
 
             start_debt = total_yin;
-
-            loop_id -= 1;
         }
     }
 

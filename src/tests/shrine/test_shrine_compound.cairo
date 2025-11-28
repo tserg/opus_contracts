@@ -810,11 +810,9 @@ mod test_shrine_compound {
         // Generating the list of intervals at which the base rates will be updated (needed for `compound`)
         // Adding zero as the first interval since that's when the initial base rates were first added in `add_yang`
         let mut rate_update_intervals: Array<u64> = array![0];
-        let mut i = 0;
-        while i != num_base_rate_updates {
+        for i in 0..num_base_rate_updates {
             let rate_update_interval: u64 = start_interval + (i + 1) * BASE_RATE_UPDATE_SPACING;
             rate_update_intervals.append(rate_update_interval);
-            i += 1;
         }
 
         let mut avg_multipliers: Array<Ray> = ArrayTrait::new();
@@ -837,13 +835,12 @@ mod test_shrine_compound {
         let mut yang_base_rates_history_to_update_copy: Span<Span<Ray>> = yang_base_rates_history_to_update;
         let mut yang_base_rates_history_to_compound_copy: Span<Span<Ray>> = yang_base_rates_history_to_compound;
 
-        let mut i = 0;
         let mut era_start_interval: u64 = start_interval;
 
         // We perform an extra iteration here to test the last rate era by advancing the prices.
         // Otherwise, if the last interval is also the start of a new rate era, we would not be able to test it.
         let loop_end = num_base_rate_updates + 1;
-        while i != loop_end {
+        for i in 0..loop_end {
             // First, we advance an interval so the last price is not overwritten.
             // Next, Advance the prices by the number of intervals between each base rate update
             common::advance_intervals(1);
@@ -901,9 +898,6 @@ mod test_shrine_compound {
                         ),
                     );
             }
-
-            // Increment counter
-            i += 1;
 
             // Update start interval for next era
             era_start_interval = era_end_interval;

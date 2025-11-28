@@ -131,12 +131,11 @@ pub mod shrine_utils {
         }
         let yang_feeds = yang_feeds.span();
 
-        let mut idx: u32 = 0;
         let feed_len: u32 = num_intervals.try_into().unwrap();
         let mut timestamp: u64 = get_block_timestamp();
 
         start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
-        while idx != feed_len {
+        for idx in 0..feed_len {
             start_cheat_block_timestamp_global(timestamp);
 
             let mut yang_feeds_copy = yang_feeds;
@@ -147,8 +146,6 @@ pub mod shrine_utils {
             shrine.set_multiplier(RAY_ONE.into());
 
             timestamp += shrine_contract::TIME_INTERVAL;
-
-            idx += 1;
         }
         stop_cheat_caller_address(shrine.contract_address);
 
@@ -159,12 +156,12 @@ pub mod shrine_utils {
     // it into multiple periods to avoid hitting the iteration limit when trying to retrieve
     // the latest prices and multiplier after a prolonged period without updates
     pub fn advance_prices_periodically(shrine: IShrineDispatcher, yangs: Span<ContractAddress>, total_time: u64) {
-        let mut num_periods: u64 = 4;
+        let num_periods: u64 = 4;
         let (time_per_period, rem_time) = DivRem::div_rem(total_time, num_periods.try_into().unwrap());
         let mut next_ts: u64 = get_block_timestamp();
 
         start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
-        while num_periods != 0 {
+        for _ in 0..num_periods {
             next_ts += time_per_period;
             start_cheat_block_timestamp_global(next_ts);
 
@@ -174,8 +171,6 @@ pub mod shrine_utils {
             }
 
             shrine.set_multiplier(RAY_ONE.into());
-
-            num_periods -= 1;
         }
         next_ts += rem_time;
         start_cheat_block_timestamp_global(next_ts);
@@ -214,9 +209,7 @@ pub mod shrine_utils {
     // Currently increases the price at a fixed percentage per step
     pub fn generate_yang_feed(mut price: Wad) -> Span<Wad> {
         let mut prices: Array<Wad> = ArrayTrait::new();
-        let mut idx: u64 = 0;
-
-        while idx != FEED_LEN {
+        for _ in 0..FEED_LEN {
             let price_change: Wad = wadray::rmul_wr(price, PRICE_CHANGE.into());
 
             let increase_price = generate_arg(0, 1);
@@ -226,8 +219,6 @@ pub mod shrine_utils {
                 price -= price_change;
             }
             prices.append(price);
-
-            idx += 1;
         }
 
         prices.span()
@@ -330,8 +321,7 @@ pub mod shrine_utils {
         let eras_count: usize = yang_base_rates_history.len();
         let yangs_count: usize = yang_amts.len();
 
-        let mut i: usize = 0;
-        while i != eras_count {
+        for i in 0..eras_count {
             let mut weighted_rate_sum: Ray = Zero::zero();
             let mut total_avg_yang_value: Wad = Zero::zero();
 
@@ -370,7 +360,6 @@ pub mod shrine_utils {
             let t: u128 = intervals_in_era.into() * shrine_contract::TIME_INTERVAL_DIV_YEAR;
 
             debt *= exp(wadray::rmul_rw(rate, t.into()));
-            i += 1;
         }
 
         debt
@@ -496,24 +485,18 @@ pub mod shrine_utils {
     pub fn assert_total_yang_invariant(shrine: IShrineDispatcher, mut yangs: Span<ContractAddress>, troves_count: u64) {
         let troves_loop_end: u64 = troves_count + 1;
 
-        let mut yang_id: u32 = 1;
         for yang in yangs {
             let initial_amt: Wad = shrine.get_protocol_owned_yang_amt(*yang);
 
-            let mut trove_id: u64 = 1;
             let mut troves_cumulative_amt: Wad = Zero::zero();
-            while trove_id != troves_loop_end {
+            for trove_id in 1..troves_loop_end {
                 let trove_amt: Wad = shrine.get_deposit(*yang, trove_id);
                 troves_cumulative_amt += trove_amt;
-
-                trove_id += 1;
             }
 
             let derived_yang_amt: Wad = troves_cumulative_amt + initial_amt;
             let actual_yang_amt: Wad = shrine.get_yang_total(*yang);
             assert_eq!(derived_yang_amt, actual_yang_amt, "yang invariant failed");
-
-            yang_id += 1;
         };
     }
 
@@ -523,17 +506,14 @@ pub mod shrine_utils {
         let troves_loop_end: u64 = troves_count + 1;
 
         let mut cumulative_troves_debt: Wad = Zero::zero();
-        let mut trove_id: u64 = 1;
 
         start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
-        while trove_id != troves_loop_end {
+        for trove_id in 1..troves_loop_end {
             // Accrue interest on trove
             shrine.melt(common::SHRINE_ADMIN, trove_id, Zero::zero());
 
             let trove_health: Health = shrine.get_trove_health(trove_id);
             cumulative_troves_debt += trove_health.debt;
-
-            trove_id += 1;
         }
         stop_cheat_caller_address(shrine.contract_address);
 

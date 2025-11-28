@@ -179,13 +179,12 @@ mod test_shrine {
         let mut expected_cumulative_multiplier = start_cumulative_multiplier;
 
         let yang_feed_len = (*yang_feeds.at(0)).len();
-        let mut idx = 0;
         let mut expected_yang_cumulative_prices: Array<Wad> = array![
             (*yang_params[0].start_price).into(),
             (*yang_params[1].start_price).into(),
             (*yang_params[2].start_price).into(),
         ];
-        while idx != yang_feed_len {
+        for idx in 0..yang_feed_len {
             let interval = start_interval + idx.into();
 
             let mut yang_idx = 0;
@@ -241,7 +240,6 @@ mod test_shrine {
                         ),
                     ),
                 );
-            idx += 1;
         }
         spy.assert_emitted(@expected_events);
     }

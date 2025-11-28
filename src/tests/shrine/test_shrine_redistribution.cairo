@@ -893,16 +893,13 @@ mod test_shrine_redistribution {
         let yang2_addr = *yangs.at(1);
 
         // Create another 10 troves with different collateral amounts
-        let mut idx: u64 = 0;
         let new_troves_count: u64 = 10;
         start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
-        while idx != new_troves_count {
+        for idx in 0..new_troves_count {
             let trove_idx: u64 = 4 + idx;
             let tmp_multiplier: u128 = (idx + 1).into();
             shrine.deposit(yang1_addr, trove_idx, (tmp_multiplier * 100000000000000000).into()); // idx * 0.1 Wad
             shrine.deposit(yang2_addr, trove_idx, (tmp_multiplier * 200000000000000000).into()); // idx * 0.2 Wad
-
-            idx += 1;
         }
 
         let redistributed_trove: u64 = common::TROVE_1;
@@ -1040,10 +1037,8 @@ mod test_shrine_redistribution {
 
         let yin_price: Wad = 980000000000000000_u128.into(); // 0.98 (wad)
 
-        let num_cases = 4;
-        let mut idx = 0;
-
-        while idx != num_cases {
+        let num_cases = 4_usize;
+        for idx in 0..num_cases {
             let target_trove_forge_amts: Span<Wad> = array![Zero::zero(), WAD_ONE.into()].span();
 
             for target_trove_forge_amt in target_trove_forge_amts {
@@ -1162,7 +1157,6 @@ mod test_shrine_redistribution {
 
                 spy.assert_emitted(@expected_events);
             }
-            idx += 1;
         };
     }
 }

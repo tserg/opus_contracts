@@ -531,11 +531,10 @@ mod test_controller {
         ];
         let mut update_intervals: Array<u64> = array![1, 4, 6, 7, 9];
 
-        let mut current_interval: u64 = 1;
         let end_interval: u64 = 10;
 
         let loop_end = end_interval + 1;
-        while current_interval != loop_end {
+        for current_interval in 1..loop_end {
             let mut multiplier: Ray = controller.get_current_multiplier();
             let mut i_term = controller.get_i_term();
             if update_intervals.len() > 0 {
@@ -561,7 +560,6 @@ mod test_controller {
             common::assert_equalish(multiplier, expected_multiplier, ERROR_MARGIN.into(), 'Wrong multiplier');
 
             controller_utils::fast_forward_1_hour();
-            current_interval += 1;
         }
     }
 
