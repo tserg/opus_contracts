@@ -13,7 +13,7 @@ pub mod flash_borrower {
 
     #[storage]
     struct Storage {
-        flashmint: IFlashMintDispatcher,
+        flash_mint: IFlashMintDispatcher,
     }
 
     #[event]
@@ -32,8 +32,8 @@ pub mod flash_borrower {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, flashmint: ContractAddress) {
-        self.flashmint.write(IFlashMintDispatcher { contract_address: flashmint });
+    fn constructor(ref self: ContractState, flash_mint: ContractAddress) {
+        self.flash_mint.write(IFlashMintDispatcher { contract_address: flash_mint });
     }
 
     #[abi(embed_v0)]
@@ -59,7 +59,7 @@ pub mod flash_borrower {
             } else if action == ATTEMPT_TO_STEAL {
                 IERC20Dispatcher { contract_address: token }.transfer(0xbeef.try_into().unwrap(), amount);
             } else if action == ATTEMPT_TO_REENTER {
-                self.flashmint.read().flash_loan(initiator, token, amount, call_data_copy);
+                self.flash_mint.read().flash_loan(initiator, token, amount, call_data_copy);
             }
 
             // Emit event so tests can check that the function arguments are correct

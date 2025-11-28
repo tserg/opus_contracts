@@ -1,6 +1,6 @@
 mod test_pragma {
     use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
-    use core::num::traits::{Pow, Zero};
+    use core::num::traits::Zero;
     use core::result::ResultTrait;
     use opus::constants::{ETH_USD_PAIR_ID, PRAGMA_DECIMALS};
     use opus::core::shrine::shrine;
@@ -11,7 +11,7 @@ mod test_pragma {
     use opus::mock::mock_pragma::IMockPragmaDispatcherTrait;
     use opus::tests::common;
     use opus::tests::external::utils::pragma_utils::PragmaTestConfig;
-    use opus::tests::external::utils::{mock_eth_token_addr, pepe_token_addr, pragma_utils};
+    use opus::tests::external::utils::{PEPE_TOKEN_ADDR, pragma_utils};
     use opus::tests::seer::utils::seer_utils;
     use opus::tests::sentinel::utils::sentinel_utils;
     use opus::types::pragma::{AggregationMode, PairSettings, PragmaPricesResponse, PriceValidityThresholds};
@@ -22,7 +22,6 @@ mod test_pragma {
     use wadray::{WAD_DECIMALS, WAD_SCALE, Wad};
 
     const TS: u64 = 1700000000; // arbitrary timestamp
-    const PRAGMA_SCALE: u128 = 10_u128.pow(PRAGMA_DECIMALS.into());
 
     //
     // Tests - Deployment and setters
@@ -35,7 +34,7 @@ mod test_pragma {
 
         // Check permissions
         let pragma_ac = IAccessControlDispatcher { contract_address: pragma.contract_address };
-        let admin: ContractAddress = pragma_utils::ADMIN;
+        let admin: ContractAddress = common::PRAGMA_ADMIN;
 
         assert(pragma_ac.get_admin() == admin, 'wrong admin');
         assert(pragma_ac.get_roles(admin) == pragma_roles::ADMIN, 'wrong admin role');
@@ -70,7 +69,7 @@ mod test_pragma {
         let new_freshness: u64 = 5 * 60; // 5 minutes * 60 seconds
         let new_sources: u32 = 8;
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(new_freshness, new_sources);
 
         let expected_events = array![
@@ -97,7 +96,7 @@ mod test_pragma {
         let invalid_freshness: u64 = pragma_contract::LOWER_FRESHNESS_BOUND - 1;
         let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(invalid_freshness, valid_sources);
     }
 
@@ -109,7 +108,7 @@ mod test_pragma {
         let invalid_freshness: u64 = pragma_contract::UPPER_FRESHNESS_BOUND + 1;
         let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(invalid_freshness, valid_sources);
     }
 
@@ -121,7 +120,7 @@ mod test_pragma {
         let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
         let invalid_sources: u32 = pragma_contract::LOWER_SOURCES_BOUND - 1;
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(valid_freshness, invalid_sources);
     }
 
@@ -133,7 +132,7 @@ mod test_pragma {
         let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
         let invalid_sources: u32 = pragma_contract::UPPER_SOURCES_BOUND + 1;
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_price_validity_thresholds(valid_freshness, invalid_sources);
     }
 
@@ -158,16 +157,15 @@ mod test_pragma {
         let pepe_token: ContractAddress = common::deploy_token(
             'Pepe', 'PEPE', 18, 0.into(), common::NON_ZERO_ADDR, Option::None,
         );
-        let pepe_token_pair_id: felt252 = pragma_utils::PEPE_USD_PAIR_ID;
-        let price: u128 = 999 * PRAGMA_SCALE;
+        let price: u128 = 999 * pragma_utils::PRAGMA_SCALE;
         let current_ts: u64 = get_block_timestamp();
         // Seed first price update for PEPE token so that `Pragma.set_yang_pair_settings` passes
         pragma_utils::mock_valid_price_update(mock_pragma, pepe_token, price.into(), current_ts);
 
-        let pair_settings = PairSettings { pair_id: pepe_token_pair_id, aggregation_mode: AggregationMode::Median };
+        let pair_settings = pragma_utils::PEPE_PAIR_SETTINGS;
 
         start_cheat_block_timestamp_global(TS);
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token, pair_settings);
 
         let expected_events = array![
@@ -192,15 +190,14 @@ mod test_pragma {
         let pepe_token: ContractAddress = common::deploy_token(
             'Pepe', 'PEPE', 18, 0.into(), common::NON_ZERO_ADDR, Option::None,
         );
-        let pepe_token_pair_id: felt252 = pragma_utils::PEPE_USD_PAIR_ID;
-        let pair_settings = PairSettings { pair_id: pepe_token_pair_id, aggregation_mode: AggregationMode::Median };
+        let pair_settings = pragma_utils::PEPE_PAIR_SETTINGS;
 
-        let price: u128 = 999 * PRAGMA_SCALE;
+        let price: u128 = 999 * pragma_utils::PRAGMA_SCALE;
         let current_ts: u64 = get_block_timestamp();
         // Seed first price update for PEPE token so that `Pragma.set_yang_pair_settings` passes
         pragma_utils::mock_valid_price_update(mock_pragma, pepe_token, price.into(), current_ts);
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token, pair_settings);
 
         // fake data for a second set_yang_pair_settings, so its distinct from the first call
@@ -220,7 +217,7 @@ mod test_pragma {
         let twap_response: (u128, u32) = (price, PRAGMA_DECIMALS.into());
         mock_pragma.next_calculate_twap(pepe_token_pair_id_2, twap_response);
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(pepe_token, new_pair_settings);
         let expected_events = array![
             (
@@ -247,7 +244,7 @@ mod test_pragma {
         let pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
 
         cheat_caller_address(pragma.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        pragma.set_yang_pair_settings(mock_eth_token_addr(), pair_settings);
+        pragma.set_yang_pair_settings(common::DUMMY_YANG_ADDR, pair_settings);
     }
 
     #[test]
@@ -257,8 +254,8 @@ mod test_pragma {
         let invalid_pair_id = 0;
         let pair_settings = PairSettings { pair_id: invalid_pair_id, aggregation_mode: AggregationMode::Median };
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_yang_pair_settings(mock_eth_token_addr(), pair_settings);
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
+        pragma.set_yang_pair_settings(common::DUMMY_YANG_ADDR, pair_settings);
     }
 
     #[test]
@@ -268,7 +265,7 @@ mod test_pragma {
         let invalid_yang_addr = Zero::zero();
         let pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
 
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(invalid_yang_addr, pair_settings);
     }
 
@@ -276,11 +273,8 @@ mod test_pragma {
     #[should_panic(expected: 'PGM: Spot unknown pair ID')]
     fn test_set_yang_pair_settings_unknown_spot_pair_id_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
-        let pair_settings = PairSettings {
-            pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
-        };
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
+        pragma.set_yang_pair_settings(PEPE_TOKEN_ADDR, pragma_utils::PEPE_PAIR_SETTINGS);
     }
 
     #[test]
@@ -296,13 +290,9 @@ mod test_pragma {
         };
         mock_pragma.next_get_data(pragma_utils::PEPE_USD_PAIR_ID, pepe_spot_response);
 
-        let pair_settings = PairSettings {
-            pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
-        };
-
         start_cheat_block_timestamp_global(TS);
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
+        pragma.set_yang_pair_settings(PEPE_TOKEN_ADDR, pragma_utils::PEPE_PAIR_SETTINGS);
     }
 
     #[test]
@@ -310,7 +300,7 @@ mod test_pragma {
     fn test_set_yang_pair_settings_spot_too_many_decimals_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
-        let pepe_price: u128 = 1000000 * PRAGMA_SCALE; // random price
+        let pepe_price: u128 = 1000000 * pragma_utils::PRAGMA_SCALE; // random price
         let invalid_decimals: u32 = (WAD_DECIMALS + 1).into();
         let pepe_response = PragmaPricesResponse {
             price: pepe_price,
@@ -321,12 +311,8 @@ mod test_pragma {
         };
         mock_pragma.next_get_data(pragma_utils::PEPE_USD_PAIR_ID, pepe_response);
 
-        let pair_settings = PairSettings {
-            pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
-        };
-
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
+        pragma.set_yang_pair_settings(PEPE_TOKEN_ADDR, pragma_utils::PEPE_PAIR_SETTINGS);
     }
 
     #[test]
@@ -334,7 +320,7 @@ mod test_pragma {
     fn test_set_yang_pair_settings_twap_too_many_decimals_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
-        let pepe_price: u128 = 1000000 * PRAGMA_SCALE; // random price
+        let pepe_price: u128 = 1000000 * pragma_utils::PRAGMA_SCALE; // random price
         let pepe_spot_response = PragmaPricesResponse {
             price: pepe_price,
             decimals: PRAGMA_DECIMALS.into(),
@@ -347,13 +333,9 @@ mod test_pragma {
         let pepe_twap_response: (u128, u32) = (pepe_price, 20);
         mock_pragma.next_calculate_twap(pragma_utils::PEPE_USD_PAIR_ID, pepe_twap_response);
 
-        let pair_settings = PairSettings {
-            pair_id: pragma_utils::PEPE_USD_PAIR_ID, aggregation_mode: AggregationMode::Median,
-        };
-
-        cheat_caller_address(pragma.contract_address, pragma_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         start_cheat_block_timestamp_global(TS);
-        pragma.set_yang_pair_settings(pepe_token_addr(), pair_settings);
+        pragma.set_yang_pair_settings(PEPE_TOKEN_ADDR, pragma_utils::PEPE_PAIR_SETTINGS);
     }
 
 

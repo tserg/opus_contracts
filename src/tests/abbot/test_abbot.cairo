@@ -30,9 +30,9 @@ mod test_abbot {
 
         // Deploying the first trove
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
-        let forge_amt: Wad = abbot_utils::OPEN_TROVE_FORGE_AMT.into();
-        common::fund_user(trove_owner, yangs, abbot_utils::initial_asset_amts());
-        let deposited_amts: Span<u128> = abbot_utils::open_trove_yang_asset_amts();
+        common::fund_user(trove_owner, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
+        let deposited_amts: Span<u128> = abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span();
+        let forge_amt: Wad = common::MEDIUM_FORGE.into();
         let trove_id: u64 = common::open_trove_helper(abbot, trove_owner, yangs, deposited_amts, gates, forge_amt);
 
         // Check trove ID
@@ -50,7 +50,7 @@ mod test_abbot {
         // Check yangs
         let mut deposited_amts_copy = deposited_amts;
         for yang in yangs {
-            let decimals: u8 = IERC20Dispatcher { contract_address: *yang }.decimals();
+            let decimals: u8 = common::erc20(*yang).decimals();
             let asset_amt: u128 = *deposited_amts_copy.pop_front().unwrap();
             let expected_initial_yang: Wad = fixed_point_to_wad(sentinel_utils::get_initial_asset_amt(*yang), decimals);
             let expected_deposited_yang: Wad = fixed_point_to_wad(asset_amt, decimals);
@@ -82,7 +82,7 @@ mod test_abbot {
 
         // User opens another trove
         let second_forge_amt: Wad = 1666000000000000000000_u128.into();
-        let mut second_deposit_amts = abbot_utils::subsequent_deposit_amts();
+        let mut second_deposit_amts = abbot_utils::SUBSEQUENT_DEPOSIT_AMTS.span();
         let second_trove_id: u64 = common::open_trove_helper(
             abbot, trove_owner, yangs, second_deposit_amts, gates, second_forge_amt,
         );
@@ -100,7 +100,7 @@ mod test_abbot {
         // Check yangs
         let mut yangs_total = yangs_total.span();
         for yang in yangs {
-            let decimals: u8 = IERC20Dispatcher { contract_address: *yang }.decimals();
+            let decimals: u8 = common::erc20(*yang).decimals();
             let asset_amt: u128 = *second_deposit_amts.pop_front().unwrap();
             let before_yang_total: Wad = *yangs_total.pop_front().unwrap();
             let expected_deposited_yang: Wad = fixed_point_to_wad(asset_amt, decimals);
@@ -160,9 +160,9 @@ mod test_abbot {
         let AbbotTestConfig { abbot, yangs, gates, .. } = abbot_utils::abbot_deploy(Option::None);
 
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
+        common::fund_user(trove_owner, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
+        let deposited_amts: Span<u128> = abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span();
         let forge_amt = Zero::zero();
-        common::fund_user(trove_owner, yangs, abbot_utils::initial_asset_amts());
-        let deposited_amts: Span<u128> = abbot_utils::open_trove_yang_asset_amts();
         common::open_trove_helper(abbot, trove_owner, yangs, deposited_amts, gates, forge_amt);
     }
 
@@ -187,7 +187,7 @@ mod test_abbot {
     fn test_open_trove_invalid_yang_fail() {
         let AbbotTestConfig { abbot, .. } = abbot_utils::abbot_deploy(Option::None);
 
-        let invalid_yang: ContractAddress = sentinel_utils::DUMMY_YANG_ADDR;
+        let invalid_yang: ContractAddress = common::DUMMY_YANG_ADDR;
         let mut yangs: Array<ContractAddress> = array![invalid_yang];
         let mut yang_amts: Array<u128> = array![WAD_SCALE];
         let forge_amt: Wad = 1_u128.into();
@@ -207,26 +207,19 @@ mod test_abbot {
         let mut spy = spy_events();
         let mut expected_events = ArrayTrait::new();
 
-        let mut before_trove_owner_asset_bals: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![trove_owner].span(),
-        );
+        let mut before_trove_owner_asset_bals: Span<u128> = common::get_token_balances(yangs, trove_owner);
         let mut trove_yang_deposits: Span<YangBalance> = shrine.get_trove_deposits(trove_id);
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
         abbot.close_trove(trove_id);
 
-        let mut after_trove_owner_asset_bals: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![trove_owner].span(),
-        );
+        let mut after_trove_owner_asset_bals: Span<u128> = common::get_token_balances(yangs, trove_owner);
 
         for yang in yangs {
             assert(shrine.get_deposit(*yang, trove_id).is_zero(), 'wrong yang amount');
 
-            let mut after_trove_owner_asset_bal_arr: Span<u128> = *after_trove_owner_asset_bals.pop_front().unwrap();
-            let after_trove_owner_asset_bal: u128 = *after_trove_owner_asset_bal_arr.pop_front().unwrap();
-
-            let mut before_trove_owner_asset_bal_arr: Span<u128> = *before_trove_owner_asset_bals.pop_front().unwrap();
-            let before_trove_owner_asset_bal: u128 = *before_trove_owner_asset_bal_arr.pop_front().unwrap();
+            let after_trove_owner_asset_bal: u128 = *after_trove_owner_asset_bals.pop_front().unwrap();
+            let before_trove_owner_asset_bal: u128 = *before_trove_owner_asset_bals.pop_front().unwrap();
 
             expected_events
                 .append(
@@ -283,7 +276,7 @@ mod test_abbot {
         let mut deposited_amts_copy = yang_asset_amts;
         for yang in yangs {
             let before_trove_yang: Wad = shrine.get_deposit(*yang, trove_id);
-            let decimals: u8 = IERC20Dispatcher { contract_address: *yang }.decimals();
+            let decimals: u8 = common::erc20(*yang).decimals();
             let deposit_amt: u128 = *deposited_amts_copy.pop_front().unwrap();
             let expected_deposited_yang: Wad = fixed_point_to_wad(deposit_amt, decimals);
 
@@ -371,7 +364,7 @@ mod test_abbot {
             Option::None,
         );
 
-        let asset_addr = sentinel_utils::DUMMY_YANG_ADDR;
+        let asset_addr = common::DUMMY_YANG_ADDR;
         let amount: u128 = 0;
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
@@ -388,9 +381,9 @@ mod test_abbot {
 
         let asset_addr: ContractAddress = *yangs.at(0);
         let gate_addr: ContractAddress = *gates.at(0).contract_address;
-        let gate_bal = IERC20Dispatcher { contract_address: asset_addr }.balance_of(gate_addr);
+        let gate_bal = common::erc20(asset_addr).balance_of(gate_addr);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         let new_asset_max: u128 = gate_bal.try_into().unwrap();
         sentinel.set_yang_asset_max(asset_addr, new_asset_max);
 
@@ -401,7 +394,9 @@ mod test_abbot {
 
     #[test]
     fn test_withdraw_pass() {
-        let (AbbotTestConfig { shrine, abbot, yangs, .. }, AbbotTestTrove { trove_owner, trove_id, .. }) =
+        let (
+            AbbotTestConfig { shrine, abbot, yangs, .. }, AbbotTestTrove { trove_owner, trove_id, yang_asset_amts, .. },
+        ) =
             abbot_utils::deploy_abbot_and_open_trove(
             Option::None,
         );
@@ -424,10 +419,7 @@ mod test_abbot {
             ),
         ];
 
-        assert(
-            shrine.get_deposit(asset_addr, trove_id) == (abbot_utils::ETH_DEPOSIT_AMT - amount).into(),
-            'wrong yang amount',
-        );
+        assert(shrine.get_deposit(asset_addr, trove_id) == (*yang_asset_amts[0] - amount).into(), 'wrong yang amount');
 
         shrine_utils::assert_total_yang_invariant(shrine, yangs, abbot.get_troves_count());
 
@@ -440,12 +432,12 @@ mod test_abbot {
 
         let eth: ContractAddress = *yangs[0];
         let eth_gate: IGateDispatcher = *gates[0];
-        let eth_erc20: IERC20Dispatcher = IERC20Dispatcher { contract_address: eth };
+        let eth_erc20: IERC20Dispatcher = common::erc20(eth);
         let eth_gate_balance: u128 = eth_erc20.balance_of(eth_gate.contract_address).try_into().unwrap();
 
         let wbtc: ContractAddress = *yangs[1];
         let wbtc_gate: IGateDispatcher = *gates[1];
-        let wbtc_erc20: IERC20Dispatcher = IERC20Dispatcher { contract_address: wbtc };
+        let wbtc_erc20: IERC20Dispatcher = common::erc20(wbtc);
         let wbtc_gate_balance: u128 = wbtc_erc20.balance_of(wbtc_gate.contract_address).try_into().unwrap();
 
         // Open a trove with maximum asset amount deposited for ETH and WBTC
@@ -488,7 +480,7 @@ mod test_abbot {
         let AbbotTestConfig { shrine, sentinel, abbot, yangs, gates } = abbot_utils::abbot_deploy(Option::None);
 
         let eth: ContractAddress = *yangs[0];
-        let eth_deposit_amt: u128 = abbot_utils::ETH_DEPOSIT_AMT;
+        let eth_deposit_amt: u128 = *abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span()[0];
 
         let trove_owner: ContractAddress = common::TROVE1_OWNER_ADDR;
 
@@ -504,7 +496,7 @@ mod test_abbot {
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
         abbot.melt(trove_id, forge_amt);
 
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(sentinel.contract_address, common::SENTINEL_ADMIN, CheatSpan::TargetCalls(1));
         sentinel.suspend_yang(eth);
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
@@ -536,7 +528,7 @@ mod test_abbot {
             Option::None,
         );
 
-        let asset_addr = sentinel_utils::DUMMY_YANG_ADDR;
+        let asset_addr = common::DUMMY_YANG_ADDR;
         let amount: u128 = 0;
 
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
@@ -560,12 +552,12 @@ mod test_abbot {
 
     #[test]
     fn test_forge_pass() {
-        let (AbbotTestConfig { shrine, abbot, yangs, .. }, AbbotTestTrove { trove_owner, trove_id, forge_amt, .. }) =
+        let (AbbotTestConfig { shrine, abbot, .. }, AbbotTestTrove { trove_owner, trove_id, forge_amt, .. }) =
             abbot_utils::deploy_abbot_and_open_trove(
             Option::None,
         );
 
-        let additional_forge_amt: Wad = abbot_utils::OPEN_TROVE_FORGE_AMT.into();
+        let additional_forge_amt: Wad = common::MEDIUM_FORGE.into();
         cheat_caller_address(abbot.contract_address, trove_owner, CheatSpan::TargetCalls(1));
         abbot.forge(trove_id, additional_forge_amt, Zero::zero());
 
@@ -573,7 +565,7 @@ mod test_abbot {
         assert(after_trove_health.debt == forge_amt + additional_forge_amt, 'wrong trove debt');
         assert(shrine.get_yin(trove_owner) == forge_amt + additional_forge_amt, 'wrong yin balance');
 
-        shrine_utils::assert_total_troves_debt_invariant(shrine, yangs, abbot.get_troves_count());
+        shrine_utils::assert_total_troves_debt_invariant(shrine, abbot.get_troves_count());
     }
 
     #[test]
@@ -586,7 +578,12 @@ mod test_abbot {
 
         // deploy another trove to prevent recovery mode
         common::open_trove_helper(
-            abbot, common::TROVE1_OWNER_ADDR, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, 1_u128.into(),
+            abbot,
+            common::TROVE1_OWNER_ADDR,
+            yangs,
+            abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(),
+            gates,
+            1_u128.into(),
         );
 
         assert(!shrine.is_recovery_mode(), 'recovery mode');
@@ -634,10 +631,10 @@ mod test_abbot {
 
         // Test non-owner melting
         let non_owner: ContractAddress = common::TROVE2_OWNER_ADDR;
-        common::fund_user(non_owner, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(non_owner, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let non_owner_forge_amt = forge_amt;
         common::open_trove_helper(
-            abbot, non_owner, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, non_owner_forge_amt,
+            abbot, non_owner, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, non_owner_forge_amt,
         );
 
         cheat_caller_address(abbot.contract_address, non_owner, CheatSpan::TargetCalls(1));
@@ -646,7 +643,7 @@ mod test_abbot {
         let final_trove_health: Health = shrine.get_trove_health(trove_id);
         assert(final_trove_health.debt.is_zero(), 'wrong trove debt');
 
-        shrine_utils::assert_total_troves_debt_invariant(shrine, yangs, abbot.get_troves_count());
+        shrine_utils::assert_total_troves_debt_invariant(shrine, abbot.get_troves_count());
     }
 
     #[test]
@@ -655,21 +652,21 @@ mod test_abbot {
         let trove_owner1: ContractAddress = common::TROVE1_OWNER_ADDR;
         let trove_owner2: ContractAddress = common::TROVE2_OWNER_ADDR;
 
-        let forge_amt: Wad = abbot_utils::OPEN_TROVE_FORGE_AMT.into();
-        common::fund_user(trove_owner1, yangs, abbot_utils::initial_asset_amts());
-        common::fund_user(trove_owner2, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(trove_owner1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
+        common::fund_user(trove_owner2, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
 
+        let forge_amt: Wad = common::MEDIUM_FORGE.into();
         let first_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
         let second_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner2, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner2, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
         let third_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
         let fourth_trove_id: u64 = common::open_trove_helper(
-            abbot, trove_owner2, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, forge_amt,
+            abbot, trove_owner2, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, forge_amt,
         );
 
         let mut expected_owner1_trove_ids: Array<u64> = array![first_trove_id, third_trove_id];

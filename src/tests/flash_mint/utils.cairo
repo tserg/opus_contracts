@@ -1,9 +1,9 @@
 pub mod flash_mint_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Zero;
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IFlashMint::IFlashMintDispatcher;
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
+    use opus::tests::common;
     use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
@@ -18,49 +18,38 @@ pub mod flash_mint_utils {
         array![should_return_correct.into(), usage].span()
     }
 
-    pub fn flashmint_deploy(shrine: ContractAddress) -> IFlashMintDispatcher {
-        let flashmint_class = declare("flash_mint").unwrap().contract_class();
-        let (flashmint_addr, _) = flashmint_class.deploy(@array![shrine.into()]).expect('flashmint deploy failed');
+    pub fn flash_mint_deploy(shrine: ContractAddress) -> IFlashMintDispatcher {
+        let flash_mint_class = declare("flash_mint").unwrap().contract_class();
+        let (flash_mint_addr, _) = flash_mint_class.deploy(@array![shrine.into()]).expect('flash_mint deploy failed');
 
-        let flashmint = IFlashMintDispatcher { contract_address: flashmint_addr };
+        // Grant flash_mint contract the FLASHMINT role
+        common::grant_role_for_address(shrine, shrine_roles::FLASH_MINT, flash_mint_addr);
 
-        // Grant flashmint contract the FLASHMINT role
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
-        let shrine_accesscontrol = IAccessControlDispatcher { contract_address: shrine };
-        shrine_accesscontrol.grant_role(shrine_roles::FLASH_MINT, flashmint_addr);
-        flashmint
+        IFlashMintDispatcher { contract_address: flash_mint_addr }
     }
 
-    pub fn flashmint_setup() -> (ContractAddress, IFlashMintDispatcher) {
-        let shrine: ContractAddress = shrine_utils::shrine_deploy(Option::None);
-        let flashmint: IFlashMintDispatcher = flashmint_deploy(shrine);
+    pub fn flash_mint_setup() -> (IShrineDispatcher, IFlashMintDispatcher) {
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs(Option::None);
+        let flash_mint: IFlashMintDispatcher = flash_mint_deploy(shrine.contract_address);
 
-        let shrine_dispatcher = IShrineDispatcher { contract_address: shrine };
-
-        shrine_utils::shrine_setup(shrine);
-        shrine_utils::advance_prices_and_set_multiplier(
-            shrine_dispatcher,
-            3,
-            shrine_utils::three_yang_addrs(),
-            array![(1000 * WAD_ONE).into(), (10000 * WAD_ONE).into(), (500 * WAD_ONE).into()].span(),
-        );
+        shrine_utils::advance_prices_and_set_multiplier(shrine, common::THREE_YANG_ADDRS.span(), 3);
 
         // Mint some yin in shrine
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
-        shrine_dispatcher.inject(Zero::zero(), YIN_TOTAL_SUPPLY.into());
-        (shrine, flashmint)
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
+        shrine.inject(Zero::zero(), YIN_TOTAL_SUPPLY.into());
+        (shrine, flash_mint)
     }
 
-    pub fn flash_borrower_deploy(flashmint: ContractAddress) -> ContractAddress {
+    pub fn flash_borrower_deploy(flash_mint: ContractAddress) -> ContractAddress {
         let flash_borrower_class = declare("flash_borrower").unwrap().contract_class();
         let (flash_borrower_addr, _) = flash_borrower_class
-            .deploy(@array![flashmint.into()])
+            .deploy(@array![flash_mint.into()])
             .expect('flsh brrwr deploy failed');
         flash_borrower_addr
     }
 
-    pub fn flash_borrower_setup() -> (ContractAddress, IFlashMintDispatcher, ContractAddress) {
-        let (shrine, flashmint) = flashmint_setup();
-        (shrine, flashmint, flash_borrower_deploy(flashmint.contract_address))
+    pub fn flash_borrower_setup() -> (IShrineDispatcher, IFlashMintDispatcher, ContractAddress) {
+        let (shrine, flash_mint) = flash_mint_setup();
+        (shrine, flash_mint, flash_borrower_deploy(flash_mint.contract_address))
     }
 }

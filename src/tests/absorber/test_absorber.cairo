@@ -10,7 +10,7 @@ mod test_absorber {
     use opus::tests::absorber::utils::absorber_utils;
     use opus::tests::absorber::utils::absorber_utils::{AbsorberRewardsTestConfig, AbsorberTestConfig};
     use opus::tests::common;
-    use opus::tests::common::{AddressIntoSpan, RewardPartialEq};
+    use opus::tests::common::RewardPartialEq;
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, DistributionInfo, Provision, Request, Reward};
     use snforge_std::{
@@ -35,7 +35,7 @@ mod test_absorber {
         assert(!absorber.is_operational(), 'should not be operational');
 
         let absorber_ac = IAccessControlDispatcher { contract_address: absorber.contract_address };
-        assert(absorber_ac.get_roles(absorber_utils::ADMIN) == absorber_roles::ADMIN, 'wrong role for admin');
+        assert(absorber_ac.get_roles(common::ABSORBER_ADMIN) == absorber_roles::ADMIN, 'wrong role for admin');
     }
 
     //
@@ -61,7 +61,7 @@ mod test_absorber {
 
         let mut expected_events: Array<(ContractAddress, absorber_contract::Event)> = ArrayTrait::new();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(opus_token, opus_blesser, true);
 
         assert(absorber.get_rewards_count() == 1, 'rewards count not updated');
@@ -84,7 +84,7 @@ mod test_absorber {
             );
 
         // Add another reward
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(veopus_token, veopus_blesser, true);
 
         assert(absorber.get_rewards_count() == 2, 'rewards count not updated');
@@ -111,7 +111,7 @@ mod test_absorber {
         opus_reward.is_active = false;
         opus_reward.blesser = IBlesserDispatcher { contract_address: new_opus_blesser };
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(opus_token, new_opus_blesser, false);
 
         let mut expected_rewards: Array<Reward> = array![opus_reward, veopus_reward];
@@ -138,7 +138,7 @@ mod test_absorber {
         let valid_address = common::NON_ZERO_ADDR;
         let invalid_address = Zero::zero();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(valid_address, invalid_address, true);
     }
 
@@ -150,7 +150,7 @@ mod test_absorber {
         let valid_address = common::NON_ZERO_ADDR;
         let invalid_address = Zero::zero();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(invalid_address, valid_address, true);
     }
 
@@ -167,7 +167,7 @@ mod test_absorber {
 
         let mut spy = spy_events();
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
 
         assert(!absorber.get_live(), 'should be killed');
@@ -221,11 +221,11 @@ mod test_absorber {
         let expected_absorption_id = 1;
 
         // Step 2
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
 
         // Step 3
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, first_update_assets, RAY_SCALE.into(),
         );
@@ -263,7 +263,7 @@ mod test_absorber {
         spy.assert_emitted(@expected_events);
 
         // Step 4
-        let provider_before_absorbed_bals = common::get_token_balances(yangs, provider.into());
+        let provider_before_absorbed_bals = common::get_token_balances(yangs, provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(provider);
 
@@ -330,7 +330,7 @@ mod test_absorber {
     fn test_provide_after_kill_fail() {
         let AbsorberTestConfig { absorber, .. } = absorber_utils::absorber_deploy(Option::None);
 
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(2));
         absorber.kill();
         absorber.provide(1_u128.into());
     }
@@ -378,7 +378,7 @@ mod test_absorber {
         let expected_absorption_id = 1;
 
         // Simulate absorption
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, first_update_assets, percentage_to_drain,
         );
@@ -465,8 +465,8 @@ mod test_absorber {
         assert(absorber.get_total_shares_for_current_epoch() == expected_total_shares, 'wrong total shares');
         assert(absorber.get_current_epoch() == expected_epoch, 'wrong epoch');
 
-        let before_absorbed_bals = common::get_token_balances(yangs, provider.into());
-        let before_reward_bals = common::get_token_balances(reward_tokens, provider.into());
+        let before_absorbed_bals = common::get_token_balances(yangs, provider);
+        let before_reward_bals = common::get_token_balances(reward_tokens, provider);
         let before_provider_yin_bal: Wad = shrine.get_yin(provider);
         let before_absorber_yin_bal: Wad = shrine.get_yin(absorber.contract_address);
 
@@ -583,7 +583,7 @@ mod test_absorber {
         );
 
         let first_update_assets: Span<AssetBalance> = common::combine_assets_and_amts(
-            yangs, absorber_utils::first_update_assets(),
+            yangs, absorber_utils::FIRST_UPDATE_ASSET_AMTS.span(),
         );
         cheat_caller_address(absorber.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         absorber.update(first_update_assets);
@@ -609,14 +609,14 @@ mod test_absorber {
 
         let mut spy = spy_events();
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
 
         let before_provider_info: Provision = absorber.get_provision(provider);
         let before_last_absorption_id: u32 = absorber.get_provider_last_absorption(provider);
         let before_total_shares: Wad = absorber.get_total_shares_for_current_epoch();
         let before_absorber_yin_bal: u256 = yin.balance_of(absorber.contract_address);
 
-        let before_reward_bals: Span<Span<u128>> = common::get_token_balances(reward_tokens, provider.into());
+        let before_reward_bals: Span<u128> = common::get_token_balances(reward_tokens, provider);
 
         assert(
             before_provider_info.shares + absorber_contract::INITIAL_SHARES.into() == before_total_shares,
@@ -631,7 +631,14 @@ mod test_absorber {
         // Test subsequent deposit
         let second_provided_amt: Wad = (400 * WAD_ONE).into();
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, provider, yangs, absorber_utils::provider_asset_amts(), gates, second_provided_amt,
+            shrine,
+            abbot,
+            absorber,
+            provider,
+            yangs,
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
+            gates,
+            second_provided_amt,
         );
 
         let after_last_absorption_id: u32 = absorber.get_provider_last_absorption(provider);
@@ -710,11 +717,11 @@ mod test_absorber {
         let provided_amt: Wad = (10000 * WAD_ONE).into();
         let provider_amt: Wad = (5000 * WAD_ONE).into();
 
-        let yang_asset_amts: Span<u128> = absorber_utils::provider_asset_amts();
+        let yang_asset_amts: Span<u128> = absorber_utils::PROVIDER_ASSET_AMTS.span();
         common::fund_user(donor, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, donor, yangs, yang_asset_amts, gates, provided_amt);
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         cheat_caller_address(shrine.contract_address, donor, CheatSpan::TargetCalls(2));
         yin.approve(absorber.contract_address, Bounded::MAX);
         yin.transfer(provider, provider_amt.into());
@@ -775,7 +782,7 @@ mod test_absorber {
             - absorber_contract::INITIAL_SHARES.into();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, first_update_assets, RAY_SCALE.into(),
         );
@@ -790,7 +797,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -811,7 +818,7 @@ mod test_absorber {
 
         // Step 4
 
-        let second_update_assets: Span<u128> = absorber_utils::second_update_assets();
+        let second_update_assets: Span<u128> = absorber_utils::SECOND_UPDATE_ASSET_AMTS.span();
         absorber_utils::simulate_update_with_pct_to_drain(
             shrine, absorber, yangs, second_update_assets, RAY_SCALE.into(),
         );
@@ -856,8 +863,8 @@ mod test_absorber {
         // Reset the event spy so all previous unchecked events are dropped
         let mut second_spy = spy_events();
 
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -925,8 +932,8 @@ mod test_absorber {
         // Reset the event spy so all previous unchecked events are dropped
         let mut third_spy = spy_events();
 
-        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider.into());
-        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider.into());
+        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider);
+        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(second_provider);
 
@@ -1018,7 +1025,7 @@ mod test_absorber {
         let first_epoch_total_shares: Wad = absorber.get_total_shares_for_current_epoch();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         // Amount of yin remaining needs to be sufficiently significant to account for loss of precision
         // from conversion of shares across epochs, after discounting initial shares.
         let above_min_shares: Wad = (absorber_contract::INITIAL_SHARES + absorber_contract::MINIMUM_RECIPIENT_SHARES)
@@ -1088,7 +1095,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -1128,8 +1135,8 @@ mod test_absorber {
 
         // Step 4
         let first_provider_before_yin_bal: Wad = shrine.get_yin(first_provider);
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let updated_second_epoch_recipient_shares: Wad = absorber.get_total_shares_for_current_epoch()
             - absorber_contract::INITIAL_SHARES.into();
@@ -1250,7 +1257,7 @@ mod test_absorber {
         let mut spy = spy_events();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         // Amount of yin remaining needs to be sufficiently significant to account for loss of precision
         // from conversion of shares across epochs, after discounting initial shares.
         let excess_above_minimum: Wad = 1_u128.into();
@@ -1318,7 +1325,7 @@ mod test_absorber {
             - absorber_contract::INITIAL_SHARES.into();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         let burn_amt: Wad = first_provided_amt - absorber_contract::INITIAL_SHARES.into();
         absorber_utils::simulate_update_with_amt_to_drain(shrine, absorber, yangs, first_update_assets, burn_amt);
 
@@ -1355,7 +1362,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -1377,8 +1384,8 @@ mod test_absorber {
 
         // Step 4
         let first_provider_before_yin_bal: Wad = shrine.get_yin(first_provider);
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -1463,7 +1470,7 @@ mod test_absorber {
         let mut spy = spy_events();
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         let burn_amt: Wad = first_provided_amt - remaining_yin_amt;
         absorber_utils::simulate_update_with_amt_to_drain(shrine, absorber, yangs, first_update_assets, burn_amt);
 
@@ -1490,7 +1497,7 @@ mod test_absorber {
         spy.assert_emitted(@expected_events);
 
         // Step 3
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
 
         let (_, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -1549,7 +1556,7 @@ mod test_absorber {
         let first_provided_amt = provided_amt;
 
         // Step 2
-        let first_update_assets: Span<u128> = absorber_utils::first_update_assets();
+        let first_update_assets: Span<u128> = absorber_utils::FIRST_UPDATE_ASSET_AMTS.span();
         let burn_pct: Ray = 266700000000000000000000000_u128.into(); // 26.67% (Ray)
         absorber_utils::simulate_update_with_pct_to_drain(shrine, absorber, yangs, first_update_assets, burn_pct);
 
@@ -1565,7 +1572,7 @@ mod test_absorber {
             absorber,
             second_provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             second_provided_amt,
         );
@@ -1596,13 +1603,13 @@ mod test_absorber {
         let expected_second_provider_pct: Ray = wadray::rdiv_ww(second_provider_info.shares, total_recipient_shares);
 
         // Step 4
-        let second_update_assets: Span<u128> = absorber_utils::second_update_assets();
+        let second_update_assets: Span<u128> = absorber_utils::SECOND_UPDATE_ASSET_AMTS.span();
         let burn_pct: Ray = 512390000000000000000000000_u128.into(); // 51.239% (Ray)
         absorber_utils::simulate_update_with_pct_to_drain(shrine, absorber, yangs, second_update_assets, burn_pct);
 
         // Step 5
-        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider.into());
-        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider.into());
+        let first_provider_before_reward_bals = common::get_token_balances(reward_tokens, first_provider);
+        let first_provider_before_absorbed_bals = common::get_token_balances(yangs, first_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(first_provider);
 
@@ -1658,8 +1665,8 @@ mod test_absorber {
         );
 
         // Step 6
-        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider.into());
-        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider.into());
+        let second_provider_before_reward_bals = common::get_token_balances(reward_tokens, second_provider);
+        let second_provider_before_absorbed_bals = common::get_token_balances(yangs, second_provider);
 
         let (preview_absorbed_assets, preview_reward_assets) = absorber.preview_reap(second_provider);
 
@@ -1725,10 +1732,9 @@ mod test_absorber {
         let mut spy = spy_events();
 
         start_cheat_caller_address(absorber.contract_address, provider);
-        let mut idx: u128 = 0;
         let mut expected_timelock = absorber_contract::REQUEST_BASE_TIMELOCK;
         let mut expected_events: Array<(ContractAddress, absorber_contract::Event)> = ArrayTrait::new();
-        while idx != 6 {
+        for idx in 0..6_usize {
             let current_ts = get_block_timestamp();
             absorber.request();
 
@@ -1763,7 +1769,6 @@ mod test_absorber {
                 );
 
             expected_timelock *= absorber_contract::REQUEST_TIMELOCK_MULTIPLIER;
-            idx += 1;
         }
         spy.assert_emitted(@expected_events);
     }
@@ -1783,7 +1788,7 @@ mod test_absorber {
 
         shrine_utils::recovery_mode_test_setup(shrine, yangs, common::RecoveryModeSetupType::BufferLowerBound);
 
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.kill();
 
         assert(!shrine.get_live(), 'should be killed');
@@ -1817,7 +1822,7 @@ mod test_absorber {
         let eth_addr: ContractAddress = *yangs.at(0);
         let (eth_yang_price, _, _) = shrine.get_current_yang_price(eth_addr);
         let new_eth_yang_price: Wad = (eth_yang_price.into() / 5_u128).into(); // 80% drop in price
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.advance(eth_addr, new_eth_yang_price);
         assert(shrine.is_recovery_mode(), 'sanity check for RM threshold');
 
@@ -1930,7 +1935,7 @@ mod test_absorber {
             absorber,
             provider,
             yangs,
-            absorber_utils::provider_asset_amts(),
+            absorber_utils::PROVIDER_ASSET_AMTS.span(),
             gates,
             less_than_initial_shares_amt,
         );
@@ -1946,11 +1951,11 @@ mod test_absorber {
         let provider = absorber_utils::PROVIDER_1;
         let provided_amt: Wad = (10000 * WAD_ONE).into();
 
-        let yang_asset_amts: Span<u128> = absorber_utils::provider_asset_amts();
+        let yang_asset_amts: Span<u128> = absorber_utils::PROVIDER_ASSET_AMTS.span();
         common::fund_user(provider, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, provider, yangs, yang_asset_amts, gates, provided_amt);
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         cheat_caller_address(yin.contract_address, provider, CheatSpan::TargetCalls(1));
         yin.approve(absorber.contract_address, Bounded::MAX);
 
@@ -1967,7 +1972,7 @@ mod test_absorber {
         let provider = absorber_utils::PROVIDER_1;
         let provided_amt: Wad = (10000 * WAD_ONE).into();
 
-        let yang_asset_amts: Span<u128> = absorber_utils::provider_asset_amts();
+        let yang_asset_amts: Span<u128> = absorber_utils::PROVIDER_ASSET_AMTS.span();
         common::fund_user(provider, yangs, yang_asset_amts);
         common::open_trove_helper(abbot, provider, yangs, yang_asset_amts, gates, provided_amt);
 
@@ -2000,7 +2005,7 @@ mod test_absorber {
             .get_cumulative_reward_amt_by_epoch(veopus_addr, expected_epoch);
 
         // Set veopus to inactive
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(veopus_addr, veopus_blesser_addr, false);
 
         // Trigger rewards
@@ -2040,7 +2045,7 @@ mod test_absorber {
         spy.assert_emitted(@expected_events);
 
         // Set OPUS to inactive
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.set_reward(opus_addr, opus_blesser_addr, false);
 
         // Trigger rewards
@@ -2091,7 +2096,7 @@ mod test_absorber {
         let provider = absorber_utils::PROVIDER_1;
         let provided_amt: Wad = (10000 * WAD_ONE).into();
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, provider, yangs, absorber_utils::provider_asset_amts(), gates, provided_amt,
+            shrine, abbot, absorber, provider, yangs, absorber_utils::PROVIDER_ASSET_AMTS.span(), gates, provided_amt,
         );
 
         let expected_epoch: u32 = absorber_contract::FIRST_EPOCH;

@@ -1,5 +1,4 @@
 pub mod purger_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Zero;
     use opus::core::absorber::absorber as absorber_contract;
     use opus::core::purger::purger as purger_contract;
@@ -15,7 +14,6 @@ pub mod purger_utils {
     use opus::tests::common;
     use opus::tests::external::utils::pragma_utils;
     use opus::tests::seer::utils::seer_utils;
-    use opus::tests::sentinel::utils::sentinel_utils;
     use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, Health, HealthTrait};
     use snforge_std::{
@@ -59,17 +57,12 @@ pub mod purger_utils {
     // Constants
     //
 
-    pub const SEARCHER_YIN: u128 = 10000 * WAD_ONE; // 10_000 (Wad)
     pub const TARGET_TROVE_YIN: u128 = 1000 * WAD_ONE; // 1000 (Wad)
-
-    pub const TARGET_TROVE_ETH_DEPOSIT_AMT: u128 = 2 * WAD_ONE; // 2 (Wad) - ETH
-    pub const TARGET_TROVE_WBTC_DEPOSIT_AMT: u128 = 50000000; // 0.5 (10 ** 8) - wBTC
 
     //
     // Address constants
     //
 
-    pub const ADMIN: ContractAddress = 'purger owner'.try_into().unwrap();
     pub const SEARCHER: ContractAddress = 'searcher'.try_into().unwrap();
     pub const TARGET_TROVE_OWNER: ContractAddress = 'target trove owner'.try_into().unwrap();
 
@@ -77,22 +70,17 @@ pub mod purger_utils {
     // Constant helpers
     //
 
-    pub fn target_trove_yang_asset_amts() -> Span<u128> {
-        array![TARGET_TROVE_ETH_DEPOSIT_AMT, TARGET_TROVE_WBTC_DEPOSIT_AMT].span()
-    }
+    pub const TARGET_TROVE_YANG_ASSET_AMTS: [u128; 2] = [common::SMALL_ETH_DEPOSIT, common::MEDIUM_WBTC_DEPOSIT];
 
-    #[inline(always)]
-    pub fn recipient_trove_yang_asset_amts() -> Span<u128> {
-        array![30 * WAD_ONE, // 30 (Wad) - ETH
+    pub const RECIPIENT_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
+        30 * WAD_ONE, // 30 (Wad) - ETH
         500000000 // 5 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
-    pub fn whale_trove_yang_asset_amts() -> Span<u128> {
-        array![700 * WAD_ONE, // 700 (Wad) - ETH
+    pub const WHALE_TROVE_YANG_ASSET_AMTS: [u128; 2] = [
+        700 * WAD_ONE, // 700 (Wad) - ETH
         70000000000 // 700 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
     pub fn interesting_thresholds_for_liquidation() -> Span<Ray> {
         array![
@@ -249,7 +237,7 @@ pub mod purger_utils {
     pub fn interesting_yang_amts_for_recipient_trove() -> Span<Span<u128>> {
         array![
             // base case for ordinary redistributions
-            recipient_trove_yang_asset_amts(),
+            RECIPIENT_TROVE_YANG_ASSET_AMTS.span(),
             // recipient trove has dust amount of the first yang
             // 100 wei (Wad) ETH, 20 (10 ** 8) WBTC
             array![100_u128, 2000000000_u128].span(),
@@ -265,7 +253,7 @@ pub mod purger_utils {
     }
 
     pub fn interesting_yang_amts_for_redistributed_trove() -> Span<Span<u128>> {
-        array![target_trove_yang_asset_amts(), // Dust yang case
+        array![TARGET_TROVE_YANG_ASSET_AMTS.span(), // Dust yang case
         // 20 (Wad) ETH, 100E-8 (WBTC decimals) WBTC
         array![20 * WAD_ONE, 100_u128].span()].span()
     }
@@ -356,7 +344,7 @@ pub mod purger_utils {
 
         let reward_tokens: Span<ContractAddress> = absorber_utils::reward_tokens_deploy(classes.token);
 
-        let reward_amts_per_blessing: Span<u128> = absorber_utils::reward_amts_per_blessing();
+        let reward_amts_per_blessing: Span<u128> = absorber_utils::REWARD_AMTS_PER_BLESSING.span();
         absorber_utils::deploy_blesser_for_rewards(
             absorber, reward_tokens, reward_amts_per_blessing, Option::Some(classes.blesser),
         );
@@ -376,13 +364,11 @@ pub mod purger_utils {
         );
         pragma_utils::add_yangs(*oracles.at(0), yangs);
 
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(seer.contract_address, common::SEER_ADMIN, CheatSpan::TargetCalls(1));
         seer.update_prices();
 
-        let admin: ContractAddress = ADMIN;
-
         let calldata = array![
-            admin.into(),
+            common::PURGER_ADMIN.into(),
             shrine.contract_address.into(),
             sentinel.contract_address.into(),
             absorber.contract_address.into(),
@@ -391,32 +377,24 @@ pub mod purger_utils {
 
         let (purger_addr, _) = classes.purger.deploy(@calldata).expect('purger deploy failed');
 
-        let purger = IPurgerDispatcher { contract_address: purger_addr };
-
         // Approve Purger in Shrine
-        let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
-        shrine_ac.grant_role(shrine_roles::PURGER, purger_addr);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::PURGER, purger_addr);
+
+        // Approve Purger in Sentinel
+        common::grant_role_for_address(sentinel.contract_address, sentinel_roles::PURGER, purger_addr);
+
+        // Approve Purger in Seer
+        common::grant_role_for_address(seer.contract_address, seer_roles::PURGER, purger_addr);
+
+        // Approve Purger in Absorber
+        common::grant_role_for_address(absorber.contract_address, absorber_roles::PURGER, purger_addr);
 
         // Increase debt ceiling
         let debt_ceiling: Wad = (100000 * WAD_ONE).into();
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.set_debt_ceiling(debt_ceiling);
 
-        // Approve Purger in Sentinel
-        let sentinel_ac = IAccessControlDispatcher { contract_address: sentinel.contract_address };
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
-        sentinel_ac.grant_role(sentinel_roles::PURGER, purger_addr);
-
-        // Approve Purger in Seer
-        let oracle_ac = IAccessControlDispatcher { contract_address: seer.contract_address };
-        cheat_caller_address(seer.contract_address, seer_utils::ADMIN, CheatSpan::TargetCalls(1));
-        oracle_ac.grant_role(seer_roles::PURGER, purger_addr);
-
-        // Approve Purger in Absorber
-        let absorber_ac = IAccessControlDispatcher { contract_address: absorber.contract_address };
-        cheat_caller_address(absorber.contract_address, absorber_utils::ADMIN, CheatSpan::TargetCalls(1));
-        absorber_ac.grant_role(absorber_roles::PURGER, purger_addr);
-
+        let purger = IPurgerDispatcher { contract_address: purger_addr };
         PurgerTestConfig { shrine, abbot, seer, absorber, purger, yangs, gates }
     }
 
@@ -430,11 +408,11 @@ pub mod purger_utils {
     pub fn flash_liquidator_deploy(
         shrine: ContractAddress,
         abbot: ContractAddress,
-        flashmint: ContractAddress,
+        flash_mint: ContractAddress,
         purger: ContractAddress,
         fl_class: Option<ContractClass>,
     ) -> IFlashLiquidatorDispatcher {
-        let calldata = array![shrine.into(), abbot.into(), flashmint.into(), purger.into()];
+        let calldata = array![shrine.into(), abbot.into(), flash_mint.into(), purger.into()];
 
         let fl_class = fl_class.unwrap_or(*declare("flash_liquidator").unwrap().contract_class());
 
@@ -447,8 +425,8 @@ pub mod purger_utils {
         abbot: IAbbotDispatcher, yangs: Span<ContractAddress>, gates: Span<IGateDispatcher>, yin_amt: Wad,
     ) {
         let user: ContractAddress = SEARCHER;
-        common::fund_user(user, yangs, recipient_trove_yang_asset_amts());
-        common::open_trove_helper(abbot, user, yangs, recipient_trove_yang_asset_amts(), gates, yin_amt);
+        common::fund_user(user, yangs, RECIPIENT_TROVE_YANG_ASSET_AMTS.span());
+        common::open_trove_helper(abbot, user, yangs, RECIPIENT_TROVE_YANG_ASSET_AMTS.span(), gates, yin_amt);
     }
 
     pub fn funded_absorber(
@@ -460,7 +438,14 @@ pub mod purger_utils {
         amt: Wad,
     ) -> u64 {
         absorber_utils::provide_to_absorber(
-            shrine, abbot, absorber, absorber_utils::PROVIDER_1, yangs, recipient_trove_yang_asset_amts(), gates, amt,
+            shrine,
+            abbot,
+            absorber,
+            absorber_utils::PROVIDER_1,
+            yangs,
+            RECIPIENT_TROVE_YANG_ASSET_AMTS.span(),
+            gates,
+            amt,
         )
     }
 
@@ -469,7 +454,7 @@ pub mod purger_utils {
         abbot: IAbbotDispatcher, yangs: Span<ContractAddress>, gates: Span<IGateDispatcher>, yin_amt: Wad,
     ) -> u64 {
         let user: ContractAddress = TARGET_TROVE_OWNER;
-        let deposit_amts: Span<u128> = target_trove_yang_asset_amts();
+        let deposit_amts: Span<u128> = TARGET_TROVE_YANG_ASSET_AMTS.span();
         common::fund_user(user, yangs, deposit_amts);
         common::open_trove_helper(abbot, user, yangs, deposit_amts, gates, yin_amt)
     }
@@ -480,7 +465,7 @@ pub mod purger_utils {
         abbot: IAbbotDispatcher, yangs: Span<ContractAddress>, gates: Span<IGateDispatcher>,
     ) -> u64 {
         let user: ContractAddress = TARGET_TROVE_OWNER;
-        let deposit_amts: Span<u128> = whale_trove_yang_asset_amts();
+        let deposit_amts: Span<u128> = WHALE_TROVE_YANG_ASSET_AMTS.span();
         let yin_amt: Wad = WAD_ONE.into();
         common::fund_user(user, yangs, deposit_amts);
         common::open_trove_helper(abbot, user, yangs, deposit_amts, gates, yin_amt)
@@ -489,7 +474,7 @@ pub mod purger_utils {
     // Update thresholds for all yangs to the given value
     pub fn set_thresholds(shrine: IShrineDispatcher, yangs: Span<ContractAddress>, threshold: Ray) {
         cheat_caller_address(
-            shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(yangs.len().try_into().unwrap()),
+            shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(yangs.len().try_into().unwrap()),
         );
         for yang in yangs {
             shrine.set_threshold(*yang, threshold);
@@ -500,7 +485,7 @@ pub mod purger_utils {
     pub fn decrease_yang_prices_by_pct(
         shrine: IShrineDispatcher, seer: ISeerDispatcher, yangs: Span<ContractAddress>, pct_decrease: Ray,
     ) {
-        start_cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN);
+        start_cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN);
         for yang in yangs {
             let (yang_price, _, _) = shrine.get_current_yang_price(*yang);
             let new_price: Wad = wadray::rmul_wr(yang_price, (RAY_ONE.into() - pct_decrease));
@@ -647,22 +632,18 @@ pub mod purger_utils {
     // on the before and after balances.
     // `before_asset_bals` and `after_asset_bals` should be retrieved using `get_token_balances`.
     pub fn assert_received_assets(
-        mut before_asset_bals: Span<Span<u128>>,
-        mut after_asset_bals: Span<Span<u128>>,
+        mut before_asset_bals: Span<u128>,
+        mut after_asset_bals: Span<u128>,
         mut expected_freed_assets: Span<AssetBalance>,
         error_margin: u128,
         message: felt252,
     ) {
         assert_eq!(before_asset_bals.len(), after_asset_bals.len(), "balances array sanity check #1");
         for expected_freed_asset in expected_freed_assets {
-            let mut before_asset_bal_arr: Span<u128> = *before_asset_bals.pop_front().unwrap();
-            let mut after_asset_bal_arr: Span<u128> = *after_asset_bals.pop_front().unwrap();
-            assert_eq!(before_asset_bal_arr.len(), after_asset_bal_arr.len(), "balances array sanity check #2");
-
-            let before_asset_bal: u128 = *before_asset_bal_arr.pop_front().unwrap();
+            let before_asset_bal: u128 = *before_asset_bals.pop_front().unwrap();
             let expected_after_asset_bal: u128 = before_asset_bal + *expected_freed_asset.amount;
 
-            let after_asset_bal: u128 = *after_asset_bal_arr.pop_front().unwrap();
+            let after_asset_bal: u128 = *after_asset_bals.pop_front().unwrap();
 
             common::assert_equalish(after_asset_bal, expected_after_asset_bal, error_margin, message);
         };

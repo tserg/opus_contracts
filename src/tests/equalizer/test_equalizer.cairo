@@ -24,7 +24,7 @@ mod test_equalizer {
         assert(equalizer.get_allocator() == allocator.contract_address, 'wrong allocator address');
 
         let equalizer_ac = IAccessControlDispatcher { contract_address: equalizer.contract_address };
-        let admin = shrine_utils::ADMIN;
+        let admin = common::SHRINE_ADMIN;
         assert(equalizer_ac.get_admin() == admin, 'wrong admin');
         assert(equalizer_ac.get_roles(admin) == equalizer_roles::ADMIN, 'wrong role');
         assert(equalizer_ac.has_role(equalizer_roles::SET_ALLOCATOR, admin), 'role not granted');
@@ -36,7 +36,7 @@ mod test_equalizer {
         let mut spy = spy_events();
 
         let surplus: Wad = (500 * WAD_ONE).into();
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(surplus.into());
         assert(shrine.get_budget() == surplus.into(), 'sanity check');
 
@@ -67,7 +67,7 @@ mod test_equalizer {
 
         // Create a deficit
         let deficit = -((500 * WAD_ONE).into());
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.adjust_budget(deficit);
 
         assert(equalizer.equalize().is_zero(), 'minted surplus should be zero');
@@ -78,24 +78,17 @@ mod test_equalizer {
         let EqualizerTestConfig { shrine, equalizer, .. } = equalizer_utils::equalizer_deploy(Option::None);
         let mut spy = spy_events();
 
-        let yangs = array![shrine_utils::YANG1_ADDR, shrine_utils::YANG2_ADDR].span();
+        let yangs = array![common::YANG1_ADDR, common::YANG2_ADDR].span();
         let debt_ceiling: Wad = shrine.get_debt_ceiling();
 
         // deposit 1000 ETH and forge the debt ceiling
         shrine_utils::trove1_deposit(shrine, (1000 * WAD_ONE).into());
         shrine_utils::trove1_forge(shrine, debt_ceiling);
-        let eth: ContractAddress = shrine_utils::YANG1_ADDR;
-        let (eth_price, _, _) = shrine.get_current_yang_price(eth);
 
-        let mut loop_id = 5;
         let mut start_debt = debt_ceiling;
-        while loop_id != 0 {
+        for _ in 0..5_usize {
             // accrue interest to exceed the debt ceiling
             common::advance_intervals_and_refresh_prices_and_multiplier(shrine, yangs, 500);
-
-            // update price to speed up calculation
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
-            shrine.advance(eth, eth_price);
 
             shrine_utils::trove1_deposit(shrine, Zero::zero());
             let trove_health: Health = shrine.get_trove_health(common::TROVE_1);
@@ -129,8 +122,6 @@ mod test_equalizer {
             spy.assert_emitted(@expected_events);
 
             start_debt = total_yin;
-
-            loop_id -= 1;
         }
     }
 
@@ -141,20 +132,26 @@ mod test_equalizer {
 
         // Simulate minted surplus by injecting to Equalizer directly
         let surplus: Wad = (1000 * WAD_ONE + 123).into();
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.inject(equalizer.contract_address, surplus);
 
-        let recipients = equalizer_utils::initial_recipients();
+        let recipients = equalizer_utils::INITIAL_RECIPIENTS.span();
         let percentages = equalizer_utils::initial_percentages();
 
         let tokens: Span<ContractAddress> = array![shrine.contract_address].span();
-        let mut before_balances = common::get_token_balances(tokens, recipients);
-        let mut before_yin_balances = *before_balances.pop_front().unwrap();
+        let mut before_recipients_balances: Array<Span<u128>> = ArrayTrait::new();
+        for recipient in recipients {
+            before_recipients_balances.append(common::get_token_balances(tokens, *recipient));
+        }
+        let mut before_recipients_balances: Span<Span<u128>> = before_recipients_balances.span();
 
         equalizer.allocate();
 
-        let mut after_balances = common::get_token_balances(tokens, recipients);
-        let mut after_yin_balances = *after_balances.pop_front().unwrap();
+        let mut after_recipients_balances: Array<Span<u128>> = ArrayTrait::new();
+        for recipient in recipients {
+            after_recipients_balances.append(common::get_token_balances(tokens, *recipient));
+        }
+        let mut after_recipients_balances: Span<Span<u128>> = after_recipients_balances.span();
 
         let mut allocated = Zero::zero();
         for percentage in percentages {
@@ -162,8 +159,10 @@ mod test_equalizer {
             // sanity check
             assert(expected_increment.is_non_zero(), 'increment is zero');
 
-            let before_yin_bal = *before_yin_balances.pop_front().unwrap();
-            let after_yin_bal = *after_yin_balances.pop_front().unwrap();
+            let mut before_recipient_balances: Span<u128> = *before_recipients_balances.pop_front().unwrap();
+            let before_yin_bal = *before_recipient_balances.pop_front().unwrap();
+            let mut after_recipient_balances: Span<u128> = *after_recipients_balances.pop_front().unwrap();
+            let after_yin_bal = *after_recipient_balances.pop_front().unwrap();
             assert(after_yin_bal == before_yin_bal + expected_increment.into(), 'wrong recipient balance');
 
             allocated += expected_increment;
@@ -204,7 +203,7 @@ mod test_equalizer {
         ]
             .span();
 
-        let admin: ContractAddress = shrine_utils::ADMIN;
+        let admin: ContractAddress = common::SHRINE_ADMIN;
 
         for normalize_amt in normalize_amts {
             // Create the deficit
@@ -257,11 +256,11 @@ mod test_equalizer {
         let EqualizerTestConfig { allocator, equalizer, .. } = equalizer_utils::equalizer_deploy(allocator_class);
         let mut spy = spy_events();
 
-        let new_recipients = equalizer_utils::new_recipients();
+        let new_recipients = equalizer_utils::NEW_RECIPIENTS.span();
         let mut new_percentages = equalizer_utils::new_percentages();
         let new_allocator = equalizer_utils::allocator_deploy(new_recipients, new_percentages, allocator_class);
 
-        cheat_caller_address(equalizer.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(equalizer.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         equalizer.set_allocator(new_allocator.contract_address);
 
         // Check allocator is updated
@@ -286,7 +285,7 @@ mod test_equalizer {
         let allocator_class = Option::Some(*declare("allocator").unwrap().contract_class());
         let EqualizerTestConfig { equalizer, .. } = equalizer_utils::equalizer_deploy(allocator_class);
         let new_allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::new_recipients(), equalizer_utils::new_percentages(), allocator_class,
+            equalizer_utils::NEW_RECIPIENTS.span(), equalizer_utils::new_percentages(), allocator_class,
         );
 
         cheat_caller_address(equalizer.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));

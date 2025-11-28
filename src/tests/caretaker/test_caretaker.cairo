@@ -1,16 +1,16 @@
 mod test_caretaker {
     use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Zero;
+    use opus::constants::WBTC_DECIMALS;
     use opus::core::caretaker::caretaker as caretaker_contract;
     use opus::core::roles::{caretaker_roles, shrine_roles};
     use opus::interfaces::ICaretaker::ICaretakerDispatcherTrait;
-    use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use opus::interfaces::IERC20::IERC20DispatcherTrait;
     use opus::interfaces::IShrine::IShrineDispatcherTrait;
     use opus::tests::abbot::utils::abbot_utils;
     use opus::tests::caretaker::utils::caretaker_utils;
     use opus::tests::caretaker::utils::caretaker_utils::CaretakerTestConfig;
     use opus::tests::common;
-    use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, Health};
     use opus::utils::math::fixed_point_to_wad;
     use snforge_std::{CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events};
@@ -22,8 +22,8 @@ mod test_caretaker {
 
         let caretaker_ac = IAccessControlDispatcher { contract_address: caretaker.contract_address };
 
-        assert(caretaker_ac.get_admin() == caretaker_utils::ADMIN, 'setup admin');
-        assert(caretaker_ac.get_roles(caretaker_utils::ADMIN) == caretaker_roles::SHUT, 'admin roles');
+        assert(caretaker_ac.get_admin() == common::CARETAKER_ADMIN, 'setup admin');
+        assert(caretaker_ac.get_roles(common::CARETAKER_ADMIN) == caretaker_roles::SHUT, 'admin roles');
 
         let shrine_ac = IAccessControlDispatcher { contract_address: shrine.contract_address };
         assert(shrine_ac.has_role(shrine_roles::KILL, caretaker.contract_address), 'caretaker cant kill shrine');
@@ -59,15 +59,15 @@ mod test_caretaker {
         // user 1 with 950 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (950 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         // user 2 with 50 yin and 1 yang
         let user2 = common::TROVE2_OWNER_ADDR;
         let trove2_forge_amt: Wad = (50 * WAD_ONE).into();
-        common::fund_user(user2, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user2, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let (eth_yang, eth_gate, eth_yang_amt) = caretaker_utils::only_eth(yangs, gates);
         common::open_trove_helper(abbot, user2, eth_yang, eth_yang_amt, eth_gate, trove2_forge_amt);
 
@@ -75,8 +75,8 @@ mod test_caretaker {
         let shrine_health: Health = shrine.get_shrine_health();
         let backing: Ray = wadray::rdiv_ww(total_yin, shrine_health.value);
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let g0_before_balance: Wad = y0.balance_of(*gates.at(0).contract_address).try_into().unwrap();
         let g1_before_balance: Wad = y1.balance_of(*gates.at(1).contract_address).try_into().unwrap();
@@ -89,7 +89,7 @@ mod test_caretaker {
                 .append(shrine.get_yang_total(*yang) - shrine.get_protocol_owned_yang_amt(*yang));
         }
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         // assert Shrine killed
@@ -143,15 +143,15 @@ mod test_caretaker {
 
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
-        let trove1_deposit_amts = abbot_utils::open_trove_yang_asset_amts();
+        let trove1_deposit_amts = abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span();
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let trove1_id = common::open_trove_helper(abbot, user1, yangs, trove1_deposit_amts, gates, trove1_forge_amt);
 
         // user 2 with 100 yin and 1 yang
         let user2 = common::TROVE2_OWNER_ADDR;
         let trove2_forge_amt: Wad = (1000 * WAD_ONE).into();
-        common::fund_user(user2, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user2, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let (eth_yang, eth_gate, eth_yang_amt) = caretaker_utils::only_eth(yangs, gates);
         let trove2_id = common::open_trove_helper(abbot, user2, eth_yang, eth_yang_amt, eth_gate, trove2_forge_amt);
 
@@ -159,15 +159,15 @@ mod test_caretaker {
         let shrine_health: Health = shrine.get_shrine_health();
         let backing: Ray = wadray::rdiv_ww(total_yin, shrine_health.value);
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let user1_yang0_before_balance: u256 = y0.balance_of(user1);
         let user1_yang1_before_balance: u256 = y1.balance_of(user1);
         let trove1_yang0_deposit: Wad = shrine.get_deposit(*yangs[0], trove1_id);
         let trove1_yang1_deposit: Wad = shrine.get_deposit(*yangs[1], trove1_id);
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         cheat_caller_address(caretaker.contract_address, user1, CheatSpan::TargetCalls(1));
@@ -186,9 +186,9 @@ mod test_caretaker {
         // assert released amount for wbtc (need to deal w/ different decimals)
         let wbtc_tolerance: Wad = (10000 * 10000000000_u128)
             .into(); // 10_000 satoshi due to rebasing of initial yang amt
-        let wbtc_deposit: Wad = fixed_point_to_wad(*trove1_deposit_amts[1], common::WBTC_DECIMALS);
+        let wbtc_deposit: Wad = fixed_point_to_wad(*trove1_deposit_amts[1], WBTC_DECIMALS);
         let expected_release_y1: Wad = wbtc_deposit - wadray::rmul_rw(backing, trove1_yang1_deposit);
-        let actual_release_y1: Wad = fixed_point_to_wad(*trove1_released_assets.at(1).amount, common::WBTC_DECIMALS);
+        let actual_release_y1: Wad = fixed_point_to_wad(*trove1_released_assets.at(1).amount, WBTC_DECIMALS);
         common::assert_equalish(actual_release_y1, expected_release_y1, wbtc_tolerance, 'y1 release');
 
         // assert all deposits were released and assets are back in user's account
@@ -238,25 +238,18 @@ mod test_caretaker {
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         let (reclaimed_yin, reclaimable_assets) = caretaker.preview_reclaim(trove1_forge_amt + WAD_ONE.into());
-        let caretaker_balances: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![caretaker.contract_address].span(),
-        );
-        // Transform caretaker balance to a single array
-        let caretaker_balances_flattened: Span<u128> = array![
-            *caretaker_balances.at(0)[0], *caretaker_balances.at(1)[0],
-        ]
-            .span();
+        let caretaker_balances: Span<u128> = common::get_token_balances(yangs, caretaker.contract_address);
         let expected_reclaimable_assets: Span<AssetBalance> = common::combine_assets_and_amts(
-            yangs, caretaker_balances_flattened,
+            yangs, caretaker_balances,
         );
         assert(reclaimable_assets == expected_reclaimable_assets, 'wrong reclaimable assets');
         assert(reclaimed_yin == trove1_forge_amt, 'wrong reclaimed yin');
@@ -270,9 +263,9 @@ mod test_caretaker {
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         // transfer some yin from user1 elsewhere
@@ -280,17 +273,17 @@ mod test_caretaker {
         let scammer = common::BAD_GUY;
         let scam_amt: u256 = (4000 * WAD_ONE).into();
         cheat_caller_address(shrine.contract_address, user1, CheatSpan::TargetCalls(1));
-        shrine_utils::yin(shrine.contract_address).transfer(scammer, scam_amt);
+        common::erc20(shrine.contract_address).transfer(scammer, scam_amt);
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let user1_yang0_before_balance: u256 = y0.balance_of(user1);
         let user1_yang1_before_balance: u256 = y1.balance_of(user1);
         let scammer_yang0_before_balance: u256 = y0.balance_of(scammer);
         let scammer_yang1_before_balance: u256 = y1.balance_of(scammer);
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         //
@@ -386,12 +379,9 @@ mod test_caretaker {
         spy.assert_emitted(@expected_events);
 
         // assert that caretaker has no assets remaining
-        let caretaker_assets: Span<Span<u128>> = common::get_token_balances(
-            yangs, array![caretaker.contract_address].span(),
-        );
-        for caretaker_asset_arr in caretaker_assets {
-            let caretaker_asset: u128 = *caretaker_asset_arr[0];
-            assert(caretaker_asset.is_zero(), 'caretaker asset should be 0');
+        let caretaker_assets: Span<u128> = common::get_token_balances(yangs, caretaker.contract_address);
+        for caretaker_asset in caretaker_assets {
+            assert((*caretaker_asset).is_zero(), 'caretaker asset should be 0');
         };
     }
 
@@ -403,13 +393,13 @@ mod test_caretaker {
         // user 1 with 10000 yin and 2 different yangs
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         let trove1_id = common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
-        let y0 = IERC20Dispatcher { contract_address: *yangs[0] };
-        let y1 = IERC20Dispatcher { contract_address: *yangs[1] };
+        let y0 = common::erc20(*yangs[0]);
+        let y1 = common::erc20(*yangs[1]);
 
         let gate0_before_balance: Wad = y0.balance_of(*gates.at(0).contract_address).try_into().unwrap();
         let gate1_before_balance: Wad = y1.balance_of(*gates.at(1).contract_address).try_into().unwrap();
@@ -418,11 +408,11 @@ mod test_caretaker {
         // all yang deposits to be used to back yin
         let new_eth_price: Wad = (50 * WAD_ONE).into();
         let new_wbtc_price: Wad = (20 * WAD_ONE).into();
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine.advance(*yangs[0], new_eth_price);
         shrine.advance(*yangs[1], new_wbtc_price);
 
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         let tolerance: Wad = 1_u128.into();
@@ -472,7 +462,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: System is live')]
     fn test_release_when_system_live_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.release(1);
     }
 
@@ -480,7 +470,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: Owner should not be zero')]
     fn test_release_foreign_trove_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(2));
         caretaker.shut();
         caretaker.release(1);
     }
@@ -489,7 +479,7 @@ mod test_caretaker {
     #[should_panic(expected: 'CA: System is live')]
     fn test_reclaim_when_system_live_reverts() {
         let CaretakerTestConfig { caretaker, .. } = caretaker_utils::caretaker_deploy();
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.reclaim(WAD_ONE.into());
     }
 
@@ -501,9 +491,9 @@ mod test_caretaker {
         // opening a trove
         let user1 = common::TROVE1_OWNER_ADDR;
         let trove1_forge_amt: Wad = (10000 * WAD_ONE).into();
-        common::fund_user(user1, yangs, abbot_utils::initial_asset_amts());
+        common::fund_user(user1, yangs, abbot_utils::INITIAL_ASSET_AMTS.span());
         common::open_trove_helper(
-            abbot, user1, yangs, abbot_utils::open_trove_yang_asset_amts(), gates, trove1_forge_amt,
+            abbot, user1, yangs, abbot_utils::OPEN_TROVE_YANG_ASSET_AMTS.span(), gates, trove1_forge_amt,
         );
 
         // Transferring some of user1's yin to someone else
@@ -520,10 +510,10 @@ mod test_caretaker {
         // order of operations in `shrine.melt_helper`.
         let user2 = common::TROVE2_OWNER_ADDR;
         let transfer_amt: u256 = (4000 * WAD_ONE).into();
-        shrine_utils::yin(shrine.contract_address).transfer(user2, transfer_amt);
+        common::erc20(shrine.contract_address).transfer(user2, transfer_amt);
 
         // Activating global settlement mode
-        cheat_caller_address(caretaker.contract_address, caretaker_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(caretaker.contract_address, common::CARETAKER_ADMIN, CheatSpan::TargetCalls(1));
         caretaker.shut();
 
         // User1 attempts to reclaim more yin than they have

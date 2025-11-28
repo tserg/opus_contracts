@@ -28,7 +28,7 @@ pub mod flash_liquidator {
     struct Storage {
         shrine: IShrineDispatcher,
         abbot: IAbbotDispatcher,
-        flashmint: IFlashMintDispatcher,
+        flash_mint: IFlashMintDispatcher,
         purger: IPurgerDispatcher,
     }
 
@@ -38,12 +38,12 @@ pub mod flash_liquidator {
         ref self: ContractState,
         shrine: ContractAddress,
         abbot: ContractAddress,
-        flashmint: ContractAddress,
+        flash_mint: ContractAddress,
         purger: ContractAddress,
     ) {
         self.shrine.write(IShrineDispatcher { contract_address: shrine });
         self.abbot.write(IAbbotDispatcher { contract_address: abbot });
-        self.flashmint.write(IFlashMintDispatcher { contract_address: flashmint });
+        self.flash_mint.write(IFlashMintDispatcher { contract_address: flash_mint });
         self.purger.write(IPurgerDispatcher { contract_address: purger });
     }
 
@@ -64,7 +64,7 @@ pub mod flash_liquidator {
             let mut call_data: Array<felt252> = array![trove_id.into()];
 
             self
-                .flashmint
+                .flash_mint
                 .read()
                 .flash_loan(
                     get_contract_address(), // receiver

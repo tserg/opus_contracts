@@ -40,6 +40,9 @@ sort-module-level-items = true
 max-line-length = 120
 breaking-behavior = { tuple = "LineByLine", fixed_array = "LineByLine", macro_call = "LineByLine" }
 
+[tool.cairo-lint]
+unwrap_syscall = false
+
 [profile.coverage]
 inherits = "dev"
 

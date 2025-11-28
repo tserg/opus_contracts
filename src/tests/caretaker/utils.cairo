@@ -1,5 +1,4 @@
 pub mod caretaker_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use opus::core::roles::{sentinel_roles, shrine_roles};
     use opus::interfaces::IAbbot::IAbbotDispatcher;
     use opus::interfaces::ICaretaker::ICaretakerDispatcher;
@@ -7,13 +6,10 @@ pub mod caretaker_utils {
     use opus::interfaces::ISentinel::ISentinelDispatcher;
     use opus::interfaces::IShrine::IShrineDispatcher;
     use opus::tests::abbot::utils::abbot_utils;
+    use opus::tests::common;
     use opus::tests::equalizer::utils::equalizer_utils;
-    use opus::tests::sentinel::utils::sentinel_utils;
     use opus::tests::shrine::utils::shrine_utils;
-    use snforge_std::{
-        CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
-        start_cheat_block_timestamp_global,
-    };
+    use snforge_std::{ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global};
     use starknet::ContractAddress;
 
     #[derive(Copy, Drop)]
@@ -26,7 +22,6 @@ pub mod caretaker_utils {
         pub gates: Span<IGateDispatcher>,
     }
 
-    pub const ADMIN: ContractAddress = 'caretaker admin'.try_into().unwrap();
 
     pub fn caretaker_deploy() -> CaretakerTestConfig {
         start_cheat_block_timestamp_global(shrine_utils::DEPLOYMENT_TIMESTAMP);
@@ -36,10 +31,10 @@ pub mod caretaker_utils {
         } = abbot_utils::abbot_deploy(Option::None);
         let equalizer_utils::EqualizerTestConfig {
             shrine, equalizer, ..,
-        } = equalizer_utils::equalizer_deploy_with_shrine(shrine.contract_address, Option::None);
+        } = equalizer_utils::equalizer_deploy_with_shrine(shrine, Option::None);
 
         let calldata: Array<felt252> = array![
-            ADMIN.into(),
+            common::CARETAKER_ADMIN.into(),
             shrine.contract_address.into(),
             abbot.contract_address.into(),
             sentinel.contract_address.into(),
@@ -50,14 +45,10 @@ pub mod caretaker_utils {
         let (caretaker, _) = caretaker_class.deploy(@calldata).expect('caretaker deploy failed');
 
         // allow Caretaker to do its business with Shrine
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
-        IAccessControlDispatcher { contract_address: shrine.contract_address }
-            .grant_role(shrine_roles::CARETAKER, caretaker);
+        common::grant_role_for_address(shrine.contract_address, shrine_roles::CARETAKER, caretaker);
 
         // allow Caretaker to call exit in Sentinel during shut
-        cheat_caller_address(sentinel.contract_address, sentinel_utils::ADMIN, CheatSpan::TargetCalls(1));
-        IAccessControlDispatcher { contract_address: sentinel.contract_address }
-            .grant_role(sentinel_roles::CARETAKER, caretaker);
+        common::grant_role_for_address(sentinel.contract_address, sentinel_roles::CARETAKER, caretaker);
 
         let caretaker = ICaretakerDispatcher { contract_address: caretaker };
 
@@ -69,7 +60,7 @@ pub mod caretaker_utils {
     ) -> (Span<ContractAddress>, Span<IGateDispatcher>, Span<u128>) {
         let mut eth_yang = array![*yangs[0]];
         let mut eth_gate = array![*gates[0]];
-        let mut eth_amount = array![abbot_utils::ETH_DEPOSIT_AMT];
+        let mut eth_amount = array![common::MEDIUM_ETH_DEPOSIT];
 
         (eth_yang.span(), eth_gate.span(), eth_amount.span())
     }

@@ -1,18 +1,14 @@
 pub mod absorber_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::{Bounded, Zero};
     use opus::core::roles::absorber_roles;
     use opus::interfaces::IAbbot::IAbbotDispatcher;
     use opus::interfaces::IAbsorber::{IAbsorberDispatcher, IAbsorberDispatcherTrait};
-    use opus::interfaces::IERC20::{
-        IERC20Dispatcher, IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait,
-    };
+    use opus::interfaces::IERC20::{IERC20DispatcherTrait, IMintableDispatcher, IMintableDispatcherTrait};
     use opus::interfaces::IGate::IGateDispatcher;
     use opus::interfaces::ISentinel::{ISentinelDispatcher, ISentinelDispatcherTrait};
     use opus::interfaces::IShrine::{IShrineDispatcher, IShrineDispatcherTrait};
     use opus::tests::abbot::utils::abbot_utils;
     use opus::tests::common;
-    use opus::tests::shrine::utils::shrine_utils;
     use opus::types::{AssetBalance, DistributionInfo};
     use snforge_std::{CheatSpan, ContractClass, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare};
     use starknet::ContractAddress;
@@ -58,36 +54,28 @@ pub mod absorber_utils {
 
     pub const OPUS_BLESS_AMT: u128 = 1000 * WAD_ONE; // 1_000 (Wad)
     pub const veOPUS_BLESS_AMT: u128 = 990 * WAD_ONE; // 990 (Wad)
+    pub const REWARD_AMTS_PER_BLESSING: [u128; 2] = [OPUS_BLESS_AMT, veOPUS_BLESS_AMT];
 
-    #[inline(always)]
-    pub fn provider_asset_amts() -> Span<u128> {
-        array![20 * WAD_ONE, // 20 (Wad) - ETH
-        100000000 // 1 (10 ** 8) - BTC
-        ].span()
-    }
+    pub const PROVIDER_ASSET_AMTS: [u128; 2] = [20 * WAD_ONE, // 20 (Wad) - ETH
+    100000000 // 1 (10 ** 8) - BTC
+    ];
 
-    #[inline(always)]
-    pub fn first_update_assets() -> Span<u128> {
-        array![1230000000000000000, // 1.23 (Wad) - ETH
+    pub const FIRST_UPDATE_ASSET_AMTS: [u128; 2] = [
+        1230000000000000000, // 1.23 (Wad) - ETH
         23700000 // 0.237 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
-    #[inline(always)]
-    pub fn second_update_assets() -> Span<u128> {
-        array![572000000000000000, // 0.572 (Wad) - ETH
+    pub const SECOND_UPDATE_ASSET_AMTS: [u128; 2] = [
+        572000000000000000, // 0.572 (Wad) - ETH
         65400000 // 0.654 (10 ** 8) - BTC
-        ].span()
-    }
+    ];
 
     //
     // Address constants
     //
 
-    pub const ADMIN: ContractAddress = 'absorber owner'.try_into().unwrap();
     pub const PROVIDER_1: ContractAddress = 'provider 1'.try_into().unwrap();
     pub const PROVIDER_2: ContractAddress = 'provider 2'.try_into().unwrap();
-    pub const MOCK_PURGER: ContractAddress = 'mock purger'.try_into().unwrap();
 
     //
     // Test setup helpers
@@ -123,29 +111,25 @@ pub mod absorber_utils {
                 ),
             );
 
-        let admin: ContractAddress = ADMIN;
-
         let calldata: Array<felt252> = array![
-            admin.into(), shrine.contract_address.into(), sentinel.contract_address.into(),
+            common::ABSORBER_ADMIN.into(), shrine.contract_address.into(), sentinel.contract_address.into(),
         ];
 
         let absorber_class = classes.absorber.unwrap();
         let (absorber_addr, _) = absorber_class.deploy(@calldata).expect('absorber deploy failed');
 
-        cheat_caller_address(absorber_addr, admin, CheatSpan::TargetCalls(1));
-        let absorber_ac = IAccessControlDispatcher { contract_address: absorber_addr };
-        absorber_ac.grant_role(absorber_roles::PURGER, MOCK_PURGER);
+        common::grant_role_for_address(absorber_addr, absorber_roles::PURGER, common::MOCK_PURGER);
 
         let absorber = IAbsorberDispatcher { contract_address: absorber_addr };
         AbsorberTestConfig { shrine, sentinel, abbot, absorber, yangs, gates }
     }
 
     pub fn opus_token_deploy(token_class: Option<ContractClass>) -> ContractAddress {
-        common::deploy_token('Opus', 'OPUS', 18, 0_u256, ADMIN, token_class)
+        common::deploy_token('Opus', 'OPUS', 18, 0_u256, common::ABSORBER_ADMIN, token_class)
     }
 
     pub fn veopus_token_deploy(token_class: Option<ContractClass>) -> ContractAddress {
-        common::deploy_token('veOpus', 'veOPUS', 18, 0_u256, ADMIN, token_class)
+        common::deploy_token('veOpus', 'veOPUS', 18, 0_u256, common::ABSORBER_ADMIN, token_class)
     }
 
     // Convenience fixture for reward token addresses constants
@@ -153,10 +137,6 @@ pub mod absorber_utils {
         array![opus_token_deploy(token_class), veopus_token_deploy(token_class)].span()
     }
 
-    // Convenience fixture for reward amounts
-    pub fn reward_amts_per_blessing() -> Span<u128> {
-        array![OPUS_BLESS_AMT, veOPUS_BLESS_AMT].span()
-    }
 
     // Helper function to deploy a blesser for a token.
     // Mints tokens to the deployed blesser if `mint_to_blesser` is `true`.
@@ -168,7 +148,7 @@ pub mod absorber_utils {
         blesser_class: Option<ContractClass>,
     ) -> ContractAddress {
         let mut calldata: Array<felt252> = array![
-            ADMIN.into(), asset.into(), absorber.contract_address.into(), bless_amt.into(),
+            common::ABSORBER_ADMIN.into(), asset.into(), absorber.contract_address.into(), bless_amt.into(),
         ];
 
         let blesser_class = blesser_class.unwrap_or(*declare("blesser").unwrap().contract_class());
@@ -207,7 +187,7 @@ pub mod absorber_utils {
         absorber: IAbsorberDispatcher, tokens: Span<ContractAddress>, mut blessers: Span<ContractAddress>,
     ) {
         cheat_caller_address(
-            absorber.contract_address, ADMIN, CheatSpan::TargetCalls(tokens.len().try_into().unwrap()),
+            absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(tokens.len().try_into().unwrap()),
         );
         for token in tokens {
             absorber.set_reward(*token, *blessers.pop_front().unwrap(), true);
@@ -223,7 +203,7 @@ pub mod absorber_utils {
 
         let provider = PROVIDER_1;
         let provided_amt: Wad = 10000000000000000000000_u128.into(); // 10_000 (Wad)
-        provide_to_absorber(shrine, abbot, absorber, provider, yangs, provider_asset_amts(), gates, provided_amt);
+        provide_to_absorber(shrine, abbot, absorber, provider, yangs, PROVIDER_ASSET_AMTS.span(), gates, provided_amt);
 
         (AbsorberTestConfig { shrine, sentinel, abbot, absorber, yangs, gates }, provider, provided_amt)
     }
@@ -236,7 +216,7 @@ pub mod absorber_utils {
         let (absorber_test_config, provider, provided_amt) = absorber_with_first_provider(Option::Some(classes));
 
         let reward_tokens: Span<ContractAddress> = reward_tokens_deploy(classes.token);
-        let reward_amts_per_blessing: Span<u128> = reward_amts_per_blessing();
+        let reward_amts_per_blessing: Span<u128> = REWARD_AMTS_PER_BLESSING.span();
         let blessers: Span<ContractAddress> = deploy_blesser_for_rewards(
             absorber_test_config.absorber, reward_tokens, reward_amts_per_blessing, classes.blesser,
         );
@@ -266,7 +246,7 @@ pub mod absorber_utils {
             abbot, provider, yangs, yang_asset_amts, gates, amt + WAD_SCALE.into(),
         );
 
-        let yin = shrine_utils::yin(shrine.contract_address);
+        let yin = common::erc20(shrine.contract_address);
         cheat_caller_address(shrine.contract_address, provider, CheatSpan::TargetCalls(1));
         yin.approve(absorber.contract_address, Bounded::MAX);
 
@@ -328,7 +308,7 @@ pub mod absorber_utils {
         burn_amt: Wad,
     ) {
         // Simulate burning a percentage of absorber's yin
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.eject(absorber.contract_address, burn_amt);
 
         // Simulate transfer of "freed" assets to absorber
@@ -341,12 +321,12 @@ pub mod absorber_utils {
 
         let absorbed_assets: Span<AssetBalance> = common::combine_assets_and_amts(yangs, yang_asset_amts);
 
-        cheat_caller_address(absorber.contract_address, MOCK_PURGER, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::MOCK_PURGER, CheatSpan::TargetCalls(1));
         absorber.update(absorbed_assets);
     }
 
     pub fn kill_absorber(absorber: IAbsorberDispatcher) {
-        cheat_caller_address(absorber.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(absorber.contract_address, common::ABSORBER_ADMIN, CheatSpan::TargetCalls(1));
         absorber.kill();
     }
 
@@ -354,7 +334,7 @@ pub mod absorber_utils {
         let mut balances: Array<u128> = ArrayTrait::new();
 
         for yang in yangs {
-            let yang_erc20 = IERC20Dispatcher { contract_address: *yang };
+            let yang_erc20 = common::erc20(*yang);
             let balance: u128 = yang_erc20.balance_of(sentinel.get_gate_address(*yang)).try_into().unwrap();
             balances.append(balance);
         }
@@ -379,7 +359,6 @@ pub mod absorber_utils {
     // - `absorbed_amts` - Ordered list of the amount of assets absorbed.
     //
     // - `before_balances` - Ordered list of the provider's absorbed asset token balances before
-    //    in the format returned by `get_token_balances` [[token1_balance], [token2_balance], ...]
     //
     // - `preview_absorbed_assets` - Ordered list of `AssetBalance` struct representing the expected
     //    amount of absorbed assets the provider is entitled to withdraw based on `preview_reap`,
@@ -391,7 +370,7 @@ pub mod absorber_utils {
         absorber: IAbsorberDispatcher,
         provider: ContractAddress,
         mut absorbed_amts: Span<u128>,
-        mut before_balances: Span<Span<u128>>,
+        mut before_balances: Span<u128>,
         preview_absorbed_assets: Span<AssetBalance>,
         error_margin: u128,
     ) {
@@ -399,12 +378,8 @@ pub mod absorber_utils {
             // Check provider has received correct amount of reward tokens
             // Convert to Wad for fixed point operations
             let absorbed_amt: u128 = *absorbed_amts.pop_front().unwrap();
-            let after_provider_bal: u128 = IERC20Dispatcher { contract_address: *asset.address }
-                .balance_of(provider)
-                .try_into()
-                .unwrap();
-            let mut before_bal_arr: Span<u128> = *before_balances.pop_front().unwrap();
-            let before_bal: u128 = *before_bal_arr.pop_front().unwrap();
+            let after_provider_bal: u128 = common::erc20(*asset.address).balance_of(provider).try_into().unwrap();
+            let before_bal: u128 = *before_balances.pop_front().unwrap();
             let expected_bal: u128 = before_bal + absorbed_amt;
 
             common::assert_equalish(after_provider_bal, expected_bal, error_margin, 'wrong absorbed balance');
@@ -427,7 +402,6 @@ pub mod absorber_utils {
     // - `reward_amts_per_blessing` - Ordered list of the reward token amount transferred to the absorber per blessing
     //
     // - `before_balances` - Ordered list of the provider's reward token balances before receiving the rewards
-    //    in the format returned by `get_token_balances` [[token1_balance], [token2_balance], ...]
     //
     // - `preview_rewarded_assets` - Ordered list of `AssetBalance` struct representing the expected amount of reward
     //    tokens the provider is entitled to withdraw based on `preview_reap`, in the token's decimal precision.
@@ -441,7 +415,7 @@ pub mod absorber_utils {
         absorber: IAbsorberDispatcher,
         provider: ContractAddress,
         mut reward_amts_per_blessing: Span<u128>,
-        mut before_balances: Span<Span<u128>>,
+        mut before_balances: Span<u128>,
         preview_rewarded_assets: Span<AssetBalance>,
         blessings_multiplier: Ray,
         error_margin: u128,
@@ -451,12 +425,8 @@ pub mod absorber_utils {
             // Convert to Wad for fixed point operations
             let reward_amt: Wad = (*reward_amts_per_blessing.pop_front().unwrap()).into();
             let blessed_amt: Wad = wadray::rmul_wr(reward_amt, blessings_multiplier);
-            let after_provider_bal: u128 = IERC20Dispatcher { contract_address: *asset.address }
-                .balance_of(provider)
-                .try_into()
-                .unwrap();
-            let mut before_bal_arr: Span<u128> = *before_balances.pop_front().unwrap();
-            let expected_bal: u128 = *before_bal_arr.pop_front().unwrap() + blessed_amt.into();
+            let after_provider_bal: u128 = common::erc20(*asset.address).balance_of(provider).try_into().unwrap();
+            let expected_bal: u128 = *before_balances.pop_front().unwrap() + blessed_amt.into();
 
             common::assert_equalish(after_provider_bal, expected_bal, error_margin, 'wrong reward balance');
 
@@ -572,7 +542,7 @@ pub mod absorber_utils {
             // Check asset amt per share is correct
             assert(actual_asset_amt_per_share == expected_asset_amt_per_share, 'wrong absorbed amount per share');
 
-            let yang_erc20 = IERC20Dispatcher { contract_address: *yang };
+            let yang_erc20 = common::erc20(*yang);
             let gate: ContractAddress = sentinel.get_gate_address(*yang);
             let updated_gate_balance: u128 = yang_erc20.balance_of(gate).try_into().unwrap();
             let actual_distribution_error: u128 = updated_gate_balance - *gate_balances.pop_front().unwrap();

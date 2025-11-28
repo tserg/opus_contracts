@@ -10,29 +10,30 @@ mod test_tcr_allocator {
     use starknet::ContractAddress;
     use wadray::{RAY_PERCENT, Ray, WAD_ONE, Wad};
 
-    const MOCK_ABSORBER: ContractAddress = 'mock absorber'.try_into().unwrap();
-    const MOCK_STABILIZER: ContractAddress = 'mock stabilizer'.try_into().unwrap();
 
-    fn initial_tcr_recipients() -> Span<ContractAddress> {
-        array![shrine_utils::ADMIN, MOCK_ABSORBER, MOCK_STABILIZER].span()
+    const INITIAL_TCR_RECIPIENTS: [ContractAddress; 3] = [
+        common::SHRINE_ADMIN, common::MOCK_ABSORBER, common::MOCK_STABILIZER,
+    ];
+
+    fn setup_trove(shrine: IShrineDispatcher) {
+        // Trove 1 deposits 10,000 USD worth, and borrows 3,000 USD
+        shrine_utils::trove1_deposit(shrine, (5 * WAD_ONE).into());
+        shrine_utils::trove1_forge(shrine, (3000 * WAD_ONE).into());
     }
 
     #[test]
     fn test_tcr_allocator_recovery_mode() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
-            shrine.contract_address, MOCK_ABSORBER, MOCK_STABILIZER, Option::None,
+            shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
-
-        // Trove 1 deposits 10,000 USD worth, and borrows 3,000 USD
-        shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
-        shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
+        setup_trove(shrine);
 
         shrine_utils::recovery_mode_test_setup(
-            shrine, shrine_utils::three_yang_addrs(), common::RecoveryModeSetupType::BufferLowerBound,
+            shrine, common::THREE_YANG_ADDRS.span(), common::RecoveryModeSetupType::BufferLowerBound,
         );
 
-        let expected_recipients = initial_tcr_recipients();
+        let expected_recipients = INITIAL_TCR_RECIPIENTS.span();
 
         let (recipients, percentages) = allocator.get_allocation();
 
@@ -54,14 +55,14 @@ mod test_tcr_allocator {
 
     #[test]
     fn test_tcr_allocator_above_adjustment_threshold() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
-            shrine.contract_address, MOCK_ABSORBER, MOCK_STABILIZER, Option::None,
+            shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
 
         shrine_utils::create_whale_trove(shrine);
 
-        let expected_recipients = initial_tcr_recipients();
+        let expected_recipients = INITIAL_TCR_RECIPIENTS.span();
 
         let (recipients, percentages) = allocator.get_allocation();
 
@@ -83,16 +84,13 @@ mod test_tcr_allocator {
 
     #[test]
     fn test_tcr_allocator_adjustments() {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let allocator = equalizer_utils::tcr_allocator_deploy(
-            shrine.contract_address, MOCK_ABSORBER, MOCK_STABILIZER, Option::None,
+            shrine.contract_address, common::MOCK_ABSORBER, common::MOCK_STABILIZER, Option::None,
         );
+        setup_trove(shrine);
 
-        // Trove 1 deposits 10,000 USD worth, and borrows 3,000 USD
-        shrine_utils::trove1_deposit(shrine, shrine_utils::TROVE1_YANG1_DEPOSIT.into());
-        shrine_utils::trove1_forge(shrine, shrine_utils::TROVE1_FORGE_AMT.into());
-
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         shrine.set_recovery_mode_target_factor((80 * RAY_PERCENT).into());
 
         // At 80% threshold, and a recovery mode target factor of 80%,
@@ -129,12 +127,12 @@ mod test_tcr_allocator {
         ]
             .span();
 
-        let expected_recipients = initial_tcr_recipients();
+        let expected_recipients = INITIAL_TCR_RECIPIENTS.span();
         let error_margin: Ray = (RAY_PERCENT / 2).into();
 
         for target_yang1_price in target_yang1_prices {
-            cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
-            shrine.advance(shrine_utils::YANG1_ADDR, *target_yang1_price);
+            cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
+            shrine.advance(common::YANG1_ADDR, *target_yang1_price);
 
             let shrine_health: Health = shrine.get_shrine_health();
             let target_ltv: Ray = *target_ltvs.pop_front().unwrap();

@@ -1,5 +1,4 @@
 pub mod transmuter_utils {
-    use access_control::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
     use core::num::traits::Bounded;
     use opus::core::roles::shrine_roles;
     use opus::interfaces::IERC20::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -34,7 +33,6 @@ pub mod transmuter_utils {
     // 2_000_000 (6 decimals)
     pub const MOCK_NONWAD_USD_TOTAL: u128 = 2000000000000;
 
-    pub const ADMIN: ContractAddress = 'transmuter admin'.try_into().unwrap();
     pub const RECEIVER: ContractAddress = 'receiver'.try_into().unwrap();
 
 
@@ -53,36 +51,34 @@ pub mod transmuter_utils {
         receiver: ContractAddress,
     ) -> ITransmuterDispatcher {
         let mut calldata: Array<felt252> = array![
-            ADMIN.into(), shrine.into(), asset.into(), receiver.into(), INITIAL_CEILING.into(),
+            common::TRANSMUTER_ADMIN.into(), shrine.into(), asset.into(), receiver.into(), INITIAL_CEILING.into(),
         ];
 
         let transmuter_class = transmuter_class.unwrap_or(declare_transmuter());
 
         let (transmuter_addr, _) = transmuter_class.deploy(@calldata).expect('transmuter deploy failed');
 
-        cheat_caller_address(shrine, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
-        let shrine_ac: IAccessControlDispatcher = IAccessControlDispatcher { contract_address: shrine };
-        shrine_ac.grant_role(shrine_roles::TRANSMUTER, transmuter_addr);
+        common::grant_role_for_address(shrine, shrine_roles::TRANSMUTER, transmuter_addr);
 
         ITransmuterDispatcher { contract_address: transmuter_addr }
     }
 
     // mock stable with 18 decimals
     pub fn wad_usd_stable_deploy(token_class: Option<ContractClass>) -> IERC20Dispatcher {
-        IERC20Dispatcher {
-            contract_address: common::deploy_token(
+        common::erc20(
+            common::deploy_token(
                 'Mock USD #1', 'mUSD1', 18, MOCK_WAD_USD_TOTAL.into(), common::NON_ZERO_ADDR, token_class,
             ),
-        }
+        )
     }
 
     // mock stable with 6 decimals
     pub fn nonwad_usd_stable_deploy(token_class: Option<ContractClass>) -> IERC20Dispatcher {
-        IERC20Dispatcher {
-            contract_address: common::deploy_token(
+        common::erc20(
+            common::deploy_token(
                 'Mock USD #2', 'mUSD2', 6, MOCK_NONWAD_USD_TOTAL.into(), common::NON_ZERO_ADDR, token_class,
             ),
-        }
+        )
     }
 
     pub fn setup_shrine_with_transmuter(
@@ -94,20 +90,20 @@ pub mod transmuter_utils {
         user: ContractAddress,
     ) {
         // set debt ceiling to 30m
-        cheat_caller_address(shrine.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(shrine.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(2));
         shrine.set_debt_ceiling(shrine_ceiling);
         shrine.inject(start_yin_recipient, shrine_start_yin);
 
         // approve transmuter to deal with user's tokens
         let asset: ContractAddress = transmuter.get_asset();
         cheat_caller_address(asset, user, CheatSpan::TargetCalls(1));
-        IERC20Dispatcher { contract_address: asset }.approve(transmuter.contract_address, Bounded::MAX);
+        common::erc20(asset).approve(transmuter.contract_address, Bounded::MAX);
     }
 
     pub fn shrine_with_wad_usd_stable_transmuter(
         transmuter_class: Option<ContractClass>, token_class: Option<ContractClass>,
     ) -> TransmuterTestConfig {
-        let shrine: IShrineDispatcher = shrine_utils::shrine_setup_with_feed(Option::None);
+        let shrine: IShrineDispatcher = shrine_utils::shrine_deploy_with_dummy_yangs_and_feed(Option::None);
         let wad_usd_stable = wad_usd_stable_deploy(token_class);
 
         let transmuter: ITransmuterDispatcher = transmuter_deploy(
@@ -122,7 +118,7 @@ pub mod transmuter_utils {
     }
 
     pub fn transmuter_registry_deploy() -> ITransmuterRegistryDispatcher {
-        let mut calldata: Array<felt252> = array![ADMIN.into()];
+        let mut calldata: Array<felt252> = array![common::TRANSMUTER_ADMIN.into()];
 
         let transmuter_registry_class = *declare("transmuter_registry").unwrap().contract_class();
         let (transmuter_registry_addr, _) = transmuter_registry_class

@@ -5,7 +5,6 @@ mod test_allocator {
     use opus::interfaces::IAllocator::IAllocatorDispatcherTrait;
     use opus::tests::common;
     use opus::tests::equalizer::utils::equalizer_utils;
-    use opus::tests::shrine::utils::shrine_utils;
     use snforge_std::{CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events};
     use starknet::ContractAddress;
     use wadray::Ray;
@@ -14,10 +13,10 @@ mod test_allocator {
     fn test_allocator_deploy() {
         let mut spy = spy_events();
         let allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
+            equalizer_utils::INITIAL_RECIPIENTS.span(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        let expected_recipients = equalizer_utils::initial_recipients();
+        let expected_recipients = equalizer_utils::INITIAL_RECIPIENTS.span();
         let expected_percentages = equalizer_utils::initial_percentages();
 
         let expected_events = array![
@@ -40,7 +39,7 @@ mod test_allocator {
         assert(recipients.len() == percentages.len(), 'array length mismatch');
 
         let allocator_ac = IAccessControlDispatcher { contract_address: allocator.contract_address };
-        let admin = shrine_utils::ADMIN;
+        let admin = common::SHRINE_ADMIN;
         assert(allocator_ac.get_admin() == admin, 'wrong admin');
         assert(allocator_ac.get_roles(admin) == allocator_roles::SET_ALLOCATION, 'wrong role');
         assert(allocator_ac.has_role(allocator_roles::SET_ALLOCATION, admin), 'role not granted');
@@ -49,14 +48,14 @@ mod test_allocator {
     #[test]
     fn test_set_allocation_pass() {
         let allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
+            equalizer_utils::INITIAL_RECIPIENTS.span(), equalizer_utils::initial_percentages(), Option::None,
         );
 
         let mut spy = spy_events();
 
-        let new_recipients = equalizer_utils::new_recipients();
+        let new_recipients = equalizer_utils::NEW_RECIPIENTS.span();
         let new_percentages = equalizer_utils::new_percentages();
-        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(allocator.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
 
         let (recipients, percentages) = allocator.get_allocation();
@@ -81,7 +80,7 @@ mod test_allocator {
     #[should_panic(expected: 'AL: Duplicate address')]
     fn test_set_allocation_duplicate_address_fail() {
         let allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
+            equalizer_utils::INITIAL_RECIPIENTS.span(), equalizer_utils::initial_percentages(), Option::None,
         );
 
         let new_recipients: Span<ContractAddress> = array![
@@ -93,7 +92,7 @@ mod test_allocator {
             .span();
         let new_percentages = equalizer_utils::new_percentages();
 
-        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(allocator.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
     }
 
@@ -101,14 +100,14 @@ mod test_allocator {
     #[should_panic(expected: 'AL: Array lengths mismatch')]
     fn test_set_allocation_arrays_mismatch_fail() {
         let allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
+            equalizer_utils::INITIAL_RECIPIENTS.span(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        let new_recipients = equalizer_utils::new_recipients();
+        let new_recipients = equalizer_utils::NEW_RECIPIENTS.span();
         let mut new_percentages = equalizer_utils::new_percentages();
         let _ = new_percentages.pop_front();
 
-        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(allocator.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
     }
 
@@ -116,13 +115,13 @@ mod test_allocator {
     #[should_panic(expected: 'AL: No recipients')]
     fn test_set_allocation_no_recipients_fail() {
         let allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
+            equalizer_utils::INITIAL_RECIPIENTS.span(), equalizer_utils::initial_percentages(), Option::None,
         );
 
         let recipients: Array<ContractAddress> = ArrayTrait::new();
         let percentages: Array<Ray> = ArrayTrait::new();
 
-        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(allocator.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(recipients.span(), percentages.span());
     }
 
@@ -130,15 +129,15 @@ mod test_allocator {
     #[should_panic(expected: 'AL: sum(percentages) != RAY_ONE')]
     fn test_set_allocation_invalid_percentage_fail() {
         let allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
+            equalizer_utils::INITIAL_RECIPIENTS.span(), equalizer_utils::initial_percentages(), Option::None,
         );
 
-        let mut new_recipients = equalizer_utils::new_recipients();
+        let mut new_recipients = equalizer_utils::NEW_RECIPIENTS.span();
         // Pop one off new recipients to set it to same length as invalid percentages
         let _ = new_recipients.pop_front();
         let new_percentages = equalizer_utils::invalid_percentages();
 
-        cheat_caller_address(allocator.contract_address, shrine_utils::ADMIN, CheatSpan::TargetCalls(1));
+        cheat_caller_address(allocator.contract_address, common::SHRINE_ADMIN, CheatSpan::TargetCalls(1));
         allocator.set_allocation(new_recipients, new_percentages);
     }
 
@@ -146,10 +145,10 @@ mod test_allocator {
     #[should_panic(expected: 'Caller missing role')]
     fn test_set_allocation_unauthorized_fail() {
         let allocator = equalizer_utils::allocator_deploy(
-            equalizer_utils::initial_recipients(), equalizer_utils::initial_percentages(), Option::None,
+            equalizer_utils::INITIAL_RECIPIENTS.span(), equalizer_utils::initial_percentages(), Option::None,
         );
 
         cheat_caller_address(allocator.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        allocator.set_allocation(equalizer_utils::new_recipients(), equalizer_utils::new_percentages());
+        allocator.set_allocation(equalizer_utils::NEW_RECIPIENTS.span(), equalizer_utils::new_percentages());
     }
 }
