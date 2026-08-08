@@ -136,12 +136,12 @@ pub mod pragma {
     impl IPragmaImpl of IPragma<ContractState> {
         fn set_yang_pair_settings(ref self: ContractState, yang: ContractAddress, pair_settings: PairSettings) {
             self.access_control.assert_has_role(pragma_roles::ADD_YANG);
-            assert(pair_settings.pair_id != 0, 'PGM: Invalid pair ID');
-            assert(yang.is_non_zero(), 'PGM: Invalid yang address');
+            assert!(pair_settings.pair_id != 0, "PGM: Invalid pair ID");
+            assert!(yang.is_non_zero(), "PGM: Invalid yang address");
 
-            assert(
+            assert!(
                 LOWER_SOURCES_BOUND <= pair_settings.sources && pair_settings.sources <= UPPER_SOURCES_BOUND,
-                'PGM: Sources out of bounds',
+                "PGM: Sources out of bounds",
             );
 
             // doing a sanity check if Pragma actually offers a price feed
@@ -152,8 +152,8 @@ pub mod pragma {
                 .read()
                 .get_data(DataType::SpotEntry(pair_settings.pair_id), pair_settings.aggregation_mode);
             // Pragma returns 0 decimals for an unknown pair ID
-            assert(response.decimals.is_non_zero(), 'PGM: Spot unknown pair ID');
-            assert(response.decimals <= 18, 'PGM: Spot too many decimals');
+            assert!(response.decimals.is_non_zero(), "PGM: Spot unknown pair ID");
+            assert!(response.decimals <= 18, "PGM: Spot too many decimals");
 
             let start_time: u64 = get_block_timestamp() - TWAP_DURATION;
             let (_, decimals) = self
@@ -165,8 +165,8 @@ pub mod pragma {
                     TWAP_DURATION,
                     start_time,
                 );
-            assert(decimals.is_non_zero(), 'PGM: TWAP unknown pair ID');
-            assert(decimals <= 18, 'PGM: TWAP too many decimals');
+            assert!(decimals.is_non_zero(), "PGM: TWAP unknown pair ID");
+            assert!(decimals <= 18, "PGM: TWAP too many decimals");
 
             self.yang_pair_settings.write(yang, pair_settings);
 
@@ -175,9 +175,9 @@ pub mod pragma {
 
         fn set_freshness(ref self: ContractState, freshness: u64) {
             self.access_control.assert_has_role(pragma_roles::SET_FRESHNESS);
-            assert(
+            assert!(
                 LOWER_FRESHNESS_BOUND <= freshness && freshness <= UPPER_FRESHNESS_BOUND,
-                'PGM: Freshness out of bounds',
+                "PGM: Freshness out of bounds",
             );
 
             let old_freshness: u64 = self.freshness.read();
@@ -203,7 +203,7 @@ pub mod pragma {
 
         fn fetch_price(ref self: ContractState, yang: ContractAddress) -> Result<Wad, felt252> {
             let pair_settings: PairSettings = self.yang_pair_settings.read(yang);
-            assert(pair_settings.pair_id.is_non_zero(), 'PGM: Unknown yang');
+            assert!(pair_settings.pair_id.is_non_zero(), "PGM: Unknown yang");
 
             let spot_price: Wad = self.fetch_spot_price(pair_settings)?; // propagate Err if any
             let twap_price: Wad = self.fetch_twap_price(pair_settings);
