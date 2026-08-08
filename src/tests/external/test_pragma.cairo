@@ -14,7 +14,7 @@ mod test_pragma {
     use opus::tests::external::utils::{PEPE_TOKEN_ADDR, pragma_utils};
     use opus::tests::seer::utils::seer_utils;
     use opus::tests::sentinel::utils::sentinel_utils;
-    use opus::types::pragma::{AggregationMode, PairSettings, PragmaPricesResponse, PriceValidityThresholds};
+    use opus::types::pragma::{AggregationMode, PairSettings, PragmaPricesResponse};
     use snforge_std::{
         CheatSpan, EventSpyAssertionsTrait, cheat_caller_address, spy_events, start_cheat_block_timestamp_global,
     };
@@ -47,12 +47,10 @@ mod test_pragma {
         let expected_events = array![
             (
                 pragma.contract_address,
-                pragma_contract::Event::PriceValidityThresholdsUpdated(
-                    pragma_contract::PriceValidityThresholdsUpdated {
-                        old_thresholds: PriceValidityThresholds { freshness: 0, sources: 0 },
-                        new_thresholds: PriceValidityThresholds {
-                            freshness: pragma_utils::FRESHNESS_THRESHOLD, sources: pragma_utils::SOURCES_THRESHOLD,
-                        },
+                pragma_contract::Event::FreshnessUpdated(
+                    pragma_contract::FreshnessUpdated {
+                        old_freshness: 0,
+                        new_freshness: pragma_utils::FRESHNESS_THRESHOLD,
                     },
                 ),
             ),
@@ -62,25 +60,22 @@ mod test_pragma {
     }
 
     #[test]
-    fn test_set_price_validity_thresholds_pass() {
+    fn test_set_freshness_pass() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let mut spy = spy_events();
 
         let new_freshness: u64 = 5 * 60; // 5 minutes * 60 seconds
-        let new_sources: u32 = 8;
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_price_validity_thresholds(new_freshness, new_sources);
+        pragma.set_freshness(new_freshness);
 
         let expected_events = array![
             (
                 pragma.contract_address,
-                pragma_contract::Event::PriceValidityThresholdsUpdated(
-                    pragma_contract::PriceValidityThresholdsUpdated {
-                        old_thresholds: PriceValidityThresholds {
-                            freshness: pragma_utils::FRESHNESS_THRESHOLD, sources: pragma_utils::SOURCES_THRESHOLD,
-                        },
-                        new_thresholds: PriceValidityThresholds { freshness: new_freshness, sources: new_sources },
+                pragma_contract::Event::FreshnessUpdated(
+                    pragma_contract::FreshnessUpdated {
+                        old_freshness: pragma_utils::FRESHNESS_THRESHOLD,
+                        new_freshness: new_freshness,
                     },
                 ),
             ),
@@ -89,63 +84,64 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Freshness out of bounds')]
-    fn test_set_price_validity_threshold_freshness_too_low_fail() {
+    #[should_panic(expected: "PGM: Freshness out of bounds")]
+    fn test_set_freshness_too_low_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
         let invalid_freshness: u64 = pragma_contract::LOWER_FRESHNESS_BOUND - 1;
-        let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_price_validity_thresholds(invalid_freshness, valid_sources);
+        pragma.set_freshness(invalid_freshness);
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Freshness out of bounds')]
-    fn test_set_price_validity_threshold_freshness_too_high_fail() {
+    #[should_panic(expected: "PGM: Freshness out of bounds")]
+    fn test_set_freshness_too_high_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
         let invalid_freshness: u64 = pragma_contract::UPPER_FRESHNESS_BOUND + 1;
-        let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_price_validity_thresholds(invalid_freshness, valid_sources);
+        pragma.set_freshness(invalid_freshness);
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Sources out of bounds')]
-    fn test_set_price_validity_threshold_sources_too_low_fail() {
+    #[should_panic(expected: "PGM: Sources out of bounds")]
+    fn test_set_yang_pair_settings_sources_too_low_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
-
-        let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
-        let invalid_sources: u32 = pragma_contract::LOWER_SOURCES_BOUND - 1;
+        let invalid_pair_settings = PairSettings {
+            pair_id: ETH_USD_PAIR_ID,
+            aggregation_mode: AggregationMode::Median,
+            sources: pragma_contract::LOWER_SOURCES_BOUND - 1,
+        };
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_price_validity_thresholds(valid_freshness, invalid_sources);
+        pragma.set_yang_pair_settings(common::DUMMY_YANG_ADDR, invalid_pair_settings);
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Sources out of bounds')]
-    fn test_set_price_validity_threshold_sources_too_high_fail() {
+    #[should_panic(expected: "PGM: Sources out of bounds")]
+    fn test_set_yang_pair_settings_sources_too_high_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
-
-        let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
-        let invalid_sources: u32 = pragma_contract::UPPER_SOURCES_BOUND + 1;
+        let invalid_pair_settings = PairSettings {
+            pair_id: ETH_USD_PAIR_ID,
+            aggregation_mode: AggregationMode::Median,
+            sources: pragma_contract::UPPER_SOURCES_BOUND + 1,
+        };
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
-        pragma.set_price_validity_thresholds(valid_freshness, invalid_sources);
+        pragma.set_yang_pair_settings(common::DUMMY_YANG_ADDR, invalid_pair_settings);
     }
 
     #[test]
     #[should_panic(expected: 'Caller missing role')]
-    fn test_set_price_validity_threshold_unauthorized_fail() {
+    fn test_set_freshness_unauthorized_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
         let valid_freshness: u64 = pragma_utils::FRESHNESS_THRESHOLD;
-        let valid_sources: u32 = pragma_utils::SOURCES_THRESHOLD;
 
         cheat_caller_address(pragma.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
-        pragma.set_price_validity_thresholds(valid_freshness, valid_sources);
+        pragma.set_freshness(valid_freshness);
     }
 
     #[test]
@@ -203,7 +199,7 @@ mod test_pragma {
         // fake data for a second set_yang_pair_settings, so its distinct from the first call
         let pepe_token_pair_id_2: felt252 = 'WILDPEPE/USD';
         let new_pair_settings = PairSettings {
-            pair_id: pepe_token_pair_id_2, aggregation_mode: AggregationMode::Median,
+            pair_id: pepe_token_pair_id_2, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
         };
 
         let response = PragmaPricesResponse {
@@ -241,36 +237,42 @@ mod test_pragma {
     #[should_panic(expected: 'Caller missing role')]
     fn test_set_yang_pair_settings_unauthorized_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
-        let pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
+        let pair_settings = PairSettings {
+            pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+        };
 
         cheat_caller_address(pragma.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(common::DUMMY_YANG_ADDR, pair_settings);
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Invalid pair ID')]
+    #[should_panic(expected: "PGM: Invalid pair ID")]
     fn test_set_yang_pair_settings_invalid_pair_id_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_pair_id = 0;
-        let pair_settings = PairSettings { pair_id: invalid_pair_id, aggregation_mode: AggregationMode::Median };
+        let pair_settings = PairSettings {
+            pair_id: invalid_pair_id, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+        };
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(common::DUMMY_YANG_ADDR, pair_settings);
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Invalid yang address')]
+    #[should_panic(expected: "PGM: Invalid yang address")]
     fn test_set_yang_pair_settings_invalid_yang_address_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_yang_addr = Zero::zero();
-        let pair_settings = PairSettings { pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median };
+        let pair_settings = PairSettings {
+            pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+        };
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
         pragma.set_yang_pair_settings(invalid_yang_addr, pair_settings);
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Spot unknown pair ID')]
+    #[should_panic(expected: "PGM: Spot unknown pair ID")]
     fn test_set_yang_pair_settings_unknown_spot_pair_id_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
@@ -278,7 +280,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: TWAP unknown pair ID')]
+    #[should_panic(expected: "PGM: TWAP unknown pair ID")]
     fn test_set_yang_pair_settings_unknown_twap_pair_id_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let pepe_spot_response = PragmaPricesResponse {
@@ -296,7 +298,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: Spot too many decimals')]
+    #[should_panic(expected: "PGM: Spot too many decimals")]
     fn test_set_yang_pair_settings_spot_too_many_decimals_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
@@ -316,7 +318,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: 'PGM: TWAP too many decimals')]
+    #[should_panic(expected: "PGM: TWAP too many decimals")]
     fn test_set_yang_pair_settings_twap_too_many_decimals_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
@@ -510,7 +512,7 @@ mod test_pragma {
 
         // prepare the response from mock oracle in such a way
         // that it has less than the required number of sources
-        let num_sources: u32 = pragma_utils::SOURCES_THRESHOLD - 1;
+        let num_sources: u32 = (pragma_utils::SOURCES_THRESHOLD - 1).into();
         mock_pragma
             .next_get_data(
                 pragma_utils::get_pair_id_for_yang(eth_addr),
