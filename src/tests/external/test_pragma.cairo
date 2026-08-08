@@ -84,7 +84,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Freshness out of bounds")]
+    #[should_panic(expected: 'PGM: Freshness out of bounds')]
     fn test_set_freshness_too_low_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
@@ -95,7 +95,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Freshness out of bounds")]
+    #[should_panic(expected: 'PGM: Freshness out of bounds')]
     fn test_set_freshness_too_high_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
@@ -106,7 +106,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Sources out of bounds")]
+    #[should_panic(expected: 'PGM: Sources out of bounds')]
     fn test_set_yang_pair_settings_sources_too_low_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_pair_settings = PairSettings {
@@ -120,7 +120,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Sources out of bounds")]
+    #[should_panic(expected: 'PGM: Sources out of bounds')]
     fn test_set_yang_pair_settings_sources_too_high_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_pair_settings = PairSettings {
@@ -246,7 +246,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Invalid pair ID")]
+    #[should_panic(expected: 'PGM: Invalid pair ID')]
     fn test_set_yang_pair_settings_invalid_pair_id_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_pair_id = 0;
@@ -259,7 +259,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Invalid yang address")]
+    #[should_panic(expected: 'PGM: Invalid yang address')]
     fn test_set_yang_pair_settings_invalid_yang_address_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_yang_addr = Zero::zero();
@@ -272,7 +272,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Spot unknown pair ID")]
+    #[should_panic(expected: 'PGM: Spot unknown pair ID')]
     fn test_set_yang_pair_settings_unknown_spot_pair_id_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
@@ -280,7 +280,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: TWAP unknown pair ID")]
+    #[should_panic(expected: 'PGM: TWAP unknown pair ID')]
     fn test_set_yang_pair_settings_unknown_twap_pair_id_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let pepe_spot_response = PragmaPricesResponse {
@@ -298,7 +298,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: Spot too many decimals")]
+    #[should_panic(expected: 'PGM: Spot too many decimals')]
     fn test_set_yang_pair_settings_spot_too_many_decimals_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
@@ -318,7 +318,7 @@ mod test_pragma {
     }
 
     #[test]
-    #[should_panic(expected: "PGM: TWAP too many decimals")]
+    #[should_panic(expected: 'PGM: TWAP too many decimals')]
     fn test_set_yang_pair_settings_twap_too_many_decimals_fail() {
         let PragmaTestConfig { pragma, mock_pragma } = pragma_utils::pragma_deploy(Option::None, Option::None);
 
