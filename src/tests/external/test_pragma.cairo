@@ -49,8 +49,7 @@ mod test_pragma {
                 pragma.contract_address,
                 pragma_contract::Event::FreshnessUpdated(
                     pragma_contract::FreshnessUpdated {
-                        old_freshness: 0,
-                        new_freshness: pragma_utils::FRESHNESS_THRESHOLD,
+                        old_freshness: 0, new_freshness: pragma_utils::FRESHNESS_THRESHOLD,
                     },
                 ),
             ),
@@ -74,8 +73,7 @@ mod test_pragma {
                 pragma.contract_address,
                 pragma_contract::Event::FreshnessUpdated(
                     pragma_contract::FreshnessUpdated {
-                        old_freshness: pragma_utils::FRESHNESS_THRESHOLD,
-                        new_freshness: new_freshness,
+                        old_freshness: pragma_utils::FRESHNESS_THRESHOLD, new_freshness: new_freshness,
                     },
                 ),
             ),
@@ -252,7 +250,9 @@ mod test_pragma {
         // fake data for a second set_yang_pair_settings, so its distinct from the first call
         let pepe_token_pair_id_2: felt252 = 'WILDPEPE/USD';
         let new_pair_settings = PairSettings {
-            pair_id: pepe_token_pair_id_2, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+            pair_id: pepe_token_pair_id_2,
+            aggregation_mode: AggregationMode::Median,
+            sources: pragma_utils::SOURCES_THRESHOLD,
         };
 
         let response = PragmaPricesResponse {
@@ -291,7 +291,9 @@ mod test_pragma {
     fn test_set_yang_pair_settings_unauthorized_fail() {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let pair_settings = PairSettings {
-            pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+            pair_id: ETH_USD_PAIR_ID,
+            aggregation_mode: AggregationMode::Median,
+            sources: pragma_utils::SOURCES_THRESHOLD,
         };
 
         cheat_caller_address(pragma.contract_address, common::BAD_GUY, CheatSpan::TargetCalls(1));
@@ -304,7 +306,9 @@ mod test_pragma {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_pair_id = 0;
         let pair_settings = PairSettings {
-            pair_id: invalid_pair_id, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+            pair_id: invalid_pair_id,
+            aggregation_mode: AggregationMode::Median,
+            sources: pragma_utils::SOURCES_THRESHOLD,
         };
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
@@ -317,7 +321,9 @@ mod test_pragma {
         let PragmaTestConfig { pragma, .. } = pragma_utils::pragma_deploy(Option::None, Option::None);
         let invalid_yang_addr = Zero::zero();
         let pair_settings = PairSettings {
-            pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+            pair_id: ETH_USD_PAIR_ID,
+            aggregation_mode: AggregationMode::Median,
+            sources: pragma_utils::SOURCES_THRESHOLD,
         };
 
         cheat_caller_address(pragma.contract_address, common::PRAGMA_ADMIN, CheatSpan::TargetCalls(1));
@@ -615,7 +621,9 @@ mod test_pragma {
         let eth_price: Wad = seer_utils::ETH_INIT_PRICE.into();
         pragma_utils::mock_valid_price_update(mock_pragma, eth_addr, eth_price, now);
         let eth_pair_settings = PairSettings {
-            pair_id: ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: pragma_utils::SOURCES_THRESHOLD,
+            pair_id: ETH_USD_PAIR_ID,
+            aggregation_mode: AggregationMode::Median,
+            sources: pragma_utils::SOURCES_THRESHOLD,
         };
 
         // Set up WBTC with sources = 1 (lower threshold)
@@ -636,28 +644,30 @@ mod test_pragma {
         let eth_pragma_price = pragma_utils::convert_price_to_pragma_scale(eth_price);
         let wbtc_pragma_price = pragma_utils::convert_price_to_pragma_scale(wbtc_price);
 
-        mock_pragma.next_get_data(
-            ETH_USD_PAIR_ID,
-            PragmaPricesResponse {
-                price: eth_pragma_price,
-                decimals: PRAGMA_DECIMALS.into(),
-                last_updated_timestamp: now,
-                num_sources_aggregated: num_sources,
-                expiration_timestamp: Option::None,
-            },
-        );
+        mock_pragma
+            .next_get_data(
+                ETH_USD_PAIR_ID,
+                PragmaPricesResponse {
+                    price: eth_pragma_price,
+                    decimals: PRAGMA_DECIMALS.into(),
+                    last_updated_timestamp: now,
+                    num_sources_aggregated: num_sources,
+                    expiration_timestamp: Option::None,
+                },
+            );
         mock_pragma.next_calculate_twap(ETH_USD_PAIR_ID, (eth_pragma_price, PRAGMA_DECIMALS.into()));
 
-        mock_pragma.next_get_data(
-            WBTC_USD_PAIR_ID,
-            PragmaPricesResponse {
-                price: wbtc_pragma_price,
-                decimals: PRAGMA_DECIMALS.into(),
-                last_updated_timestamp: now,
-                num_sources_aggregated: num_sources,
-                expiration_timestamp: Option::None,
-            },
-        );
+        mock_pragma
+            .next_get_data(
+                WBTC_USD_PAIR_ID,
+                PragmaPricesResponse {
+                    price: wbtc_pragma_price,
+                    decimals: PRAGMA_DECIMALS.into(),
+                    last_updated_timestamp: now,
+                    num_sources_aggregated: num_sources,
+                    expiration_timestamp: Option::None,
+                },
+            );
         mock_pragma.next_calculate_twap(WBTC_USD_PAIR_ID, (wbtc_pragma_price, PRAGMA_DECIMALS.into()));
 
         let pragma_oracle = IOracleDispatcher { contract_address: pragma.contract_address };
