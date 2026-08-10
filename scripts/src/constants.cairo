@@ -11,7 +11,7 @@ pub const MINIMUM_TROVE_VALUE: u128 = 100 * WAD_ONE; // 100 (Wad)
 
 // Constants for Pragma spot
 pub const PRAGMA_FRESHNESS_THRESHOLD: u64 = 3600; // 1 hour
-pub const PRAGMA_SOURCES_THRESHOLD: u8 = 3;
+pub const PRAGMA_SOURCES_THRESHOLD: u32 = 3;
 
 // Constants for yangs
 pub const INITIAL_ETH_AMT: u128 = 1000000000; // 10 ** 9

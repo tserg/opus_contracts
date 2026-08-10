@@ -228,7 +228,7 @@ pub mod pragma {
         // price value
         // set on a per-collateral basis for backwards compatiblity of collateral
         // types with 1 source
-        pub sources: u8,
+        pub sources: u32,
     }
 }
 

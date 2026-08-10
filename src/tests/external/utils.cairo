@@ -27,7 +27,7 @@ pub mod pragma_utils {
     //
 
     pub const FRESHNESS_THRESHOLD: u64 = 30 * 60; // 30 minutes * 60 seconds
-    pub const SOURCES_THRESHOLD: u8 = 3;
+    pub const SOURCES_THRESHOLD: u32 = 3;
     pub const UPDATE_FREQUENCY: u64 = 10 * 60; // 10 minutes * 60 seconds
     pub const DEFAULT_NUM_SOURCES: u32 = 5;
     pub const PEPE_USD_PAIR_ID: felt252 = 'PEPE/USD';

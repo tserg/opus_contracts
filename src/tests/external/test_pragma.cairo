@@ -571,7 +571,7 @@ mod test_pragma {
 
         // prepare the response from mock oracle in such a way
         // that it has less than the required number of sources
-        let num_sources: u32 = (pragma_utils::SOURCES_THRESHOLD - 1).into();
+        let num_sources: u32 = pragma_utils::SOURCES_THRESHOLD - 1;
         mock_pragma
             .next_get_data(
                 pragma_utils::get_pair_id_for_yang(eth_addr),

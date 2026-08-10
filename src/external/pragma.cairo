@@ -46,8 +46,8 @@ pub mod pragma {
     // the range is [lower, upper]
     pub const LOWER_FRESHNESS_BOUND: u64 = 60; // 1 minute
     pub const UPPER_FRESHNESS_BOUND: u64 = 4 * 60 * 60; // 4 hours * 60 minutes * 60 seconds
-    pub const LOWER_SOURCES_BOUND: u8 = 1;
-    pub const UPPER_SOURCES_BOUND: u8 = 13;
+    pub const LOWER_SOURCES_BOUND: u32 = 1;
+    pub const UPPER_SOURCES_BOUND: u32 = 13;
 
     //
     // Storage
@@ -260,11 +260,11 @@ pub mod pragma {
             fixed_point_to_wad(twap, decimals.try_into().unwrap())
         }
 
-        fn is_valid_price_update(self: @ContractState, update: PragmaPricesResponse, sources: u8) -> bool {
+        fn is_valid_price_update(self: @ContractState, update: PragmaPricesResponse, sources: u32) -> bool {
             let freshness: u64 = self.freshness.read();
 
             // check if the update is from enough sources
-            let has_enough_sources = sources.into() <= update.num_sources_aggregated;
+            let has_enough_sources = sources <= update.num_sources_aggregated;
 
             // it is possible that the last_updated_ts is greater than the block_timestamp (in other words,
             // it is from the future from the chain's perspective), because the update timestamp is coming
