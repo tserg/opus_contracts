@@ -80,6 +80,9 @@ pub const PRAGMA_SOLVBTC_PAIR_SETTINGS: PairSettings = PairSettings {
 pub const PRAGMA_LBTC_PAIR_SETTINGS: PairSettings = PairSettings {
     pair_id: constants::LBTC_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
+pub const PRAGMA_UNIBTC_PAIR_SETTINGS: PairSettings = PairSettings {
+    pair_id: constants::BTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+};
 pub const PRAGMA_XWBTC_PAIR_SETTINGS: PairSettings = PairSettings {
     pair_id: constants::XWBTC_PAIR_ID,
     aggregation_mode: AggregationMode::ConversionRate,
@@ -106,11 +109,8 @@ pub const PRAGMA_EKUBO_PAIR_SETTINGS: PairSettings = PairSettings {
 pub const PRAGMA_LORDS_PAIR_SETTINGS: PairSettings = PairSettings {
     pair_id: constants::LORDS_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: 2,
 };
-pub const PRAGMA_UNIBTC_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::BTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: 2,
-};
 pub const PRAGMA_SURVIVOR_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::SURVIVOR_PAIR_ID, aggregation_mode: AggregationMode::ConversionRate, sources: 1,
+    pair_id: constants::SURVIVOR_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: 1,
 };
 
 // Chain constants
