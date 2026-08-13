@@ -48,13 +48,19 @@ pub const WBTC_INITIAL_SUPPLY: u128 = 2099999997690000; // approx. 21_000_000 * 
 
 // Constants for Pragma oracle adapter
 pub const PRAGMA_ETH_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::ETH_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+    pair_id: constants::ETH_USD_PAIR_ID,
+    aggregation_mode: AggregationMode::Median,
+    sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_STRK_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::STRK_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+    pair_id: constants::STRK_USD_PAIR_ID,
+    aggregation_mode: AggregationMode::Median,
+    sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_WBTC_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::WBTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+    pair_id: constants::WBTC_USD_PAIR_ID,
+    aggregation_mode: AggregationMode::Median,
+    sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_WSTETH_PAIR_SETTINGS: PairSettings = PairSettings {
     pair_id: constants::WSTETH_USD_PAIR_ID,
@@ -72,16 +78,24 @@ pub const PRAGMA_SSTRK_PAIR_SETTINGS: PairSettings = PairSettings {
     sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_TBTC_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::BTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+    pair_id: constants::BTC_USD_PAIR_ID,
+    aggregation_mode: AggregationMode::Median,
+    sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_SOLVBTC_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::BTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+    pair_id: constants::BTC_USD_PAIR_ID,
+    aggregation_mode: AggregationMode::Median,
+    sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_LBTC_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::LBTC_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+    pair_id: constants::LBTC_PAIR_ID,
+    aggregation_mode: AggregationMode::Median,
+    sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_UNIBTC_PAIR_SETTINGS: PairSettings = PairSettings {
-    pair_id: constants::BTC_USD_PAIR_ID, aggregation_mode: AggregationMode::Median, sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
+    pair_id: constants::BTC_USD_PAIR_ID,
+    aggregation_mode: AggregationMode::Median,
+    sources: DEFAULT_PRAGMA_SOURCES_THRESHOLD,
 };
 pub const PRAGMA_XWBTC_PAIR_SETTINGS: PairSettings = PairSettings {
     pair_id: constants::XWBTC_PAIR_ID,

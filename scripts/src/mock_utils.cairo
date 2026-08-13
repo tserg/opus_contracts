@@ -1,5 +1,5 @@
 use opus::constants::PRAGMA_DECIMALS;
-use scripts::constants::{MAX_FEE, DEFAULT_PRAGMA_SOURCES_THRESHOLD};
+use scripts::constants::{DEFAULT_PRAGMA_SOURCES_THRESHOLD, MAX_FEE};
 use sncast_std::{DisplayContractAddress, FeeSettingsTrait, invoke};
 use starknet::ContractAddress;
 
